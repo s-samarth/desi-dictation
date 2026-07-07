@@ -1,6 +1,16 @@
 # Troubleshooting — Desi Dictation
 
-Symptoms → causes → fixes. Build-time failures are also chronicled with full
+Symptoms → causes → fixes.
+
+## 0. "The application 'Desi Dictation' can't be opened" (first open)
+
+In order of likelihood:
+1. **Gatekeeper block (expected on beta builds)** — click OK → System Settings
+   → Privacy & Security → scroll to the bottom → **Open Anyway** → confirm.
+   Or in Terminal: `xattr -dr com.apple.quarantine "/Applications/Desi Dictation.app"`
+2. **Intel Mac** ( → About This Mac shows "Intel") — not supported; the
+   models need Apple Silicon (M1+).
+3. **macOS 13 or older** — requires macOS 14+. Build-time failures are also chronicled with full
 context in [BUILD_LOG.md](BUILD_LOG.md).
 
 ## 1. Hotkey does nothing / permission errors in the menu
