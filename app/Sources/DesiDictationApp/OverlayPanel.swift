@@ -39,7 +39,7 @@ final class OverlayCoordinator {
 
     private func makePanel() -> NSPanel {
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 180, height: 44),
+            contentRect: NSRect(x: 0, y: 0, width: 260, height: 48),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered, defer: false)
         panel.level = .statusBar
@@ -47,6 +47,7 @@ final class OverlayCoordinator {
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.ignoresMouseEvents = true
+        panel.alphaValue = 0.92   // see-through: user asked to see what's behind
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.contentView = NSHostingView(rootView: OverlayView())
         return panel
@@ -63,24 +64,41 @@ final class OverlayCoordinator {
 
 struct OverlayView: View {
     @ObservedObject var controller = DictationController.shared
+    @State private var pulse = false
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             switch controller.phase {
             case .recording:
-                Circle().fill(.red).frame(width: 10, height: 10)
-                Text("Listening… (Esc to cancel)")
+                Circle()
+                    .fill(.red)
+                    .frame(width: 9, height: 9)
+                    .scaleEffect(pulse ? 1.0 : 0.65)
+                    .opacity(pulse ? 1.0 : 0.55)
+                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true),
+                               value: pulse)
+                    .onAppear { pulse = true }
+                    .onDisappear { pulse = false }
+                Text("Listening")
+                    .font(.system(size: 13, weight: .semibold))
+                Text("esc to cancel")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
             case .transcribing:
                 ProgressView().controlSize(.small)
-                Text("Transcribing…")
+                Text("Transcribing")
+                    .font(.system(size: 13, weight: .semibold))
             default:
                 EmptyView()
             }
         }
-        .font(.system(size: 12, weight: .medium))
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
-        .background(.ultraThinMaterial, in: Capsule())
-        .frame(width: 180, height: 44)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(Capsule().strokeBorder(.white.opacity(0.12), lineWidth: 0.5))
+        )
+        .frame(width: 260, height: 48)
     }
 }

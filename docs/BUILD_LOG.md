@@ -237,4 +237,26 @@ sentences transcribed correctly, zero hallucination in gaps, and **15× realtime
 `publish_models.sh` needs a Hugging Face write token (`hf auth login`) — until
 the HF repo exists, in-app Hinglish downloads 404 (local installs unaffected).
 
+### ❌ Failure mode #12: v0.3 regression — transcriptions return "NaN" (user-reported)
+Live-mic dictations decoded to literal "nan" text after the v0.3 engine changes;
+CLI tests with clean TTS wavs never reproduced it (mic audio has a different
+noise profile). Couldn't single-step the root cause on-device, so all suspects
+were fixed defensively (v0.3.1):
+1. **`flash_attn = false`** — prime suspect; known NaN-logit source with
+   quantized models on Metal for some inputs. Cost: ~3×→ measured 11× realtime
+   with VAD anyway — negligible.
+2. **Mic sample sanitization** — non-finite samples from the converter zeroed.
+3. **Pre-flight buffer check** — silent/corrupt buffers rejected before decode.
+4. **"nan" output filter** — never paste garbage; degrade to "no speech" message.
+5. **VAD kill-switch** in Dictation → Options ("Smart pause handling") so the
+   user can bisect quality issues live without a rebuild.
+Verified post-fix: Apex+VAD long-form clip still perfect (11× realtime), turbo
+English verbatim. **Lesson: mic audio ≠ TTS test audio — the eval set needs
+real mic recordings** (already the spike/README.md plan).
+
+### Overlay redesign (user feedback: "very bad UI")
+Truncated "(Esc to c…" at 180 px → 260 px capsule, pulsing red dot, "Listening"
++ quiet "esc to cancel" secondary label, ultra-thin material + 0.92 panel alpha
+(user wanted to see through it), hairline border for readability.
+
 <!-- Append new entries below as the build progresses. -->

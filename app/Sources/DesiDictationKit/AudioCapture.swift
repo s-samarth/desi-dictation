@@ -76,7 +76,10 @@ public final class AudioCapture {
         }
         guard err == nil, out.frameLength > 0, let data = out.floatChannelData else { return }
 
-        let chunk = Array(UnsafeBufferPointer(start: data[0], count: Int(out.frameLength)))
+        // Sanitize: a glitchy converter/device can emit NaN/inf samples, which
+        // poison the whole transcription. Zero them out.
+        let raw = UnsafeBufferPointer(start: data[0], count: Int(out.frameLength))
+        let chunk = raw.map { $0.isFinite ? $0 : 0 }
         lock.lock(); samples.append(contentsOf: chunk); lock.unlock()
     }
 }

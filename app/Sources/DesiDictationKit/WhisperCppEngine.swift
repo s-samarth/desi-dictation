@@ -23,7 +23,10 @@ public final class WhisperCppEngine: TranscriptionEngine {
         unload()
         var params = whisper_context_default_params()
         params.use_gpu = true            // Metal (JIT-compiled shaders; no Xcode needed)
-        params.flash_attn = true
+        // flash_attn OFF: known source of NaN logits with quantized models on
+        // Metal for some audio (v0.3 regression: "always returns NaN"). The
+        // speed win is minor at our model sizes; correctness wins.
+        params.flash_attn = false
         guard let newCtx = whisper_init_from_file_with_params(modelPath, params) else {
             throw EngineError.modelLoadFailed(modelPath)
         }
@@ -40,6 +43,11 @@ public final class WhisperCppEngine: TranscriptionEngine {
     public func transcribe(samples: [Float], mode: LanguageMode) throws -> TranscriptionResult {
         guard let ctx else { throw EngineError.modelNotLoaded }
         guard samples.count > 1600 else { throw EngineError.emptyAudio }  // <0.1s
+        // Reject silent/corrupt buffers before they reach the model — NaN or
+        // all-zero input produces NaN logits and garbage decodes downstream.
+        guard samples.contains(where: { $0.isFinite && abs($0) > 0.0005 }) else {
+            throw EngineError.emptyAudio
+        }
 
         let start = Date()
         var params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY)
@@ -57,10 +65,11 @@ public final class WhisperCppEngine: TranscriptionEngine {
         // after it — the classic "long dictation gets worse" failure.
         params.no_context = true
 
-        // Silero VAD (if the model file is installed): trims silences before
+        // Silero VAD (if installed AND enabled — Settings has a kill-switch so
+        // users can bisect quality issues live): trims silences before
         // decoding — silence is exactly where Whisper hallucinates.
         var vadCString: UnsafeMutablePointer<CChar>?
-        if let vadPath = Self.vadModelPath() {
+        if SettingsStore.shared.vadEnabled, let vadPath = Self.vadModelPath() {
             params.vad = true
             vadCString = strdup(vadPath)
             params.vad_model_path = UnsafePointer(vadCString)
@@ -83,6 +92,13 @@ public final class WhisperCppEngine: TranscriptionEngine {
             if let seg = whisper_full_get_segment_text(ctx, i) {
                 text += String(cString: seg)
             }
+        }
+        // NaN logits decode to literal "nan" tokens — treat as no output
+        // rather than pasting garbage into the user's document.
+        let lowered = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if lowered == "nan" || lowered.replacingOccurrences(of: "nan", with: "")
+            .trimmingCharacters(in: .whitespaces).isEmpty && lowered.contains("nan") {
+            text = ""
         }
         return TranscriptionResult(
             text: text.trimmingCharacters(in: .whitespacesAndNewlines),

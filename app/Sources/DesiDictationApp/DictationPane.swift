@@ -63,6 +63,7 @@ struct DictationPane: View {
             }
 
             Section("Options") {
+                Toggle("Smart pause handling (VAD)", isOn: $settings.vadEnabled)
                 Toggle("Play sounds", isOn: $settings.soundsEnabled)
                 Toggle("Copy to clipboard instead of pasting", isOn: $settings.copyInsteadOfPaste)
                 Toggle("Keep dictation history (last 24 h, on this Mac only)",
