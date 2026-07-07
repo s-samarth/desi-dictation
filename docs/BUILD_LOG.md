@@ -60,4 +60,46 @@ Synthetic TTS audio validates the *pipeline*, not accent robustness. The
 `spike/README.md` flow (record 40–60 personal clips → `eval.py`) remains the
 decision gate for which model ships as default. Harness is ready.
 
+## 2026-07-07 — Session 1 (continued): the Swift app
+
+### ❌ Failure mode #3: SwiftPM manifest fails to link with tools-version 5.10
+`swift build` died compiling **Package.swift itself** — undefined
+`PackageDescription.Package.__allocating_init(...)`. The CLT 6.3 ManifestAPI no
+longer ships the older manifest ABI. Fix: `swift-tools-version: 6.0` +
+`-swift-version 5` per-target (keeps pre-strict-concurrency semantics).
+
+### ❌ Failure mode #4: the CLT's SwiftPM is broken system-wide
+Even a hello-world manifest at tools-version 6.0/6.2 failed with the same
+undefined symbol → the CLT 26.6 install has a **mismatched
+libPackageDescription.dylib vs .swiftmodule**. No CLT update available via
+`softwareupdate`.
+**Fix:** `brew install swift` (OSS toolchain 6.3.2, keg-only at
+`/opt/homebrew/Cellar/swift/6.3.2/Swift-6.3.xctoolchain/usr/bin/swift`) — its
+SwiftPM is self-consistent and it compiles AppKit/SwiftUI via the CLT SDK's
+textual interfaces. `build_app.sh` honors `DESI_SWIFT` to override.
+
+### ❌ Failure mode #5: Swift concurrency isolation errors
+`OverlayCoordinator` touched `@MainActor` state from a nonisolated context, and
+the engine property was accessed from the worker queue. Fixes: `@MainActor` on
+OverlayCoordinator/AppDelegate; `nonisolated(unsafe) let engine` (safe because
+all engine access is serialized on one DispatchQueue by design).
+
+### ✅ Results
+- Full package builds: `DesiDictationKit` (15 files) + menu bar app + `desi-cli`.
+- **CLI verification (debug):** Hindi audio → Roman Hinglish, 10× realtime.
+- **Release:** same clip **39× realtime** (0.14 s for 5.6 s audio, M3).
+- Model load = **7.7 s** (one-time Metal shader JIT at startup — this is why the
+  app preloads and keeps the model resident; per-dictation latency is unaffected).
+- `build_app.sh` → `Desi Dictation.app` (2.6 MB, ad-hoc signed, LSUIElement).
+- `make_dmg.sh` → `DesiDictation-0.1.0.dmg` (1.3 MB, models not bundled).
+- Launch smoke test: app runs, menu bar icon present, permission prompts fire.
+
+### Deliberate scope decisions (v0.1)
+- **No chunked pre-transcription while speaking** — at 39× realtime, a 60 s
+  dictation transcribes in ~1.5 s post-release; chunking is a Phase-5 optimization.
+- **No Fn/Globe hotkey** — macOS reserves it; Right ⌥ default instead.
+- **System sounds** (Tink/Pop/Basso) instead of custom audio assets.
+- **Pasteboard-swap insertion only** — AX-API and keystroke fallbacks are
+  designed (see SYSTEM_DESIGN.md) but not yet needed in tested apps.
+
 <!-- Append new entries below as the build progresses. -->
