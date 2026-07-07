@@ -1,6 +1,9 @@
 import AppKit
 import Foundation
 import Combine
+import os.log
+
+let controllerLog = Logger(subsystem: "com.desi.dictation", category: "controller")
 
 public enum DictationPhase: Equatable {
     case disabled
@@ -31,6 +34,7 @@ public final class DictationController: ObservableObject {
     /// Errors never brick the app: show, beep, auto-return to idle. The user
     /// can also just start dictating again immediately (see startRecording).
     private func transientError(_ message: String) {
+        controllerLog.error("transient error: \(message, privacy: .public)")
         phase = .error(message)
         Sounds.error.play()
         errorResetTask?.cancel()
@@ -185,6 +189,7 @@ public final class DictationController: ObservableObject {
             transientError("No speech detected — nothing inserted or copied.")
             return
         }
+        controllerLog.info("deliver: \(text.count, privacy: .public) chars, copyOnly=\(copyOnly, privacy: .public)")
         // The transcript is sacred: even if pasting into the target app fails,
         // it's in lastTranscript ("Copy Last" in the menu) and History.
         lastTranscript = text

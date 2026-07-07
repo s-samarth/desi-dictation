@@ -23,12 +23,19 @@ do {
     let samples = try AudioFileLoader.loadSamples(url: audioURL)
     print("audio: \(String(format: "%.1f", Double(samples.count) / 16000.0))s")
 
-    let result = try engine.transcribe(samples: samples, mode: mode)
-    let rtf = result.audioSeconds / max(result.duration, 0.001)
-    print("transcribed in \(String(format: "%.2f", result.duration))s "
-        + "(\(String(format: "%.0f", rtf))x realtime, mode: \(mode.rawValue))")
-    print("---")
-    print(result.text)
+    if CommandLine.arguments.contains("--novad") {
+        UserDefaults.standard.set(false, forKey: "vadEnabled")
+    }
+
+    // Repeated transcriptions on ONE loaded context — mirrors real app usage
+    // (the app keeps the model resident across dictations).
+    let repeats = CommandLine.arguments.contains("--repeat") ? 3 : 1
+    for i in 1...repeats {
+        let result = try engine.transcribe(samples: samples, mode: mode)
+        let rtf = result.audioSeconds / max(result.duration, 0.001)
+        print("[run \(i)] \(String(format: "%.2f", result.duration))s "
+            + "(\(String(format: "%.0f", rtf))x realtime) -> \"\(result.text)\"")
+    }
 } catch {
     print("error: \(error.localizedDescription)")
     exit(2)

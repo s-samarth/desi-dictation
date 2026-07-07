@@ -1,5 +1,8 @@
 import Foundation
 import CWhisper
+import os.log
+
+let engineLog = Logger(subsystem: "com.desi.dictation", category: "engine")
 
 /// whisper.cpp-backed engine. Not thread-safe by itself — callers serialize
 /// through DictationController's single worker queue.
@@ -82,10 +85,15 @@ public final class WhisperCppEngine: TranscriptionEngine {
         defer { free(langCString) }
         params.language = UnsafePointer(langCString)
 
+        engineLog.info("transcribe: \(samples.count, privacy: .public) samples, vad=\(params.vad, privacy: .public), lang=\(mode.whisperLanguage, privacy: .public), model=\(self.loadedModelPath?.components(separatedBy: "/").last ?? "?", privacy: .public)")
         let status = samples.withUnsafeBufferPointer { buf in
             whisper_full(ctx, params, buf.baseAddress, Int32(buf.count))
         }
-        guard status == 0 else { throw EngineError.transcriptionFailed }
+        guard status == 0 else {
+            engineLog.error("whisper_full failed with status \(status, privacy: .public)")
+            throw EngineError.transcriptionFailed
+        }
+        engineLog.info("segments: \(whisper_full_n_segments(ctx), privacy: .public)")
 
         var text = ""
         for i in 0..<whisper_full_n_segments(ctx) {
@@ -93,6 +101,7 @@ public final class WhisperCppEngine: TranscriptionEngine {
                 text += String(cString: seg)
             }
         }
+        engineLog.info("raw text (\(text.count, privacy: .public) chars): \(String(text.prefix(80)), privacy: .private(mask: .none))")
         // NaN logits decode to literal "nan" tokens — treat as no output
         // rather than pasting garbage into the user's document.
         let lowered = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()

@@ -1,11 +1,17 @@
 import AVFoundation
 import Foundation
+import os.log
+
+let audioLog = Logger(subsystem: "com.desi.dictation", category: "audio")
 
 /// Captures microphone audio and converts it live to 16 kHz mono Float32
 /// (Whisper's input format). Buffer grows unbounded while recording — pauses
 /// mid-dictation are therefore free (matching MacWhisper's behavior).
 public final class AudioCapture {
-    private let engine = AVAudioEngine()
+    // Recreated fresh per session (see start()) — a long-lived AVAudioEngine
+    // wedges after repeated start/stop cycles or audio-device changes and then
+    // silently captures nothing (BUILD_LOG failure mode #13).
+    private var engine = AVAudioEngine()
     private var converter: AVAudioConverter?
     private let lock = NSLock()
     private var samples: [Float] = []
@@ -20,9 +26,11 @@ public final class AudioCapture {
     public func start() throws {
         guard !isRecording else { return }
         lock.lock(); samples.removeAll(keepingCapacity: true); lock.unlock()
+        engine = AVAudioEngine()   // fresh engine: immune to wedged sessions
 
         let input = engine.inputNode
         let inputFormat = input.outputFormat(forBus: 0)
+        audioLog.info("start: input format \(inputFormat.sampleRate, privacy: .public)Hz \(inputFormat.channelCount, privacy: .public)ch")
         guard inputFormat.sampleRate > 0 else {
             throw NSError(domain: "AudioCapture", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "No microphone input available."])
@@ -44,6 +52,10 @@ public final class AudioCapture {
         engine.stop()
         isRecording = false
         lock.lock(); defer { lock.unlock() }
+        let peak = samples.map(abs).max() ?? 0
+        let rms = samples.isEmpty ? 0 :
+            (samples.reduce(Float(0)) { $0 + $1 * $1 } / Float(samples.count)).squareRoot()
+        audioLog.info("stop: \(self.samples.count, privacy: .public) samples (\(String(format: "%.1f", Double(self.samples.count) / 16000.0), privacy: .public)s) peak=\(peak, privacy: .public) rms=\(rms, privacy: .public)")
         return samples
     }
 
