@@ -1,0 +1,16 @@
+[project]
+name = "desi-dictation-spike"
+version = "0.1.0"
+description = "Phase 0: Hinglish ASR model evaluation harness for Desi Dictation"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "torch>=2.4",
+    "transformers>=4.44",
+    "huggingface_hub>=0.24",
+    "jiwer>=3.0",
+    "soundfile>=0.12",
+    "numpy",
+]
+
+[tool.uv]
+# torch CPU/MPS wheels from PyPI are fine on Apple Silicon (MPS backend included)

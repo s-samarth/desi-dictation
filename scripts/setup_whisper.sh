@@ -35,5 +35,18 @@ echo "==> Building libwhisper + whisper-cli"
 cmake --build "$VENDOR/build" --config Release -j "$(sysctl -n hw.ncpu)" \
   --target whisper whisper-cli
 
+echo "==> Building whisper-quantize (for 0.8B model q5_0 quants)"
+cmake --build "$VENDOR/build" --config Release -j "$(sysctl -n hw.ncpu)" \
+  --target whisper-quantize
+
+echo "==> Staging headers + static libs into the Swift package"
+APP="$ROOT/app"
+mkdir -p "$APP/Libraries" "$APP/Sources/CWhisper/include"
+cp "$VENDOR/include/whisper.h" "$APP/Sources/CWhisper/include/"
+cp "$VENDOR"/ggml/include/*.h "$APP/Sources/CWhisper/include/"
+find "$VENDOR/build" -name "*.a" -not -name "libcommon.a" \
+  -exec cp {} "$APP/Libraries/" \;
+
 echo "==> Artifacts:"
-find "$VENDOR/build" -name "*.a" -o -name "whisper-cli" | sed "s|$ROOT/||"
+ls "$APP/Libraries"
+find "$VENDOR/build/bin" -type f | sed "s|$ROOT/||"
