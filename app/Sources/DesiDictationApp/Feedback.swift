@@ -5,7 +5,7 @@ import DesiDictationKit
 /// draft — every byte of context is VISIBLE in the draft the user sends;
 /// nothing is transmitted by the app itself. Privacy promise intact.
 enum Feedback {
-    static let address = "samarthsaraswat13@gmail.com"
+    static let address = "samarth.iitg@gmail.com"
 
     @MainActor static func compose(includeLastTranscript: Bool = false) {
         let settings = SettingsStore.shared
