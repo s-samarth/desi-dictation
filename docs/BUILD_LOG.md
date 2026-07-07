@@ -312,4 +312,30 @@ config.json BEFORE converting** — must be exactly 51,865/51,866 (v2/v3) for
 whisper.cpp. Fix path (roadmap): patch whisper.cpp for extended vocabs +
 prompt-token injection; that also unlocks the Mixed-script mode.
 
+## 2026-07-07 — Session 6: evals live + market study
+
+### First eval report (50 clips × 3 suites × 6 models, via shipping engine)
+Champions by crWER: english → **turbo 4.2%** · hindi → **vaani 10.8%** (3×
+better than turbo's 29.6% — today's A/B now benchmark-confirmed) · hinglish →
+**turbo-in-hindi-mode 30.6% vs Apex 44.0%** ⚠️.
+
+That last one is the day's headline finding — with nuance: CS-FLEURS hin-eng is
+*read* speech; Apex is tuned for *conversational/noisy* audio and dominates our
+informal real-dictation tests. Domain mismatch, not a verdict. Action: do NOT
+flip Hinglish auto-selection on one read-speech benchmark; the personal eval
+set (real dictation distribution) is the deciding suite. If Apex loses there
+too → FINETUNING.md Part 3 trigger fires. Also measured: metric design works
+(english raw WER 24.6% vs crWER 4.2% = punctuation noise removed); vaani is
+slow (1.1× RT) but accuracy-worth-it; vaani on English = 99% error (correctly
+excluded by mode scoring).
+
+### Market study (docs/MARKET_STUDY.md)
+Voice AI $18–22B/~35% CAGR; ASR APIs commoditized ($0.15–0.48/hr) — never sell
+raw Hinglish API. Category proof: Wispr Flow ~$10M ARR @ $15/mo, 270 F500
+bottom-up. Killer structural insight: **on-device = zero marginal cost →
+lifetime pricing is sustainable for us and impossible for cloud rivals**
+(Superwhisper's $249→$849 lifetime hike = the cautionary tale). India voice AI
+is all B2B/Gov (Sarvam/Gnani/CoRover) — consumer shelf empty. Roadmap implications
+ranked in §8 (voice commands → team pack → Windows → clinics vertical).
+
 <!-- Append new entries below as the build progresses. -->
