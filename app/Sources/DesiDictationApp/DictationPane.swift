@@ -31,6 +31,9 @@ struct DictationPane: View {
                     ForEach(HotkeyChoice.allCases, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 .onChange(of: settings.hotkey) { DictationController.shared.reloadHotkey() }
+                if let hint = settings.hotkey.hint {
+                    Text(hint).font(.caption).foregroundStyle(.orange)
+                }
 
                 Picker("Activation mode", selection: $settings.activationMode) {
                     ForEach(ActivationMode.allCases, id: \.self) { Text($0.displayName).tag($0) }

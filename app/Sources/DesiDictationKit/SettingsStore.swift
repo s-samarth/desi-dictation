@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import Combine
 
@@ -10,15 +11,21 @@ public enum ActivationMode: String, CaseIterable, Codable {
 }
 
 /// Selectable dictation hotkeys. Modifier-style keys arrive via flagsChanged;
-/// normal keys via keyDown/keyUp. Fn/Globe is intentionally excluded (macOS
-/// reserves it aggressively; MacWhisper users hit the same issue).
+/// normal keys via keyDown/keyUp; combos check modifier flags on keyDown.
+/// Ordered: built-in MacBook keys first, F-keys last (external keyboards).
 public enum HotkeyChoice: String, CaseIterable, Codable {
-    case rightOption, rightCommand, f13, f16, f17, f18, f19
+    case rightOption, rightCommand, fnGlobe, rightControl, rightShift,
+         leftControl, optionSpace, f13, f16, f17, f18, f19
 
     public var keyCode: Int64 {
         switch self {
         case .rightOption: return 61
         case .rightCommand: return 54
+        case .fnGlobe: return 63
+        case .rightControl: return 62
+        case .rightShift: return 60
+        case .leftControl: return 59
+        case .optionSpace: return 49   // space; ⌥ checked via flags
         case .f13: return 105
         case .f16: return 106
         case .f17: return 64
@@ -28,18 +35,55 @@ public enum HotkeyChoice: String, CaseIterable, Codable {
     }
 
     public var isModifier: Bool {
-        self == .rightOption || self == .rightCommand
+        switch self {
+        case .rightOption, .rightCommand, .fnGlobe, .rightControl,
+             .rightShift, .leftControl: return true
+        default: return false
+        }
+    }
+
+    /// The flag that indicates "held down" for modifier-style keys.
+    public var modifierMask: CGEventFlags? {
+        switch self {
+        case .rightOption: return .maskAlternate
+        case .rightCommand: return .maskCommand
+        case .fnGlobe: return .maskSecondaryFn
+        case .rightControl, .leftControl: return .maskControl
+        case .rightShift: return .maskShift
+        default: return nil
+        }
+    }
+
+    /// For combo hotkeys: the modifier that must accompany the key press.
+    public var comboModifier: CGEventFlags? {
+        self == .optionSpace ? .maskAlternate : nil
     }
 
     public var displayName: String {
         switch self {
         case .rightOption: return "Right ⌥ Option"
         case .rightCommand: return "Right ⌘ Command"
-        case .f13: return "F13"
+        case .fnGlobe: return "Fn 🌐 Globe"
+        case .rightControl: return "Right ⌃ Control"
+        case .rightShift: return "Right ⇧ Shift"
+        case .leftControl: return "Left ⌃ Control"
+        case .optionSpace: return "⌥ Option + Space"
+        case .f13: return "F13 (external keyboards)"
         case .f16: return "F16"
         case .f17: return "F17"
         case .f18: return "F18"
         case .f19: return "F19"
+        }
+    }
+
+    /// Extra setup a key needs, shown under the picker.
+    public var hint: String? {
+        switch self {
+        case .fnGlobe:
+            return "Set System Settings → Keyboard → “Press 🌐 key to” → Do Nothing, or macOS will also trigger its own action."
+        case .optionSpace:
+            return "Hold ⌥ and press Space. Note: some apps use ⌥Space for other shortcuts."
+        default: return nil
         }
     }
 }

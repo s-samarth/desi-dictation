@@ -25,6 +25,7 @@ public final class HotkeyManager {
     private var runLoopSource: CFRunLoopSource?
     private var hotkey: HotkeyChoice = .rightOption
     private var modifierIsDown = false
+    private var comboActive = false
 
     public init() {}
     deinit { stop() }
@@ -90,12 +91,11 @@ public final class HotkeyManager {
             return nil
         }
 
-        if hotkey.isModifier {
+        if hotkey.isModifier, let mask = hotkey.modifierMask {
             guard type == .flagsChanged, keyCode == hotkey.keyCode else {
                 return Unmanaged.passUnretained(event)
             }
-            let relevantFlag: CGEventFlags = hotkey == .rightOption ? .maskAlternate : .maskCommand
-            let isDown = event.flags.contains(relevantFlag)
+            let isDown = event.flags.contains(mask)
             guard isDown != modifierIsDown else { return Unmanaged.passUnretained(event) }
             modifierIsDown = isDown
             DispatchQueue.main.async { isDown ? self.onDictateDown?() : self.onDictateUp?() }
@@ -103,6 +103,24 @@ public final class HotkeyManager {
         }
 
         guard keyCode == hotkey.keyCode else { return Unmanaged.passUnretained(event) }
+
+        // Combo hotkeys (e.g. ⌥+Space): the modifier must be held at keyDown;
+        // keyUp always ends the press (even if ⌥ was released first).
+        if let combo = hotkey.comboModifier {
+            let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+            if type == .keyDown, !isRepeat, event.flags.contains(combo) {
+                comboActive = true
+                DispatchQueue.main.async { self.onDictateDown?() }
+                return nil  // swallow so ⌥Space doesn't type a non-breaking space
+            }
+            if type == .keyUp, comboActive {
+                comboActive = false
+                DispatchQueue.main.async { self.onDictateUp?() }
+                return nil
+            }
+            return Unmanaged.passUnretained(event)  // plain Space passes through
+        }
+
         let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
         if type == .keyDown, !isRepeat {
             DispatchQueue.main.async { self.onDictateDown?() }
