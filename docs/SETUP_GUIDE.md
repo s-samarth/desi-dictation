@@ -10,6 +10,22 @@
 3. Open it (Spotlight → "Desi Dictation"). A **mic icon** appears in your menu
    bar — there's no Dock icon, that's by design.
 
+### ⚠️ Beta builds only: "Apple could not verify…" dialog
+
+Early builds aren't notarized with Apple yet (that costs the developer $99/yr —
+coming before the public launch). macOS will block the first open. This is
+expected, not malware:
+
+1. Double-click the app → macOS shows the block dialog → click **Done** (not Move to Trash!)
+2. **System Settings → Privacy & Security** → scroll down → next to
+   "Desi Dictation was blocked" click **Open Anyway** → confirm.
+3. This is needed **once**; afterwards it opens normally.
+
+Terminal-comfortable? This skips the dance entirely:
+```bash
+xattr -dr com.apple.quarantine "/Applications/Desi Dictation.app"
+```
+
 ## 2. Grant the 3 permissions (one time)
 
 Desi Dictation types your words into other apps, which needs macOS's blessing.
