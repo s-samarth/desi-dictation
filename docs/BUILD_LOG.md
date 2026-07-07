@@ -297,6 +297,13 @@ Deep research pass (docs/MODEL_RESEARCH.md): Trelis whisper-hinglish-preview
 pure-Roman Hinglish remains Oriserve-only for structural reasons (Devanagari-
 labeled data, no standard Roman orthography, no benchmark → no releases).
 
+### ✅ Vaani ships as the हिन्दी-mode default (v0.4.2)
+A/B on the Hindi test clip: **Vaani got every word right** (प्रेजेंटेशन, तैयार,
+टाइम) where turbo misspelled all three; turbo is ~1.7× faster and adds
+punctuation. Accuracy wins for dictation → Auto now prefers Vaani for हिन्दी
+(score 110 > turbo 100); catalog entry added (served from our HF repo once
+published). Turbo remains the English pick and the fallback.
+
 ### ❌ Failure mode #16: added-vocab fine-tunes break whisper.cpp
 Trelis adds `<|mixedcode|>` → n_vocab 51,867 (stock 51,866). whisper.cpp infers
 the language-token table from vocab size → `whisper_lang_str: unknown language

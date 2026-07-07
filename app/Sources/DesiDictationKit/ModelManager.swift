@@ -58,6 +58,10 @@ public final class ModelManager: ObservableObject {
               url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin")!,
               approxMB: 148, pro: false, recommended: false, category: "English / हिन्दी",
               sha256: "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe"),
+        .init(id: "vaani-hindi-q5_0", label: "Vaani Hindi — most accurate शुद्ध हिन्दी (718h Indian speech)",
+              url: URL(string: "\(hinglishRepoBase)/ggml-vaani-hindi-q5_0.bin")!,
+              approxMB: 1060, pro: true, recommended: true, category: "हिन्दी",
+              sha256: "c016cde18a36eaa285c238b7929c3c3f457f62a2dd12765d563df18d600374e7"),
         .init(id: "silero-vad", label: "Silero VAD — handles pauses & long dictations",
               url: URL(string: "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin")!,
               approxMB: 1, pro: false, recommended: true, category: "Engine add-on",
@@ -105,7 +109,8 @@ public final class ModelManager: ObservableObject {
             else if name.contains("hinglish-swift") { score = 30 }
         case .hindi:
             guard !model.isHinglish else { return 0 }               // wrong output script
-            if name.contains("turbo") { score = 100 }
+            if name.contains("vaani") { score = 110 }               // 718h Indian-speech fine-tune
+            else if name.contains("turbo") { score = 100 }
             else if name.contains("small") { score = 80 }
             else if name.contains("base") { score = 60 }
         }

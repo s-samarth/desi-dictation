@@ -14,9 +14,17 @@ REPO="${1:-samarthsaraswat/desi-dictation-models}"
 cd "$ROOT/spike"
 uv run hf repo create "$REPO" --type model -y 2>/dev/null || true
 
-for file in "$ROOT"/models/ggml-hinglish-*.bin; do
-  echo "==> Uploading $(basename "$file") to $REPO"
-  uv run hf upload "$REPO" "$file" "$(basename "$file")"
+# Explicit publish list — quantized/production files only (no f16/f32 originals)
+FILES=(
+  "ggml-hinglish-swift.bin"
+  "ggml-hinglish-apex-q5_0.bin"
+  "ggml-vaani-hindi-q5_0.bin"
+)
+for name in "${FILES[@]}"; do
+  file="$ROOT/models/$name"
+  [ -f "$file" ] || { echo "skip (not converted): $name"; continue; }
+  echo "==> Uploading $name to $REPO"
+  uv run hf upload "$REPO" "$file" "$name"
 done
 
 echo "==> Done. Update the README of https://huggingface.co/$REPO to credit:"
