@@ -2,17 +2,50 @@
 //
 // Usage:
 //   swift run desi-cli <model.bin> <audio.wav> [hinglish|english|hindi]
+//   swift run desi-cli <model.bin> --batch <dir-with-wavs> [mode]   # JSONL out (evals)
 import DesiDictationKit
 import Foundation
 
 let args = CommandLine.arguments
 guard args.count >= 3 else {
-    print("usage: desi-cli <model.bin> <audio file> [hinglish|english|hindi]")
+    print("usage: desi-cli <model.bin> <audio file | --batch dir> [hinglish|english|hindi]")
     exit(1)
 }
 let modelPath = args[1]
-let audioURL = URL(fileURLWithPath: args[2])
 let mode = LanguageMode(rawValue: args.count > 3 ? args[3] : "hinglish") ?? .hinglish
+
+// Batch mode: one model load, transcribe every .wav in a directory,
+// emit one JSON line per file — consumed by evals/run_eval.py.
+if args[2] == "--batch", args.count >= 4 {
+    let dir = URL(fileURLWithPath: args[3])
+    let batchMode = LanguageMode(rawValue: args.count > 4 ? args[4] : "hinglish") ?? .hinglish
+    do {
+        let engine = WhisperCppEngine()
+        try engine.load(modelPath: modelPath)
+        let files = try FileManager.default.contentsOfDirectory(
+            at: dir, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "wav" }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        for file in files {
+            let samples = try AudioFileLoader.loadSamples(url: file)
+            let result = try engine.transcribe(samples: samples, mode: batchMode)
+            let record: [String: Any] = [
+                "file": file.lastPathComponent,
+                "text": result.text,
+                "seconds": (result.duration * 100).rounded() / 100,
+                "audio_seconds": (result.audioSeconds * 10).rounded() / 10,
+            ]
+            let data = try JSONSerialization.data(withJSONObject: record)
+            print(String(data: data, encoding: .utf8)!)
+        }
+        exit(0)
+    } catch {
+        FileHandle.standardError.write("batch error: \(error.localizedDescription)\n".data(using: .utf8)!)
+        exit(2)
+    }
+}
+
+let audioURL = URL(fileURLWithPath: args[2])
 
 do {
     let engine = WhisperCppEngine()

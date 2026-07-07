@@ -29,3 +29,7 @@ spike/results/*.json
 
 # Secrets
 .env
+
+# Evals: tooling committed, data + reports stay local
+evals/data/
+evals/reports/

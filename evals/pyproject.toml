@@ -1,0 +1,12 @@
+[project]
+name = "desi-dictation-evals"
+version = "0.1.0"
+description = "Eval suites, metrics, and reporting for Desi Dictation models"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "datasets[audio]>=3.0",
+    "soundfile>=0.12",
+    "jiwer>=3.0",
+    "indic-transliteration>=2.3",
+    "numpy",
+]
