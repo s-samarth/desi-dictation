@@ -55,26 +55,62 @@ def _write_suite(name: str, rows, limit: int) -> None:
 
 
 def suite_hindi(limit: int) -> None:
-    ds = load_dataset("google/fleurs", "hi_in", split="test", streaming=True,
-                      trust_remote_code=True)
+    ds = load_dataset("google/fleurs", "hi_in", split="test", streaming=True)
     ds = ds.cast_column("audio", Audio(sampling_rate=16000))
     _write_suite("hindi", ds, limit)
 
 
 def suite_english(limit: int) -> None:
-    ds = load_dataset("ai4bharat/Svarah", split="train", streaming=True)
-    ds = ds.cast_column("audio", Audio(sampling_rate=16000))
-    _write_suite("english", ds, limit)
+    # Svarah (Indian-accented English) is gated — needs `hf auth login`.
+    # Fall back to FLEURS en_us (generic English) when unauthenticated.
+    try:
+        ds = load_dataset("ai4bharat/Svarah", split="train", streaming=True)
+        ds = ds.cast_column("audio", Audio(sampling_rate=16000))
+        _write_suite("english", ds, limit)
+    except Exception as error:
+        print(f"[english] Svarah unavailable ({str(error)[:80]}…) — "
+              "falling back to FLEURS en_us. Run `hf auth login` for Svarah.")
+        ds = load_dataset("google/fleurs", "en_us", split="test", streaming=True)
+        ds = ds.cast_column("audio", Audio(sampling_rate=16000))
+        _write_suite("english", ds, limit)
 
 
 def suite_hinglish(limit: int) -> None:
-    configs = get_dataset_config_names("byan/cs-fleurs")
-    # prefer a Hindi-English pair; print options if layout differs
-    candidates = [c for c in configs if "hi" in c.lower() and "en" in c.lower()] or configs
-    print(f"[hinglish] cs-fleurs configs: {configs[:20]} -> using {candidates[0]}")
-    ds = load_dataset("byan/cs-fleurs", candidates[0], split="test", streaming=True)
-    ds = ds.cast_column("audio", Audio(sampling_rate=16000))
-    _write_suite("hinglish", ds, limit)
+    """CS-FLEURS read/test subset (human speech), language == hin-eng only.
+
+    The dataset's `default` config interleaves 113 language pairs (the naive
+    first-N rows are Arabic-English!), so we filter the metadata ourselves and
+    fetch just the matching audio files.
+    """
+    from huggingface_hub import hf_hub_download
+
+    meta_path = hf_hub_download("byan/cs-fleurs", "read/test/metadata.jsonl",
+                                repo_type="dataset")
+    rows = [json.loads(l) for l in open(meta_path)]
+    rows = [r for r in rows if r["language"] == "hin-eng"][:limit]
+    print(f"[hinglish] {len(rows)} human-read hin-eng clips from cs-fleurs read/test")
+
+    suite_dir = DATA_DIR / "hinglish"
+    clips = suite_dir / "clips"
+    clips.mkdir(parents=True, exist_ok=True)
+    manifest = []
+    for i, row in enumerate(rows):
+        audio_path = hf_hub_download(
+            "byan/cs-fleurs", f"read/test/{row['file_name']}", repo_type="dataset")
+        arr, sr = sf.read(audio_path, dtype="float32")
+        if arr.ndim > 1:
+            arr = arr.mean(axis=1)
+        if sr != 16000:  # linear resample — fine for eval speech
+            target_len = int(len(arr) * 16000 / sr)
+            arr = np.interp(np.linspace(0, len(arr) - 1, target_len),
+                            np.arange(len(arr)), arr).astype(np.float32)
+        fname = f"{i:04d}.wav"
+        sf.write(clips / fname, arr, 16000)
+        manifest.append({"file": fname, "ref": row["text"].strip()})
+    with open(suite_dir / "manifest.jsonl", "w") as f:
+        for entry in manifest:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    print(f"[hinglish] wrote {len(manifest)} clips -> {suite_dir}")
 
 
 def main() -> None:
