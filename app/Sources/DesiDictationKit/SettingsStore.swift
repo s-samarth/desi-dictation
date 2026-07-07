@@ -61,6 +61,7 @@ public final class SettingsStore: ObservableObject {
     @Published public var ollamaModel: String { didSet { d.set(ollamaModel, forKey: "ollamaModel") } }
     @Published public var cleanupPrompt: String { didSet { d.set(cleanupPrompt, forKey: "cleanupPrompt") } }
     @Published public var licenseKey: String { didSet { d.set(licenseKey, forKey: "licenseKey") } }
+    @Published public var historyEnabled: Bool { didSet { d.set(historyEnabled, forKey: "historyEnabled") } }
 
     public static let defaultCleanupPrompt = """
     Clean up this dictated text: fix punctuation and obvious errors. \
@@ -81,5 +82,6 @@ public final class SettingsStore: ObservableObject {
         ollamaModel = d.string(forKey: "ollamaModel") ?? "llama3.2"
         cleanupPrompt = d.string(forKey: "cleanupPrompt") ?? Self.defaultCleanupPrompt
         licenseKey = d.string(forKey: "licenseKey") ?? ""
+        historyEnabled = d.object(forKey: "historyEnabled") as? Bool ?? true
     }
 }

@@ -21,19 +21,27 @@ public final class HistoryStore: ObservableObject {
     public static let shared = HistoryStore()
     @Published public private(set) var entries: [HistoryEntry] = []
 
-    private let maxEntries = 50
+    /// Rolling window: 24 hours, hard cap 200 entries (whichever is smaller).
+    private let maxEntries = 200
+    private let retention: TimeInterval = 24 * 3600
     private let fileURL: URL
 
     private init() {
         fileURL = AppPaths.supportDirectory.appendingPathComponent("history.json")
         load()
+        prune()
     }
 
     public func add(text: String, mode: LanguageMode) {
-        guard !text.isEmpty else { return }
+        guard !text.isEmpty, SettingsStore.shared.historyEnabled else { return }
         entries.insert(HistoryEntry(text: text, mode: mode.rawValue), at: 0)
-        if entries.count > maxEntries { entries.removeLast(entries.count - maxEntries) }
+        prune()
         save()
+    }
+
+    private func prune() {
+        let cutoff = Date().addingTimeInterval(-retention)
+        entries = Array(entries.filter { $0.date > cutoff }.prefix(maxEntries))
     }
 
     public func clear() {

@@ -14,6 +14,13 @@ struct DesiDictationApp: App {
         }
         .menuBarExtraStyle(.menu)
 
+        // Main app window (sidebar UI). Opened from the menu bar; the app stays
+        // a Dock-less accessory otherwise.
+        Window("Desi Dictation", id: "main") {
+            MainWindow()
+        }
+        .defaultSize(width: 780, height: 520)
+
         Settings {
             SettingsView()
         }

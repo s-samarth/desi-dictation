@@ -102,4 +102,60 @@ all engine access is serialized on one DispatchQueue by design).
 - **Pasteboard-swap insertion only** — AX-API and keystroke fallbacks are
   designed (see SYSTEM_DESIGN.md) but not yet needed in tested apps.
 
+## 2026-07-07 — Session 1 (continued): first-user friction
+
+### ❌ Failure mode #6: "app won't open" = stale pre-permission process
+User reported the app "won't open / buggy". Reality: the process launched during
+the build (before ANY permission grants) was still running — macOS applies
+Accessibility/Input Monitoring only at process start, so inside that process the
+hotkey tap and mic were dead, making the app feel broken. No crash, no logs.
+**Fixes applied:**
+1. `pkill` stale instance; **install to `/Applications`** via `ditto` (stable
+   location + identity for TCC; Input Monitoring in particular is unreliable for
+   apps running from arbitrary build dirs).
+2. Relaunch fresh → permission prompts fire correctly.
+3. Product lesson recorded: onboarding must detect "permissions granted but app
+   not restarted since" and offer a one-click relaunch (roadmap item).
+
+## 2026-07-07 — Session 2: v0.2 after first real-user feedback
+
+User feedback on v0.1: Hinglish accuracy weak (was running the 72M model!), only
+one model, "no model selected" errors, settings undiscoverable ("just an icon"),
+wanted toggle mode + 24h history + a real app window (MacWhisper-style).
+
+### ❌ Failure mode #7: BF16 checkpoints crash convert-h5-to-ggml.py
+Apex ships BFloat16 weights; upstream converter calls `.numpy()` directly →
+`TypeError: Got unsupported ScalarType BFloat16`. Fix: `convert_model.sh` now
+sed-patches the converter to `.float().numpy()` (idempotent, vendor is re-cloneable).
+
+### Shipped in v0.2
+- **Models installed (4)**: hinglish-apex-q5_0 (547M — the SOTA), hinglish-swift
+  (141M), large-v3-turbo-q5_0 (547M, English/Hindi), small (465M).
+- **Auto model selection**: per-mode ranking (Hinglish→Apex, English→turbo,
+  Hindi→turbo, quantized preferred; Hinglish models excluded from Devanagari
+  mode). "Auto (recommended)" is the default — "no model selected" class of
+  errors eliminated. Mode switches preload the new model in the background.
+- **Main app window**: sidebar (Dictation / History / Models / Text & AI /
+  License), opened via menu bar → "Open Desi Dictation…". Dictation pane =
+  MacWhisper-parity controls: hotkey picker, hold-vs-toggle, language+model with
+  live "Using: <model>" line, sounds, copy-only, history toggle, permission
+  status with fix buttons.
+- **History v2**: rolling 24 h window (cap 200), search, per-row copy,
+  on/off toggle, clear-all.
+
+### Verified (CLI, release, M3)
+| Test | Result |
+|---|---|
+| Hindi clip → Apex q5_0 (hinglish) | **word-perfect** incl. "Kal" the 72M model dropped; ~3× realtime |
+| English clip → turbo q5_0 | verbatim; ~4× realtime |
+| Hindi clip → small (hindi mode) | Devanagari output confirmed (turbo is the auto-pick anyway) |
+
+### Model research note (for the English roadmap)
+2026 on-device English leaderboard: **NVIDIA Parakeet V3** (~6.3% WER, ~10×
+faster than Whisper, zero silence-hallucination) > large-v3-turbo > Moonshine
+(245M, streaming-first). whisper.cpp has grown native Parakeet support
+(`parakeet-quantize` target exists in our build) → adding Parakeet as the
+English-mode engine is the highest-value next model upgrade. Hinglish: Apex
+remains SOTA; Srota (Qwen3-ASR) would need an MLX path — Phase 5.
+
 <!-- Append new entries below as the build progresses. -->

@@ -27,6 +27,8 @@ public final class DictationController: ObservableObject {
     private let workQueue = DispatchQueue(label: "desi.dictation.engine", qos: .userInitiated)
     private var settings: SettingsStore { .shared }
 
+    private var cancellables = Set<AnyCancellable>()
+
     private init() {
         hotkeys.sessionActive = { [weak self] in
             if case .recording = self?.phase { return true }
@@ -35,6 +37,20 @@ public final class DictationController: ObservableObject {
         hotkeys.onDictateDown = { [weak self] in self?.hotkeyDown() }
         hotkeys.onDictateUp = { [weak self] in self?.hotkeyUp() }
         hotkeys.onCancel = { [weak self] in self?.cancel() }
+
+        // Mode switch may imply a different model — preload it so the next
+        // dictation doesn't pay the load cost.
+        SettingsStore.shared.$languageMode
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.modelChanged() }
+            .store(in: &cancellables)
+    }
+
+    /// Best model for the current mode ("" pinned path = Auto).
+    private func resolvedModelPath() -> String? {
+        ModelManager.shared.resolveModel(
+            for: settings.languageMode, pinnedPath: settings.modelPath)?.path
     }
 
     public var hotkeyTapActive: Bool { hotkeys.isActive }
@@ -89,6 +105,11 @@ public final class DictationController: ObservableObject {
 
     private func finishRecording() {
         let samples = audio.stop()
+        guard let modelPath = resolvedModelPath() else {
+            phase = .error("No model for this mode — open Models to download one")
+            Sounds.error.play()
+            return
+        }
         phase = .transcribing
         let mode = settings.languageMode
         let rules = settings.replacementRules
@@ -100,7 +121,7 @@ public final class DictationController: ObservableObject {
         workQueue.async { [weak self] in
             guard let self else { return }
             do {
-                try self.loadModelIfNeeded()
+                try self.loadModel(path: modelPath)
                 let result = try self.engine.transcribe(samples: samples, mode: mode)
                 var text = PostProcessor.applyReplacements(result.text, rules: rules)
                 if useOllama, !text.isEmpty {
@@ -143,23 +164,20 @@ public final class DictationController: ObservableObject {
 
     // MARK: - Model management
 
-    /// Loads the selected model on the worker queue (blocking that queue only).
-    private nonisolated func loadModelIfNeeded() throws {
-        let path = SettingsStore.shared.modelPath
-        guard !path.isEmpty else { throw EngineError.modelNotLoaded }
+    /// Loads a model on the worker queue (no-op if already resident).
+    private nonisolated func loadModel(path: String) throws {
         if engine.isLoaded, engine.loadedModelPath == path { return }
         try engine.load(modelPath: path)
     }
 
     private func preloadModelIfNeeded() {
-        workQueue.async { [weak self] in try? self?.loadModelIfNeeded() }
+        guard let path = resolvedModelPath() else { return }
+        workQueue.async { [weak self] in try? self?.loadModel(path: path) }
     }
 
-    /// Called when the user changes model in settings.
+    /// Called when the user changes model/mode — swaps the resident model.
     public func modelChanged() {
-        workQueue.async { [weak self] in
-            self?.engine.unload()
-            try? self?.loadModelIfNeeded()
-        }
+        guard let path = resolvedModelPath() else { return }
+        workQueue.async { [weak self] in try? self?.loadModel(path: path) }
     }
 }

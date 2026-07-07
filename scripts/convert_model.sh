@@ -18,6 +18,11 @@ print(download('$NAME'))
 " | tail -1)"
 echo "==> HF snapshot: $HF_DIR"
 
+# Patch upstream converter: BF16 checkpoints (e.g. Apex) crash .numpy();
+# cast to float32 first. Idempotent sed (vendor/ is gitignored, re-cloned fresh).
+/usr/bin/sed -i '' 's/\.squeeze()\.numpy()/.squeeze().float().numpy()/' \
+  "$ROOT/vendor/whisper.cpp/models/convert-h5-to-ggml.py"
+
 echo "==> Converting to GGML (f16)"
 OUT_TMP="$MODELS_DIR/.convert-$NAME"
 mkdir -p "$OUT_TMP"

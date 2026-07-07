@@ -29,7 +29,10 @@ cp models/ggml-hinglish-apex-q5_0.bin ~/Library/Application\ Support/DesiDictati
 ## B. First launch (manual — needs your clicks)
 
 ```bash
-open "app/dist/Desi Dictation.app"
+# Install to /Applications — REQUIRED for reliable permission grants (TCC
+# identifies apps by location/signature; build-dir apps get flaky grants)
+ditto "app/dist/Desi Dictation.app" "/Applications/Desi Dictation.app"
+open "/Applications/Desi Dictation.app"
 ```
 
 1. A **mic icon** appears in the menu bar (no Dock icon — it's an accessory app).
@@ -48,7 +51,11 @@ open "app/dist/Desi Dictation.app"
 
 1. Menu bar mic → **Enable Dictation** (first enable preloads the model; ~8 s
    one-time — the icon settles once ready).
-2. Menu bar → **Model** → `ggml-hinglish-swift` · **Language** → `Hinglish (Roman)`.
+2. Model defaults to **Auto** — it picks the best installed model per language
+   (Hinglish→Apex, English/Hindi→Large-v3-Turbo). Override via the Model picker
+   only if you want to trade accuracy for speed (e.g. hinglish-swift).
+   The full control panel lives at menu bar → **Open Desi Dictation…**
+   (sidebar: Dictation / History / Models / Text & AI / License).
 3. Click into any text field (Notes, WhatsApp Web, Slack, VS Code…).
 4. **Hold Right ⌥ (Option)** — overlay shows *"Listening…"*, start sound plays.
 5. Speak naturally. Pauses are fine; it records until you release.

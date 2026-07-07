@@ -41,6 +41,48 @@ public final class ModelManager: ObservableObject {
 
     private init() { refresh() }
 
+    /// Picks the best installed model for a mode. Empty `pinnedPath` = Auto.
+    /// Scoring encodes: Hinglish fine-tunes win for Hinglish; stock multilingual
+    /// wins for English/Hindi; quantized variants beat f32/f16 (faster, less RAM);
+    /// Hinglish models are EXCLUDED for Hindi (they can only emit Roman script).
+    public func resolveModel(for mode: LanguageMode, pinnedPath: String) -> ModelDescriptor? {
+        if !pinnedPath.isEmpty, let pinned = installed.first(where: { $0.path == pinnedPath }) {
+            return pinned
+        }
+        return installed
+            .map { ($0, Self.score($0, for: mode)) }
+            .filter { $0.1 > 0 }
+            .max { $0.1 < $1.1 }?.0
+    }
+
+    private static func score(_ model: ModelDescriptor, for mode: LanguageMode) -> Int {
+        let name = model.name.lowercased()
+        var score = 0
+        switch mode {
+        case .hinglish:
+            if name.contains("hinglish-apex") { score = 100 }
+            else if name.contains("hinglish-prime") { score = 90 }
+            else if name.contains("hinglish-swift") { score = 50 }
+            else if name.contains("turbo") { score = 40 }
+            else if name.contains("small") { score = 30 }
+            else if name.contains("base") { score = 20 }
+        case .english:
+            if name.contains("turbo") { score = 100 }
+            else if name.contains("hinglish-apex") { score = 80 }   // great Indian English
+            else if name.contains("small") { score = 60 }
+            else if name.contains("hinglish-prime") { score = 55 }
+            else if name.contains("base") { score = 40 }
+            else if name.contains("hinglish-swift") { score = 30 }
+        case .hindi:
+            guard !model.isHinglish else { return 0 }               // wrong output script
+            if name.contains("turbo") { score = 100 }
+            else if name.contains("small") { score = 80 }
+            else if name.contains("base") { score = 60 }
+        }
+        if score > 0, name.contains("q5") { score += 5 }            // prefer quantized
+        return score
+    }
+
     /// Scans the Application Support models dir plus DESI_MODELS_DIR (dev override).
     public func refresh() {
         var dirs = [AppPaths.modelsDirectory]

@@ -6,9 +6,17 @@ struct MenuContent: View {
     @ObservedObject var settings = SettingsStore.shared
     @ObservedObject var models = ModelManager.shared
     @ObservedObject var history = HistoryStore.shared
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Text(statusLine)
+
+        Button("Open Desi Dictation…") {
+            openWindow(id: "main")
+            NSApp.activate(ignoringOtherApps: true)
+        }
+
+        Divider()
 
         Toggle("Enable Dictation", isOn: Binding(
             get: { settings.dictationEnabled },
@@ -26,7 +34,7 @@ struct MenuContent: View {
         Picker("Model", selection: Binding(
             get: { settings.modelPath },
             set: { settings.modelPath = $0; controller.modelChanged() })) {
-            Text("None selected").tag("")
+            Text("Auto (recommended)").tag("")
             ForEach(models.installed) { model in
                 Text("\(model.name) (\(model.sizeMB) MB)").tag(model.path)
             }
