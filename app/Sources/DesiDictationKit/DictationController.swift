@@ -56,6 +56,10 @@ public final class DictationController: ObservableObject {
         hotkeys.onDictateUp = { [weak self] in self?.hotkeyUp() }
         hotkeys.onCancel = { [weak self] in self?.cancel() }
 
+        // Start cue plays when the mic is ACTUALLY capturing (not at keypress) —
+        // "speak after the tink" then never loses first words.
+        audio.onFirstAudio = { Sounds.start.play() }
+
         // Mode switch may imply a different model — preload it so the next
         // dictation doesn't pay the load cost.
         SettingsStore.shared.$languageMode
@@ -80,6 +84,10 @@ public final class DictationController: ObservableObject {
         switch hotkeys.tapMode {
         case .active, .listenOnly:
             phase = .idle
+            // Warm mic: engine runs while enabled (with a 0.3 s pre-roll ring)
+            // so the words spoken AT the keypress are captured. Opt-out in
+            // Options for the privacy-conscious (mic indicator stays on).
+            if settings.micWarm { try? audio.warmUp() }
         case .failed:
             // Distinguish "never granted" from the ad-hoc-build stale-grant trap
             // (toggle shows ON in System Settings but macOS denies the new binary).
@@ -96,8 +104,16 @@ public final class DictationController: ObservableObject {
 
     public func disable() {
         hotkeys.stop()
-        audio.cancel()
+        stopChunkTicker()
+        audio.cancelSession()
+        audio.coolDown()
         phase = .disabled
+    }
+
+    /// Applies the mic-warm setting change immediately.
+    public func micWarmChanged() {
+        guard phase != .disabled else { return }
+        settings.micWarm ? (try? audio.warmUp()) : audio.coolDown()
     }
 
     public func reloadHotkey() {
@@ -122,6 +138,57 @@ public final class DictationController: ObservableObject {
 
     // MARK: - Session
 
+    // MARK: - Incremental chunking (perceived-latency fix, v0.4)
+    // While the user speaks, completed ~12 s stretches are transcribed in the
+    // background (cut at quiet moments; forced at 20 s). On release only the
+    // tail remains → even multi-minute dictations insert in ~1 s.
+
+    /// Accessed only on workQueue (serial) — safe despite nonisolated access.
+    private nonisolated(unsafe) var pendingParts: [String] = []
+    private var chunkedUpToSample = 0
+    private var chunkTicker: Task<Void, Never>?
+
+    private func startChunkTicker(modelPath: String, mode: LanguageMode) {
+        chunkedUpToSample = 0
+        workQueue.async { [weak self] in self?.pendingParts = [] }
+        chunkTicker = Task { @MainActor [weak self] in
+            while let self, !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                guard case .recording = self.phase else { continue }
+                let total = self.audio.sessionSampleCount
+                let pending = total - self.chunkedUpToSample
+                guard pending >= 12 * 16000 else { continue }
+                // Cut at a quiet moment, or force at 20 s so memory of a bad
+                // cut is bounded to one chunk.
+                let tail = self.audio.snapshotSession(fromSample: total - 4000, toSample: total)
+                let quiet = (tail.map(abs).max() ?? 0) < 0.01
+                guard quiet || pending >= 20 * 16000 else { continue }
+                let chunk = self.audio.snapshotSession(
+                    fromSample: self.chunkedUpToSample, toSample: total)
+                self.chunkedUpToSample = total
+                self.workQueue.async { [weak self] in
+                    guard let self else { return }
+                    if let text = try? self.transcribeRaw(chunk, path: modelPath, mode: mode),
+                       !text.isEmpty {
+                        self.pendingParts.append(text)
+                    }
+                }
+            }
+        }
+    }
+
+    private func stopChunkTicker() {
+        chunkTicker?.cancel()
+        chunkTicker = nil
+    }
+
+    private nonisolated func transcribeRaw(
+        _ samples: [Float], path: String, mode: LanguageMode
+    ) throws -> String {
+        try loadModel(path: path)
+        return try engine.transcribe(samples: samples, mode: mode).text
+    }
+
     private func startRecording() {
         // Recording may start from idle OR from an error state — an earlier
         // failure must never require a relaunch (v0.2 user-reported bug).
@@ -130,18 +197,26 @@ public final class DictationController: ObservableObject {
         default: return
         }
         errorResetTask?.cancel()
+        guard let modelPath = resolvedModelPath() else {
+            transientError("No model for this mode — open Models to download one")
+            return
+        }
         do {
-            try audio.start()
+            try audio.beginSession()
             phase = .recording
-            Sounds.start.play()
+            if audio.isWarm { Sounds.start.play() }   // cold path: onFirstAudio plays it
+            startChunkTicker(modelPath: modelPath, mode: settings.languageMode)
         } catch {
             transientError("Mic error: \(error.localizedDescription)")
         }
     }
 
     private func finishRecording() {
-        let samples = audio.stop()
-        guard samples.count > 8000 else {  // < 0.5 s: accidental tap, not an error worth a scare
+        stopChunkTicker()
+        let samples = audio.endSession()
+        let tailStart = chunkedUpToSample
+        chunkedUpToSample = 0
+        guard samples.count > 3200 else {  // < 0.2 s: accidental tap
             transientError("Too short — nothing captured. Ready again.")
             return
         }
@@ -160,14 +235,23 @@ public final class DictationController: ObservableObject {
         workQueue.async { [weak self] in
             guard let self else { return }
             do {
-                try self.loadModel(path: modelPath)
-                let result = try self.engine.transcribe(samples: samples, mode: mode)
-                var text = PostProcessor.applyReplacements(result.text, rules: rules)
+                // Chunk jobs queued ahead of us on this serial queue have
+                // already run; only the tail is left to transcribe.
+                let tail = Array(samples[min(tailStart, samples.count)...])
+                var parts = self.pendingParts
+                self.pendingParts = []
+                if tail.count > 1600 {
+                    let text = try self.transcribeRaw(tail, path: modelPath, mode: mode)
+                    if !text.isEmpty { parts.append(text) }
+                }
+                var text = parts.joined(separator: " ")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                text = PostProcessor.applyReplacements(text, rules: rules)
                 if useOllama, !text.isEmpty {
                     let semaphore = DispatchSemaphore(value: 0)
-                    Task {
+                    Task { [t = text] in
                         text = await PostProcessor.ollamaCleanup(
-                            text, model: ollamaModel, prompt: prompt)
+                            t, model: ollamaModel, prompt: prompt)
                         semaphore.signal()
                     }
                     semaphore.wait()
@@ -176,6 +260,7 @@ public final class DictationController: ObservableObject {
             } catch {
                 // Nothing usable came out: say so explicitly (and that nothing
                 // was copied), then auto-reset. State is never stuck.
+                self.pendingParts = []
                 Task { @MainActor in
                     self.transientError(
                         "Couldn't transcribe (\(error.localizedDescription)) — nothing inserted or copied.")
@@ -200,7 +285,10 @@ public final class DictationController: ObservableObject {
     }
 
     public func cancel() {
-        audio.cancel()
+        stopChunkTicker()
+        audio.cancelSession()
+        workQueue.async { [weak self] in self?.pendingParts = [] }
+        chunkedUpToSample = 0
         if phase != .disabled { phase = .idle }
         Sounds.error.play()
     }

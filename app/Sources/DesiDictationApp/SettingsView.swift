@@ -75,13 +75,19 @@ struct ModelsSettings: View {
                             Text((item.recommended ? "⭐ " : "") + item.label
                                  + (item.pro && LicenseManager.gatingEnabled ? "  (Pro)" : ""))
                             Text(item.category).font(.caption2).foregroundStyle(.secondary)
+                            if let error = models.downloadErrors[item.id] {
+                                Text(error).font(.caption2).foregroundStyle(.red)
+                            }
                         }
                         Spacer()
-                        if let progress = models.downloadProgress[item.id] {
+                        if models.isInstalled(item) {
+                            Label("Installed", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(.green).font(.caption)
+                        } else if let progress = models.downloadProgress[item.id] {
                             ProgressView(value: progress).frame(width: 90)
                         } else {
                             Button("Get (\(item.approxMB) MB)") {
-                                Task { try? await models.download(item) }
+                                Task { await models.download(item) }
                             }
                             .disabled(item.pro && !license.isPro)
                         }

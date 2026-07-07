@@ -63,6 +63,7 @@ public final class SettingsStore: ObservableObject {
     @Published public var licenseKey: String { didSet { d.set(licenseKey, forKey: "licenseKey") } }
     @Published public var historyEnabled: Bool { didSet { d.set(historyEnabled, forKey: "historyEnabled") } }
     @Published public var vadEnabled: Bool { didSet { d.set(vadEnabled, forKey: "vadEnabled") } }
+    @Published public var micWarm: Bool { didSet { d.set(micWarm, forKey: "micWarm") } }
 
     public static let defaultCleanupPrompt = """
     Clean up this dictated text: fix punctuation and obvious errors. \
@@ -85,5 +86,6 @@ public final class SettingsStore: ObservableObject {
         licenseKey = d.string(forKey: "licenseKey") ?? ""
         historyEnabled = d.object(forKey: "historyEnabled") as? Bool ?? true
         vadEnabled = d.object(forKey: "vadEnabled") as? Bool ?? true
+        micWarm = d.object(forKey: "micWarm") as? Bool ?? true
     }
 }

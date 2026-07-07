@@ -34,6 +34,7 @@ public final class ModelManager: ObservableObject {
 
     @Published public private(set) var installed: [ModelDescriptor] = []
     @Published public var downloadProgress: [String: Double] = [:]  // id -> 0…1
+    @Published public var downloadErrors: [String: String] = [:]   // id -> message
 
     /// Base URL for our published Hinglish models — see scripts/publish_models.sh
     /// and docs/LAUNCH.md step 3. Overridable for forks/testing.
@@ -64,6 +65,11 @@ public final class ModelManager: ObservableObject {
     ]
 
     private init() { refresh() }
+
+    public func isInstalled(_ model: DownloadableModel) -> Bool {
+        FileManager.default.fileExists(
+            atPath: AppPaths.modelsDirectory.appendingPathComponent("ggml-\(model.id).bin").path)
+    }
 
     /// Picks the best installed model for a mode. Empty `pinnedPath` = Auto.
     /// Scoring encodes: Hinglish fine-tunes win for Hinglish; stock multilingual
@@ -129,32 +135,52 @@ public final class ModelManager: ObservableObject {
         installed = found.sorted { $0.sizeMB < $1.sizeMB }
     }
 
-    /// Downloads a catalog model into the models dir, publishing progress.
-    public func download(_ model: DownloadableModel) async throws {
+    /// Downloads a catalog model with progress; errors surface in
+    /// `downloadErrors` (never silently — v0.3 bug: buttons "did nothing").
+    public func download(_ model: DownloadableModel) async {
+        await MainActor.run {
+            downloadErrors[model.id] = nil
+            downloadProgress[model.id] = 0
+        }
+        do {
+            try await downloadVerified(model)
+            await MainActor.run {
+                downloadProgress[model.id] = nil
+                refresh()
+            }
+        } catch {
+            await MainActor.run {
+                downloadProgress[model.id] = nil
+                downloadErrors[model.id] = Self.friendlyMessage(for: error, model: model)
+            }
+        }
+    }
+
+    private func downloadVerified(_ model: DownloadableModel) async throws {
         let destination = AppPaths.modelsDirectory
             .appendingPathComponent("ggml-\(model.id).bin")
         guard !FileManager.default.fileExists(atPath: destination.path) else { return }
 
-        let (tempURL, response) = try await URLSession.shared.download(
-            from: model.url, delegate: ProgressDelegate(id: model.id, manager: self))
-        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-            throw URLError(.badServerResponse)
-        }
+        let tempURL = try await Downloader(id: model.id, manager: self).run(url: model.url)
         // Integrity check: refuse tampered/truncated files (whisper.cpp parses
         // these in C — never feed it unverified bytes).
         let actual = try Self.sha256(of: tempURL)
         guard actual == model.sha256 else {
             try? FileManager.default.removeItem(at: tempURL)
             throw NSError(domain: "ModelManager", code: 2, userInfo: [
-                NSLocalizedDescriptionKey:
-                    "Checksum mismatch for \(model.label) — download discarded."])
+                NSLocalizedDescriptionKey: "Checksum mismatch — download discarded. Try again."])
         }
         try? FileManager.default.removeItem(at: destination)
         try FileManager.default.moveItem(at: tempURL, to: destination)
-        await MainActor.run {
-            downloadProgress[model.id] = nil
-            refresh()
+    }
+
+    private static func friendlyMessage(for error: Error, model: DownloadableModel) -> String {
+        if model.url.absoluteString.hasPrefix(hinglishRepoBase),
+           (error as NSError).code == NSError(domain: "ModelManager", code: 404).code
+            || error.localizedDescription.contains("404") {
+            return "Hinglish model repo isn't published yet (see scripts/publish_models.sh)."
         }
+        return error.localizedDescription
     }
 
     /// Streaming SHA256 (files are 100–600 MB; never load them whole into RAM).
@@ -168,14 +194,27 @@ public final class ModelManager: ObservableObject {
         return hasher.finalize().map { String(format: "%02x", $0) }.joined()
     }
 
-    private final class ProgressDelegate: NSObject, URLSessionTaskDelegate {
-        let id: String
-        weak var manager: ModelManager?
+    /// Classic delegate-based download wrapped for async/await. The modern
+    /// `URLSession.download(from:delegate:)` never invoked our progress
+    /// callback (wrong protocol conformance) — this path is fully documented:
+    /// didWriteData → progress; didFinishDownloadingTo → move file NOW (it's
+    /// deleted after the callback returns); didComplete → error handling.
+    private final class Downloader: NSObject, URLSessionDownloadDelegate {
+        private let id: String
+        private weak var manager: ModelManager?
+        private var continuation: CheckedContinuation<URL, Error>?
+        private var movedTo: URL?
+
         init(id: String, manager: ModelManager) { self.id = id; self.manager = manager }
 
-        func urlSession(_ session: URLSession, task: URLSessionTask,
-                        didSendBodyData bytesSent: Int64,
-                        totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {}
+        func run(url: URL) async throws -> URL {
+            let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+            defer { session.finishTasksAndInvalidate() }
+            return try await withCheckedThrowingContinuation { cont in
+                continuation = cont
+                session.downloadTask(with: url).resume()
+            }
+        }
 
         func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
                         didWriteData bytesWritten: Int64, totalBytesWritten: Int64,
@@ -185,6 +224,32 @@ public final class ModelManager: ObservableObject {
             DispatchQueue.main.async { [weak manager, id] in
                 manager?.downloadProgress[id] = fraction
             }
+        }
+
+        func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+                        didFinishDownloadingTo location: URL) {
+            let status = (downloadTask.response as? HTTPURLResponse)?.statusCode ?? 0
+            guard status == 200 else { return }  // error surfaced in didComplete
+            let temp = FileManager.default.temporaryDirectory
+                .appendingPathComponent("desi-\(UUID().uuidString).bin")
+            try? FileManager.default.moveItem(at: location, to: temp)
+            movedTo = temp
+        }
+
+        func urlSession(_ session: URLSession, task: URLSessionTask,
+                        didCompleteWithError error: Error?) {
+            let status = (task.response as? HTTPURLResponse)?.statusCode ?? 0
+            if let error {
+                continuation?.resume(throwing: error)
+            } else if status != 200 {
+                continuation?.resume(throwing: NSError(domain: "ModelManager", code: status,
+                    userInfo: [NSLocalizedDescriptionKey: "Server returned \(status)."]))
+            } else if let movedTo {
+                continuation?.resume(returning: movedTo)
+            } else {
+                continuation?.resume(throwing: URLError(.cannotWriteToFile))
+            }
+            continuation = nil
         }
     }
 }

@@ -259,4 +259,35 @@ Truncated "(Esc to c…" at 180 px → 260 px capsule, pulsing red dot, "Listeni
 + quiet "esc to cancel" secondary label, ultra-thin material + 0.92 panel alpha
 (user wanted to see through it), hairline border for readability.
 
+## 2026-07-07 — Session 4: v0.4.0 — latency overhaul + download fixes
+
+User reports: model "Get" buttons dead, first 1–2 s of speech lost, short
+utterances rejected, transcription "significantly slower than MacWhisper".
+
+### ❌ Failure mode #14: model downloads failed silently (three stacked bugs)
+1. Progress delegate declared `URLSessionTaskDelegate` only → `didWriteData`
+   (a `URLSessionDownloadDelegate` method) never delivered → no progress UI.
+2. Errors swallowed by `try?` in the UI → 404s (unpublished HF repo) invisible.
+3. Already-installed models hit a silent early-return → button "did nothing".
+**Fixed:** proper delegate-based `Downloader` (progress, 404 → friendly
+"repo not published yet" message), `downloadErrors` surfaced in UI, an
+"Installed ✓" state, and progress appears instantly on click.
+
+### ❌ Failure mode #15: first words lost (mic spin-up)
+Fresh-engine-per-session (the FM #13 fix) meant 200–500 ms of dead air after
+keypress. **Fixed with warm-idle capture**: engine runs while dictation is
+enabled, 0.3 s pre-roll ring included in each session — words spoken AT the
+keypress are captured. Off-switch: Options → "Instant mic". Wedge-immunity
+kept via device-change rebuild + dead-session self-heal.
+
+### Perceived-speed overhaul (v0.4)
+- **Chunked incremental transcription**: ~12 s chunks (cut at quiet moments,
+  forced at 20 s) transcribed while the user is still speaking; on release only
+  the tail runs → long dictations insert in ~1–2 s regardless of length.
+- Short-utterance floor lowered 0.5 s → 0.2 s.
+- **Quantization benched**: q8_0 is *slower* than q5_0 on Metal (10× vs 14×) —
+  q5_0 confirmed as the right choice; q8 experiment deleted.
+- Full lever inventory (applied + deferred with plans): **docs/PERFORMANCE.md**.
+  Top deferred: CoreML/ANE encoder (~3×), Parakeet V3 for English.
+
 <!-- Append new entries below as the build progresses. -->
