@@ -4,28 +4,21 @@ import Foundation
 /// Inserts text into the frontmost app's focused field.
 ///
 /// Strategy (MacWhisper-style layered fallbacks):
-///   1. pasteboard swap + synthesized ⌘V   — works almost everywhere
-///   2. copy-only mode                      — user preference / ultimate fallback
-/// The previous pasteboard string is restored ~400ms after pasting.
+///   1. set clipboard + synthesized ⌘V   — works almost everywhere
+///   2. copy-only mode                    — user preference / ultimate fallback
+///
+/// The transcript deliberately STAYS on the clipboard after pasting (no
+/// restore): if the target app rejected the paste, the user can always ⌘V
+/// manually. "The transcript is sacred" > clipboard preservation (user-requested
+/// default, v0.2 feedback).
 public enum TextInserter {
     public static func insert(_ text: String, copyOnly: Bool) {
         let pasteboard = NSPasteboard.general
-        let previous = pasteboard.string(forType: .string)
-
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 
-        guard !copyOnly else { return }  // leave transcript on the clipboard
-
+        guard !copyOnly else { return }
         synthesizePaste()
-
-        // Restore what the user had on the clipboard before we hijacked it.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            if let previous {
-                pasteboard.clearContents()
-                pasteboard.setString(previous, forType: .string)
-            }
-        }
     }
 
     private static func synthesizePaste() {

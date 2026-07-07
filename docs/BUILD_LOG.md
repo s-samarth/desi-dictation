@@ -186,4 +186,19 @@ Fix: use system LibreSSL (`/usr/bin/openssl`) or `-legacy` (script does both).
 (codesign + TCC don't need chain trust). build_app.sh silently fell back to
 ad-hoc — drop `-v` when checking.
 
+### ❌ Failure mode #11: error states were terminal (user-reported)
+A quick accidental tap → "No audio was captured" → **app unusable until
+relaunch**: `startRecording()` demanded `phase == .idle`, and nothing ever left
+`.error`. Same root cause made the hold↔toggle switch *look* broken in realtime
+(it applied fine — the app was just already bricked).
+**Fixes (v0.2.1):**
+- All runtime errors are **transient**: message + beep, auto-reset to idle in
+  4 s, and recording may start straight from an error state.
+- Sub-0.5 s captures get a gentle "Too short — ready again" instead of an error.
+- Explicit no-output messaging: "nothing inserted or copied" (user's spec).
+- Transcript is never lost: stays on the **clipboard after paste** (restore
+  removed — user-requested default), plus History + "Copy Last".
+- First proof of real-voice Hinglish in the wild: user's menu showed
+  *"Bhai, ab na solid model use ka…"* ✅
+
 <!-- Append new entries below as the build progresses. -->

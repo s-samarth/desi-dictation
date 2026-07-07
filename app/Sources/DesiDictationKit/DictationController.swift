@@ -26,6 +26,20 @@ public final class DictationController: ObservableObject {
     private let hotkeys = HotkeyManager()
     private let workQueue = DispatchQueue(label: "desi.dictation.engine", qos: .userInitiated)
     private var settings: SettingsStore { .shared }
+    private var errorResetTask: Task<Void, Never>?
+
+    /// Errors never brick the app: show, beep, auto-return to idle. The user
+    /// can also just start dictating again immediately (see startRecording).
+    private func transientError(_ message: String) {
+        phase = .error(message)
+        Sounds.error.play()
+        errorResetTask?.cancel()
+        errorResetTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            guard let self, !Task.isCancelled else { return }
+            if case .error = self.phase { self.phase = .idle }
+        }
+    }
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -105,22 +119,30 @@ public final class DictationController: ObservableObject {
     // MARK: - Session
 
     private func startRecording() {
-        guard phase == .idle else { return }
+        // Recording may start from idle OR from an error state — an earlier
+        // failure must never require a relaunch (v0.2 user-reported bug).
+        switch phase {
+        case .idle, .error: break
+        default: return
+        }
+        errorResetTask?.cancel()
         do {
             try audio.start()
             phase = .recording
             Sounds.start.play()
         } catch {
-            phase = .error(error.localizedDescription)
-            Sounds.error.play()
+            transientError("Mic error: \(error.localizedDescription)")
         }
     }
 
     private func finishRecording() {
         let samples = audio.stop()
+        guard samples.count > 8000 else {  // < 0.5 s: accidental tap, not an error worth a scare
+            transientError("Too short — nothing captured. Ready again.")
+            return
+        }
         guard let modelPath = resolvedModelPath() else {
-            phase = .error("No model for this mode — open Models to download one")
-            Sounds.error.play()
+            transientError("No model for this mode — open Models to download one")
             return
         }
         phase = .transcribing
@@ -148,9 +170,11 @@ public final class DictationController: ObservableObject {
                 }
                 Task { @MainActor in self.deliver(text: text, mode: mode, copyOnly: copyOnly) }
             } catch {
+                // Nothing usable came out: say so explicitly (and that nothing
+                // was copied), then auto-reset. State is never stuck.
                 Task { @MainActor in
-                    self.phase = .error(error.localizedDescription)
-                    Sounds.error.play()
+                    self.transientError(
+                        "Couldn't transcribe (\(error.localizedDescription)) — nothing inserted or copied.")
                 }
             }
         }
@@ -158,10 +182,11 @@ public final class DictationController: ObservableObject {
 
     private func deliver(text: String, mode: LanguageMode, copyOnly: Bool) {
         guard !text.isEmpty else {
-            phase = .idle
-            Sounds.error.play()
+            transientError("No speech detected — nothing inserted or copied.")
             return
         }
+        // The transcript is sacred: even if pasting into the target app fails,
+        // it's in lastTranscript ("Copy Last" in the menu) and History.
         lastTranscript = text
         HistoryStore.shared.add(text: text, mode: mode)
         TextInserter.insert(text, copyOnly: copyOnly)
