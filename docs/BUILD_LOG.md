@@ -158,4 +158,32 @@ faster than Whisper, zero silence-hallucination) > large-v3-turbo > Moonshine
 English-mode engine is the highest-value next model upgrade. Hinglish: Apex
 remains SOTA; Srota (Qwen3-ASR) would need an MLX path — Phase 5.
 
+## 2026-07-07 — Session 2 (continued): the stale-permission saga
+
+### ❌ Failure mode #8: TCC grants silently die on every ad-hoc rebuild
+User granted Accessibility + Input Monitoring, toggles showed **ON**, app still
+reported "Hotkey needs Input Monitoring". Cause: TCC records a grant against the
+binary's code requirement; ad-hoc signatures change **every build**, so the
+System Settings toggle points at the *previous* binary — shown ON, actually
+denied. Brutal because nothing looks wrong.
+**Fixes (all three shipped):**
+1. **Stable self-signed identity** "Desi Dictation Dev" (`make_dev_cert.sh`;
+   `build_app.sh` auto-uses it) → grants now survive rebuilds. Launch builds
+   replace this with a Developer ID.
+2. **Listen-only tap fallback** in HotkeyManager — if macOS denies the active
+   tap, dictation still works (only key-swallowing is lost, which the default
+   Right ⌥ hotkey never needed anyway).
+3. **Precise error surface**: enable() now distinguishes "never granted" from
+   "granted-but-stale" and says exactly what to do. `tccutil reset ... 
+   com.desi.dictation` clears stale entries for a clean re-prompt.
+
+### ❌ Failure mode #9: PKCS12 import — "MAC verification failed"
+OpenSSL 3.x emits AES/SHA2-MAC PKCS12 that macOS `security import` rejects.
+Fix: use system LibreSSL (`/usr/bin/openssl`) or `-legacy` (script does both).
+
+### ❌ Failure mode #10: `security find-identity -v` hides self-signed identities
+`-v` lists only *trusted* identities; the dev cert is untrusted-but-functional
+(codesign + TCC don't need chain trust). build_app.sh silently fell back to
+ad-hoc — drop `-v` when checking.
+
 <!-- Append new entries below as the build progresses. -->

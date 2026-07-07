@@ -3,14 +3,23 @@
 Symptoms → causes → fixes. Build-time failures are also chronicled with full
 context in [BUILD_LOG.md](BUILD_LOG.md).
 
-## 1. Hotkey does nothing / "needs Input Monitoring" in the menu
+## 1. Hotkey does nothing / permission errors in the menu
 
 - Grant **Input Monitoring** AND **Accessibility** in System Settings →
   Privacy & Security, then **quit and relaunch the app** (grants apply at
   process start).
-- **After every rebuild** of an ad-hoc-signed app, macOS treats it as a new
-  binary: remove the stale entry (−) in both panes, re-add the fresh .app, relaunch.
-  (Developer-ID-signed builds keep grants across updates — launch build fixes this.)
+- **Toggle shows ON but still denied = stale grant** (the #1 trap): the grant
+  was recorded for a previous build of the binary. Fix:
+  ```bash
+  tccutil reset Accessibility com.desi.dictation
+  tccutil reset ListenEvent com.desi.dictation
+  ```
+  then relaunch and grant the fresh prompts. Prevention: sign with a stable
+  identity — run `./scripts/make_dev_cert.sh` once; `build_app.sh` picks it up
+  automatically (Developer ID replaces it at launch).
+- Even with a partial grant the app degrades gracefully: it falls back to a
+  listen-only hotkey tap (dictation works; the hotkey/Esc keys just aren't
+  swallowed).
 - Still dead? Check the tap was created: menu bar status line will show the
   error phase; also `log stream --predicate 'process == "Desi Dictation"'`.
 

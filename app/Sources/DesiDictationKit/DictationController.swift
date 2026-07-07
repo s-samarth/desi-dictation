@@ -59,7 +59,20 @@ public final class DictationController: ObservableObject {
 
     public func enable() {
         hotkeys.start(hotkey: settings.hotkey)
-        phase = hotkeys.isActive ? .idle : .error("Hotkey needs Input Monitoring permission")
+        switch hotkeys.tapMode {
+        case .active, .listenOnly:
+            phase = .idle
+        case .failed:
+            // Distinguish "never granted" from the ad-hoc-build stale-grant trap
+            // (toggle shows ON in System Settings but macOS denies the new binary).
+            let status = Permissions.check()
+            var missing: [String] = []
+            if !status.accessibility { missing.append("Accessibility") }
+            if !status.inputMonitoring { missing.append("Input Monitoring") }
+            phase = .error(missing.isEmpty
+                ? "Stale permission — in Privacy Settings REMOVE (−) Desi Dictation from Accessibility & Input Monitoring, re-add, relaunch"
+                : "Grant \(missing.joined(separator: " + ")) in Privacy Settings, then toggle Enable off/on")
+        }
         preloadModelIfNeeded()
     }
 

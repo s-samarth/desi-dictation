@@ -49,8 +49,16 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-echo "==> Ad-hoc codesigning (replace '-' with Developer ID for distribution)"
-codesign --force --deep --sign - "$BUNDLE"
+# Prefer a stable identity so TCC grants survive rebuilds (make_dev_cert.sh);
+# fall back to ad-hoc. Distribution builds use a Developer ID (LAUNCH.md).
+# NOTE: no `-v` — the self-signed dev cert is untrusted (fine for signing/TCC)
+# and `-v` would hide it, silently falling back to ad-hoc.
+IDENTITY="-"
+if security find-identity -p codesigning | grep -q "Desi Dictation Dev"; then
+  IDENTITY="Desi Dictation Dev"
+fi
+echo "==> Codesigning with: $IDENTITY"
+codesign --force --deep --sign "$IDENTITY" "$BUNDLE"
 
 echo "==> Done:"
 codesign -dv "$BUNDLE" 2>&1 | head -2

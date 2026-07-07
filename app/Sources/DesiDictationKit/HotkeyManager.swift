@@ -14,7 +14,13 @@ public final class HotkeyManager {
     /// Controller sets this true while recording so Esc gets intercepted.
     public var sessionActive: () -> Bool = { false }
 
-    public private(set) var isActive = false
+    /// How the tap was created. `.listenOnly` is the degraded mode (can't swallow
+    /// the hotkey/Esc keystrokes, but dictation fully works) used when macOS
+    /// denies an active tap — e.g. stale TCC grants on ad-hoc dev builds.
+    public enum TapMode { case active, listenOnly, failed }
+    public private(set) var tapMode: TapMode = .failed
+    public var isActive: Bool { tapMode != .failed }
+
     private var tap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var hotkey: HotkeyChoice = .rightOption
@@ -33,24 +39,30 @@ public final class HotkeyManager {
             (1 << CGEventType.flagsChanged.rawValue)
 
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
+        let callback: CGEventTapCallBack = { _, type, event, userInfo in
+            guard let userInfo else { return Unmanaged.passUnretained(event) }
+            let manager = Unmanaged<HotkeyManager>.fromOpaque(userInfo).takeUnretainedValue()
+            return manager.handle(type: type, event: event)
+        }
+
+        tapMode = .active
         tap = CGEvent.tapCreate(
-            tap: .cgSessionEventTap,
-            place: .headInsertEventTap,
-            options: .defaultTap,
-            eventsOfInterest: mask,
-            callback: { _, type, event, userInfo in
-                guard let userInfo else { return Unmanaged.passUnretained(event) }
-                let manager = Unmanaged<HotkeyManager>.fromOpaque(userInfo).takeUnretainedValue()
-                return manager.handle(type: type, event: event)
-            },
-            userInfo: selfPtr
-        )
-        guard let tap else { isActive = false; return }
+            tap: .cgSessionEventTap, place: .headInsertEventTap,
+            options: .defaultTap, eventsOfInterest: mask,
+            callback: callback, userInfo: selfPtr)
+
+        if tap == nil {  // active tap denied — fall back to listen-only
+            tapMode = .listenOnly
+            tap = CGEvent.tapCreate(
+                tap: .cgSessionEventTap, place: .headInsertEventTap,
+                options: .listenOnly, eventsOfInterest: mask,
+                callback: callback, userInfo: selfPtr)
+        }
+        guard let tap else { tapMode = .failed; return }
 
         runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
         CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
-        isActive = true
     }
 
     public func stop() {
@@ -58,7 +70,7 @@ public final class HotkeyManager {
         if let runLoopSource { CFRunLoopRemoveSource(CFRunLoopGetMain(), runLoopSource, .commonModes) }
         tap = nil
         runLoopSource = nil
-        isActive = false
+        tapMode = .failed
     }
 
     // MARK: - Event handling
