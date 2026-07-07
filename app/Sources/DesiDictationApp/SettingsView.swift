@@ -1,0 +1,136 @@
+import SwiftUI
+import DesiDictationKit
+
+struct SettingsView: View {
+    var body: some View {
+        TabView {
+            GeneralSettings().tabItem { Label("General", systemImage: "gear") }
+            ModelsSettings().tabItem { Label("Models", systemImage: "cpu") }
+            TextSettings().tabItem { Label("Text", systemImage: "character.cursor.ibeam") }
+            LicenseSettings().tabItem { Label("License", systemImage: "key") }
+        }
+        .frame(width: 480, height: 420)
+    }
+}
+
+struct GeneralSettings: View {
+    @ObservedObject var settings = SettingsStore.shared
+    @State private var permissions = Permissions.check()
+
+    var body: some View {
+        Form {
+            Picker("Dictation hotkey", selection: $settings.hotkey) {
+                ForEach(HotkeyChoice.allCases, id: \.self) { Text($0.displayName).tag($0) }
+            }
+            .onChange(of: settings.hotkey) { DictationController.shared.reloadHotkey() }
+
+            Picker("Activation", selection: $settings.activationMode) {
+                ForEach(ActivationMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
+            }
+            .pickerStyle(.radioGroup)
+
+            Toggle("Play sounds", isOn: $settings.soundsEnabled)
+            Toggle("Copy to clipboard instead of pasting", isOn: $settings.copyInsteadOfPaste)
+
+            Section("Permissions") {
+                permissionRow("Microphone", granted: permissions.microphone, pane: .microphone)
+                permissionRow("Accessibility", granted: permissions.accessibility, pane: .accessibility)
+                permissionRow("Input Monitoring", granted: permissions.inputMonitoring, pane: .inputMonitoring)
+                Button("Re-check") { permissions = Permissions.check() }
+            }
+        }
+        .padding()
+    }
+
+    private func permissionRow(_ name: String, granted: Bool, pane: Permissions.Pane) -> some View {
+        HStack {
+            Image(systemName: granted ? "checkmark.circle.fill" : "xmark.circle")
+                .foregroundStyle(granted ? .green : .red)
+            Text(name)
+            Spacer()
+            if !granted {
+                Button("Open Settings") { Permissions.openSystemSettings(pane: pane) }
+            }
+        }
+    }
+}
+
+struct ModelsSettings: View {
+    @ObservedObject var models = ModelManager.shared
+    @ObservedObject var license = LicenseManager.shared
+
+    var body: some View {
+        Form {
+            Section("Installed (\(AppPaths.modelsDirectory.path))") {
+                if models.installed.isEmpty {
+                    Text("No models yet. Download below, or convert Hinglish models with scripts/convert_model.sh")
+                        .foregroundStyle(.secondary)
+                }
+                ForEach(models.installed) { Text("\($0.name) — \($0.sizeMB) MB") }
+            }
+            Section("Download stock models") {
+                ForEach(ModelManager.catalog) { item in
+                    HStack {
+                        Text(item.label + (item.pro ? "  (Pro)" : ""))
+                        Spacer()
+                        if let progress = models.downloadProgress[item.id] {
+                            ProgressView(value: progress).frame(width: 90)
+                        } else {
+                            Button("Get (\(item.approxMB) MB)") {
+                                Task { try? await models.download(item) }
+                            }
+                            .disabled(item.pro && !license.isPro)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+    }
+}
+
+struct TextSettings: View {
+    @ObservedObject var settings = SettingsStore.shared
+
+    var body: some View {
+        Form {
+            Section("Replacements — one per line: find=replace") {
+                TextEditor(text: $settings.replacementRules)
+                    .font(.system(.body, design: .monospaced))
+                    .frame(height: 110)
+            }
+            Section("AI cleanup (local Ollama, Pro)") {
+                Toggle("Clean up transcript with Ollama before inserting",
+                       isOn: $settings.ollamaEnabled)
+                TextField("Ollama model", text: $settings.ollamaModel)
+                TextEditor(text: $settings.cleanupPrompt).frame(height: 70)
+            }
+        }
+        .padding()
+    }
+}
+
+struct LicenseSettings: View {
+    @ObservedObject var settings = SettingsStore.shared
+    @ObservedObject var license = LicenseManager.shared
+
+    var body: some View {
+        Form {
+            if license.isPro {
+                Label("Pro features unlocked", systemImage: "checkmark.seal.fill")
+                    .foregroundStyle(.green)
+            }
+            TextField("Gumroad license key", text: $settings.licenseKey)
+            Button("Activate") {
+                Task { await license.activate(key: settings.licenseKey) }
+            }
+            if let error = license.lastError {
+                Text(error).foregroundStyle(.red).font(.caption)
+            }
+            Text("Free: Hinglish Swift + Base models, unlimited dictation.\nPro: larger models + AI cleanup.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+    }
+}
