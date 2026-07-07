@@ -1,0 +1,31 @@
+# macOS
+.DS_Store
+
+# Vendored third-party source (cloned by scripts/setup_whisper.sh)
+vendor/
+
+# Build artifacts
+app/.build/
+app/dist/
+build/
+*.xcframework
+
+# Models (large binaries — downloaded/converted by scripts)
+models/
+*.bin
+*.gguf
+*.mlmodelc
+
+# Python
+spike/.venv/
+__pycache__/
+*.pyc
+spike/hf_cache/
+
+# Audio test files (user recordings stay local)
+spike/audio/*.wav
+spike/audio/*.m4a
+spike/results/*.json
+
+# Secrets
+.env
