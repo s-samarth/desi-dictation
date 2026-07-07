@@ -64,7 +64,7 @@ struct DictationPane: View {
 
             Section("Options") {
                 Toggle("Smart pause handling (VAD)", isOn: $settings.vadEnabled)
-                Toggle("Instant mic (keeps microphone warm while enabled)",
+                Toggle("Quick restart (mic stays warm 20 s after dictating)",
                        isOn: $settings.micWarm)
                     .onChange(of: settings.micWarm) {
                         DictationController.shared.micWarmChanged()

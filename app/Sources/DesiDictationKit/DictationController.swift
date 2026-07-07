@@ -84,10 +84,10 @@ public final class DictationController: ObservableObject {
         switch hotkeys.tapMode {
         case .active, .listenOnly:
             phase = .idle
-            // Warm mic: engine runs while enabled (with a 0.3 s pre-roll ring)
-            // so the words spoken AT the keypress are captured. Opt-out in
-            // Options for the privacy-conscious (mic indicator stays on).
-            if settings.micWarm { try? audio.warmUp() }
+            // NOTE: mic is NOT warmed here — the orange indicator must appear
+            // only around actual dictation (user feedback, v0.4.1). Warm-up
+            // happens at keypress; a 20 s post-dictation warm window keeps
+            // rapid follow-ups instant (see scheduleCoolDown).
         case .failed:
             // Distinguish "never granted" from the ad-hoc-build stale-grant trap
             // (toggle shows ON in System Settings but macOS denies the new binary).
@@ -112,8 +112,25 @@ public final class DictationController: ObservableObject {
 
     /// Applies the mic-warm setting change immediately.
     public func micWarmChanged() {
-        guard phase != .disabled else { return }
-        settings.micWarm ? (try? audio.warmUp()) : audio.coolDown()
+        if !settings.micWarm { audio.coolDown() }
+    }
+
+    // MARK: - Warm window (privacy-respecting instant restarts)
+
+    private var coolDownTask: Task<Void, Never>?
+
+    /// Keep the mic warm for 20 s after a dictation (instant repeat starts,
+    /// pre-roll active), then release it — the orange mic indicator must not
+    /// live in the menu bar permanently (user feedback, v0.4.1).
+    private func scheduleCoolDown() {
+        coolDownTask?.cancel()
+        guard settings.micWarm else { audio.coolDown(); return }
+        coolDownTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 20_000_000_000)
+            guard let self, !Task.isCancelled else { return }
+            if case .recording = self.phase { return }
+            self.audio.coolDown()
+        }
     }
 
     public func reloadHotkey() {
@@ -202,9 +219,12 @@ public final class DictationController: ObservableObject {
             return
         }
         do {
+            coolDownTask?.cancel()
+            let wasWarm = audio.isWarm
+            if settings.micWarm, !wasWarm { try? audio.warmUp() }
             try audio.beginSession()
             phase = .recording
-            if audio.isWarm { Sounds.start.play() }   // cold path: onFirstAudio plays it
+            if wasWarm { Sounds.start.play() }   // cold path: onFirstAudio plays it
             startChunkTicker(modelPath: modelPath, mode: settings.languageMode)
         } catch {
             transientError("Mic error: \(error.localizedDescription)")
@@ -214,6 +234,7 @@ public final class DictationController: ObservableObject {
     private func finishRecording() {
         stopChunkTicker()
         let samples = audio.endSession()
+        scheduleCoolDown()
         let tailStart = chunkedUpToSample
         chunkedUpToSample = 0
         guard samples.count > 3200 else {  // < 0.2 s: accidental tap
@@ -287,6 +308,7 @@ public final class DictationController: ObservableObject {
     public func cancel() {
         stopChunkTicker()
         audio.cancelSession()
+        scheduleCoolDown()
         workQueue.async { [weak self] in self?.pendingParts = [] }
         chunkedUpToSample = 0
         if phase != .disabled { phase = .idle }
