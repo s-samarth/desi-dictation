@@ -39,7 +39,7 @@ public final class ModelManager: ObservableObject {
     /// Base URL for our published Hinglish models — see scripts/publish_models.sh
     /// and docs/LAUNCH.md step 3. Overridable for forks/testing.
     public static let hinglishRepoBase = UserDefaults.standard.string(forKey: "modelRepoBase")
-        ?? "https://huggingface.co/samarthsaraswat/desi-dictation-models/resolve/main"
+        ?? "https://huggingface.co/SamarthBuilds/desi-dictation-models/resolve/main"
 
     public static let catalog: [DownloadableModel] = [
         .init(id: "hinglish-apex-q5_0", label: "Hinglish Apex — best Hinglish accuracy",

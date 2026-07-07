@@ -9,7 +9,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-REPO="${1:-samarthsaraswat/desi-dictation-models}"
+REPO="${1:-SamarthBuilds/desi-dictation-models}"
 
 cd "$ROOT/spike"
 uv run hf repo create "$REPO" --type model -y 2>/dev/null || true
