@@ -60,6 +60,19 @@ Structural gaps don't close by themselves — this is why a product that *owns*
 the Roman-Hinglish experience (model + normalization dictionary + user
 replacements + eval set) can stay ahead of generic players.
 
+## Post-research lab results (same day)
+
+- **Trelis → whisper.cpp: BLOCKED (for now).** The `<|mixedcode|>` token grows
+  the vocab to 51,867 vs stock 51,866; whisper.cpp derives its language-token
+  table from vocab size → `unknown language id 100`, decode unusable. The
+  model is good; the runtime can't host custom-vocab Whispers. Options:
+  (a) trim the added token at conversion → works but loses the mixed-script
+  feature (its whole point); (b) patch whisper.cpp for added-token vocabs +
+  prompt-token injection — real engineering, upstream-worthy, roadmap item for
+  the "Mixed script" mode. q5_0 conversion kept on disk for when (b) lands.
+- **Vaani (standard vocab) converts cleanly** → evaluated as the हिन्दी-mode
+  upgrade instead.
+
 ## Actions
 
 1. **Now (running):** convert Trelis → GGML; eval vs Apex on the personal eval

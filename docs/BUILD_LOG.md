@@ -290,4 +290,19 @@ kept via device-change rebuild + dead-session self-heal.
 - Full lever inventory (applied + deferred with plans): **docs/PERFORMANCE.md**.
   Top deferred: CoreML/ANE encoder (~3×), Parakeet V3 for English.
 
+## 2026-07-07 — Session 5: model landscape research + lab results
+
+Deep research pass (docs/MODEL_RESEARCH.md): Trelis whisper-hinglish-preview
+(June 2026) is the new open mixed-script SOTA; Sarvam's ASR stays API-only;
+pure-Roman Hinglish remains Oriserve-only for structural reasons (Devanagari-
+labeled data, no standard Roman orthography, no benchmark → no releases).
+
+### ❌ Failure mode #16: added-vocab fine-tunes break whisper.cpp
+Trelis adds `<|mixedcode|>` → n_vocab 51,867 (stock 51,866). whisper.cpp infers
+the language-token table from vocab size → `whisper_lang_str: unknown language
+id 100`, decode unusable. **Lesson: check `vocab_size` in a fine-tune's
+config.json BEFORE converting** — must be exactly 51,865/51,866 (v2/v3) for
+whisper.cpp. Fix path (roadmap): patch whisper.cpp for extended vocabs +
+prompt-token injection; that also unlocks the Mixed-script mode.
+
 <!-- Append new entries below as the build progresses. -->
