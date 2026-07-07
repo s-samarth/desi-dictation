@@ -33,3 +33,14 @@ spike/results/*.json
 # Evals: tooling committed, data + reports stay local
 evals/data/
 evals/reports/
+
+# Private strategy/business docs — kept local, never pushed (history retains old copies; accepted)
+plan.md
+MacWhisper.md
+docs/GTM.md
+docs/MARKET_STUDY.md
+docs/PRODUCT_VISION.md
+docs/LAUNCH.md
+docs/PRODUCT.md
+docs/MODEL_RESEARCH.md
+docs/FINETUNING.md

@@ -35,8 +35,6 @@ Dictation** → pick the model → hold **Right ⌥** and speak. Full instructio
 
 ```
 desi-dictation/
-├── plan.md                  # the master build plan (phases, decisions, risks)
-├── MacWhisper.md            # competitive research on MacWhisper
 ├── app/                     # Swift package (no Xcode needed)
 │   ├── Package.swift        #   links whisper.cpp static libs
 │   ├── Sources/
@@ -51,14 +49,15 @@ desi-dictation/
 ├── models/                  # converted GGML models (gitignored)
 ├── vendor/                  # whisper.cpp + openai/whisper clones (gitignored)
 └── docs/
-    ├── PRODUCT_VISION.md    # vision, strategy, positioning
-    ├── GTM.md               # go-to-market plan
     ├── SYSTEM_DESIGN.md     # architecture deep-dive
+    ├── PERFORMANCE.md       # latency engineering: applied + deferred levers
     ├── BUILD_LOG.md         # chronological build steps + all failure modes
-    ├── USAGE.md             # how to use it locally (precise steps)
-    ├── LAUNCH.md            # how to launch on Gumroad
+    ├── SETUP_GUIDE.md       # end-user install guide (start here)
+    ├── USAGE.md             # developer usage (precise steps)
+    ├── SECURITY_AUDIT.md    # privacy/security posture, verified
     └── TROUBLESHOOTING.md   # when things break
 ```
+(Product strategy docs are kept out of the public repo.)
 
 ## The stack, in one breath
 
@@ -70,10 +69,12 @@ pasteboard-swap ⌘V insertion → non-activating overlay for state. SwiftUI
 
 ## Status
 
-v0.1.0 — feature-complete for the dictation wedge, **not yet launched**.
-See [docs/LAUNCH.md](docs/LAUNCH.md) for the launch runway and
-[plan.md](plan.md) §Phase 5 for the roadmap (WhisperKit/ANE backend,
-mixed-script models, more Indic languages, file transcription).
+**v0.5.0 — free beta.** Feature-complete for the dictation wedge: 4 language
+models with per-mode auto-selection, VAD pause handling, chunked transcription
+while you speak, 24h local history, replacement dictionary, in-app feedback.
+Grab the DMG from [Releases](../../releases) and follow
+[docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md). Roadmap highlights: WhisperKit/ANE
+backend, mixed-script mode, more Indic languages, Windows.
 
 ## License note
 
