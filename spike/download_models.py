@@ -22,6 +22,11 @@ MODELS: dict[str, str] = {
     "swift": "Oriserve/Whisper-Hindi2Hinglish-Swift",
     "prime": "Oriserve/Whisper-Hindi2Hinglish-Prime",
     "apex": "Oriserve/Whisper-Hindi2Hinglish-Apex",
+    # Mixed-script Hinglish SOTA (June 2026, Apache 2.0, whisper-large-v3 arch;
+    # <|mixedcode|> token → "मेरा favourite festival Diwali है" style output)
+    "trelis": "Trelis/whisper-hinglish-preview",
+    # Strongest open Devanagari Hindi (large-v3 + 718h Vaani/IndicVoices data)
+    "vaani": "ARTPARK-IISc/whisper-large-v3-vaani-hindi",
 }
 
 
