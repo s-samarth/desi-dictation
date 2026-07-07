@@ -64,6 +64,12 @@ struct MenuContent: View {
         Divider()
 
         SettingsLink { Text("Settings…") }
+        Button("Send Feedback…") { Feedback.compose() }
+        if !controller.lastTranscript.isEmpty {
+            Button("Report Last Transcription…") {
+                Feedback.compose(includeLastTranscript: true)
+            }
+        }
         Button("Open Models Folder") {
             NSWorkspace.shared.open(AppPaths.modelsDirectory)
         }
