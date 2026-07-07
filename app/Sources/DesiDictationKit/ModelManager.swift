@@ -19,6 +19,10 @@ public struct DownloadableModel: Identifiable {
     public let url: URL
     public let approxMB: Int
     public let pro: Bool
+    /// Shown with a ⭐ in-app: our opinionated pick per category.
+    public let recommended: Bool
+    /// Which need it serves — rendered as a section hint in the Models UI.
+    public let category: String
 }
 
 public final class ModelManager: ObservableObject {
@@ -27,16 +31,27 @@ public final class ModelManager: ObservableObject {
     @Published public private(set) var installed: [ModelDescriptor] = []
     @Published public var downloadProgress: [String: Double] = [:]  // id -> 0…1
 
+    /// Base URL for our published Hinglish models — see scripts/publish_models.sh
+    /// and docs/LAUNCH.md step 3. Overridable for forks/testing.
+    public static let hinglishRepoBase = UserDefaults.standard.string(forKey: "modelRepoBase")
+        ?? "https://huggingface.co/samarthsaraswat/desi-dictation-models/resolve/main"
+
     public static let catalog: [DownloadableModel] = [
-        .init(id: "base", label: "Whisper Base (Hindi/English, fast)",
-              url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin")!,
-              approxMB: 148, pro: false),
-        .init(id: "small", label: "Whisper Small (better Hindi)",
-              url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin")!,
-              approxMB: 488, pro: true),
-        .init(id: "large-v3-turbo-q5_0", label: "Whisper Large v3 Turbo q5 (best stock)",
+        .init(id: "hinglish-apex-q5_0", label: "Hinglish Apex — best Hinglish accuracy",
+              url: URL(string: "\(hinglishRepoBase)/ggml-hinglish-apex-q5_0.bin")!,
+              approxMB: 547, pro: true, recommended: true, category: "Hinglish"),
+        .init(id: "hinglish-swift", label: "Hinglish Swift — light & fast",
+              url: URL(string: "\(hinglishRepoBase)/ggml-hinglish-swift.bin")!,
+              approxMB: 141, pro: false, recommended: false, category: "Hinglish"),
+        .init(id: "large-v3-turbo-q5_0", label: "Whisper Large v3 Turbo — best English & हिन्दी",
               url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin")!,
-              approxMB: 574, pro: true),
+              approxMB: 574, pro: true, recommended: true, category: "English / हिन्दी"),
+        .init(id: "base", label: "Whisper Base — light English/Hindi",
+              url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin")!,
+              approxMB: 148, pro: false, recommended: false, category: "English / हिन्दी"),
+        .init(id: "silero-vad", label: "Silero VAD — handles pauses & long dictations",
+              url: URL(string: "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin")!,
+              approxMB: 1, pro: false, recommended: true, category: "Engine add-on"),
     ]
 
     private init() { refresh() }
@@ -94,11 +109,12 @@ public final class ModelManager: ObservableObject {
             let files = (try? FileManager.default.contentsOfDirectory(
                 at: dir, includingPropertiesForKeys: [.fileSizeKey])) ?? []
             for file in files where file.pathExtension == "bin" {
+                let name = file.deletingPathExtension().lastPathComponent
+                // VAD model is an engine helper, not a transcription model.
+                guard !name.contains("silero") else { continue }
                 let size = (try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
                 found.append(ModelDescriptor(
-                    name: file.deletingPathExtension().lastPathComponent,
-                    path: file.path,
-                    sizeMB: size / 1_048_576))
+                    name: name, path: file.path, sizeMB: size / 1_048_576))
             }
         }
         installed = found.sorted { $0.sizeMB < $1.sizeMB }

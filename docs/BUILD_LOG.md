@@ -201,4 +201,40 @@ relaunch**: `startRecording()` demanded `phase == .idle`, and nothing ever left
 - First proof of real-voice Hinglish in the wild: user's menu showed
   *"Bhai, ab na solid model use ka…"* ✅
 
+## 2026-07-07 — Session 3: v0.3.0 — quality crux + launch prep
+
+User dictated the entire session-3 prompt WITH the product (in Hinglish). Reported:
+quality degrades on long dictations and around silences — "fundamental for our
+success."
+
+### ✅ The long-form fix (the crux)
+Root causes and fixes, both verified:
+1. **`no_context = true`** — Whisper defaults to conditioning each 30 s window
+   on the previous window's output; one bad segment poisons everything after it.
+   This is THE classic long-dictation degradation, now off.
+2. **Silero VAD** (whisper.cpp built-in, `ggml-silero-vad.bin`, 1 MB) — trims
+   silences before decoding; silence is where Whisper hallucinates.
+**Verification:** 23 s synthetic clip with three 3–5 s silences → all four
+sentences transcribed correctly, zero hallucination in gaps, and **15× realtime**
+(VAD skips silence, so it's *faster* than the 3× baseline).
+
+### Launch prep shipped
+- **App icon**: CoreGraphics generator (`generate_icon.swift` — charcoal
+  squircle, saffron mic, green dot; tricolor nod) → .icns wired into bundle.
+- **Model catalog v2**: in-app one-click downloads with ⭐ recommendations and
+  category labels (user's requirement: models can't be bundled — DMG stays 1.4 MB);
+  Hinglish models served from own HF repo (`publish_models.sh` ready, needs
+  `hf auth login` before first run).
+- **CI**: `.github/workflows/release.yml` — tag push → build → DMG → GitHub
+  Release; signing/notarization activate when secrets are configured.
+- **New docs**: SETUP_GUIDE.md (end-user install/permissions/models),
+  PRODUCT.md (living feature/roadmap doc), LAUNCH.md gained privacy-first user
+  measurement (Gumroad dashboard + GH release counts + Plausible; no in-app
+  telemetry) and CI release instructions.
+- Version 0.3.0; DMG built.
+
+### Open item requiring the human
+`publish_models.sh` needs a Hugging Face write token (`hf auth login`) — until
+the HF repo exists, in-app Hinglish downloads 404 (local installs unaffected).
+
 <!-- Append new entries below as the build progresses. -->

@@ -12,6 +12,13 @@ public final class WhisperCppEngine: TranscriptionEngine {
 
     public var isLoaded: Bool { ctx != nil }
 
+    /// Silero VAD model, if installed (Models tab offers it as a download).
+    static func vadModelPath() -> String? {
+        let path = AppPaths.modelsDirectory
+            .appendingPathComponent("ggml-silero-vad.bin").path
+        return FileManager.default.fileExists(atPath: path) ? path : nil
+    }
+
     public func load(modelPath: String) throws {
         unload()
         var params = whisper_context_default_params()
@@ -44,6 +51,22 @@ public final class WhisperCppEngine: TranscriptionEngine {
         params.translate = false
         params.suppress_blank = true
         params.n_threads = Int32(max(2, ProcessInfo.processInfo.activeProcessorCount - 2))
+
+        // Long-form quality (v0.3): without this, each 30s window conditions on
+        // the previous window's text, so one bad segment degrades everything
+        // after it — the classic "long dictation gets worse" failure.
+        params.no_context = true
+
+        // Silero VAD (if the model file is installed): trims silences before
+        // decoding — silence is exactly where Whisper hallucinates.
+        var vadCString: UnsafeMutablePointer<CChar>?
+        if let vadPath = Self.vadModelPath() {
+            params.vad = true
+            vadCString = strdup(vadPath)
+            params.vad_model_path = UnsafePointer(vadCString)
+            params.vad_params = whisper_vad_default_params()
+        }
+        defer { free(vadCString) }
 
         // whisper_full keeps a borrowed pointer to language for the call duration.
         let langCString = strdup(mode.whisperLanguage)

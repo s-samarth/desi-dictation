@@ -1,0 +1,64 @@
+# Release pipeline: push a tag like v0.3.0 → build whisper.cpp + app → DMG →
+# GitHub Release. Best practice for Mac apps built without Xcode projects.
+#
+# Signing/notarization run ONLY if secrets are configured (LAUNCH.md steps 1–2):
+#   MACOS_CERT_P12_BASE64, MACOS_CERT_PASSWORD  — Developer ID Application cert
+#   NOTARY_APPLE_ID, NOTARY_TEAM_ID, NOTARY_PASSWORD — app-specific password
+# Without them the DMG is ad-hoc signed (fine for testing, not distribution).
+name: Release DMG
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14   # Apple Silicon; has Xcode, so plain `swift` works
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build whisper.cpp static libs
+        run: |
+          brew install cmake || true
+          ./scripts/setup_whisper.sh
+
+      - name: Build app bundle
+        run: DESI_SWIFT=swift ./scripts/build_app.sh
+
+      - name: Import signing cert (if configured)
+        if: ${{ env.CERT != '' }}
+        env:
+          CERT: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+        run: |
+          echo "$CERT" | base64 -d > cert.p12
+          security create-keychain -p ci build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p ci build.keychain
+          security import cert.p12 -k build.keychain \
+            -P "${{ secrets.MACOS_CERT_PASSWORD }}" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k ci build.keychain
+          IDENTITY=$(security find-identity -v -p codesigning | awk -F'"' '/Developer ID/{print $2; exit}')
+          codesign --force --deep --options runtime --sign "$IDENTITY" \
+            "app/dist/Desi Dictation.app"
+
+      - name: Make DMG
+        run: ./scripts/make_dmg.sh
+
+      - name: Notarize (if configured)
+        if: ${{ env.NID != '' }}
+        env:
+          NID: ${{ secrets.NOTARY_APPLE_ID }}
+        run: |
+          xcrun notarytool submit app/dist/DesiDictation-*.dmg --wait \
+            --apple-id "${{ secrets.NOTARY_APPLE_ID }}" \
+            --team-id "${{ secrets.NOTARY_TEAM_ID }}" \
+            --password "${{ secrets.NOTARY_PASSWORD }}"
+          xcrun stapler staple app/dist/DesiDictation-*.dmg
+
+      - name: Upload release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: app/dist/DesiDictation-*.dmg
+          generate_release_notes: true

@@ -41,15 +41,19 @@ xcrun stapler staple app/dist/DesiDictation-0.1.0.dmg
 
 Verify on a different Mac (or new user account): download → open → no Gatekeeper block.
 
-## 3. Model distribution
+## 3. Model distribution (scripted)
 
-Users can't run `convert_model.sh`. Before launch:
-- [ ] Create your own HF repo (e.g. `<you>/desi-dictation-models`), upload
-      `ggml-hinglish-swift.bin` + `ggml-hinglish-apex-q5_0.bin` (Apache 2.0
-      permits redistribution; credit Oriserve in the README).
-- [ ] Add both to `ModelManager.catalog` (swift: `pro: false`; apex: `pro: true`)
-      so in-app download covers everything.
-- [ ] Bump app version; rebuild.
+Users can't run `convert_model.sh`, so models ship via your Hugging Face repo
+and the app's in-app downloader (already wired to
+`samarthsaraswat/desi-dictation-models`):
+
+```bash
+cd spike && uv run hf auth login      # one-time, WRITE token from hf.co/settings/tokens
+./scripts/publish_models.sh           # uploads ggml-hinglish-*.bin
+```
+- [ ] Add a README to the HF repo crediting Oriserve (Apache 2.0) + whisper.cpp.
+- [ ] Test: fresh Mac (or `rm` the models dir) → Models tab → download each ⭐.
+- [ ] If your HF username differs, update `ModelManager.hinglishRepoBase`.
 
 ## 4. Gumroad product
 
@@ -77,6 +81,32 @@ Users can't run `convert_model.sh`. Before launch:
 Integrate [Sparkle](https://sparkle-project.org) (SPM package), generate EdDSA
 keys, host an appcast.xml on the landing page repo. Without this, every bugfix
 requires users to re-download manually. (~1 day of work.)
+
+## 6.5 Knowing you have users — without taking their data
+
+Privacy is the headline promise, so measurement happens **outside the app**:
+
+| Signal | Source | Effort |
+|---|---|---|
+| Paying users | Gumroad dashboard (sales, license activations, refunds) | free |
+| Free downloads | Gumroad "$0+" product analytics + GitHub Release download counts (`gh api repos/<you>/<repo>/releases`) | free |
+| Site traffic → conversion | Plausible or GoatCounter on the landing page (cookieless, GDPR-clean) | ~$0–9/mo |
+| Qualitative | support email volume, Twitter/Reddit mentions, HF model download stats | free |
+
+**In-app telemetry: none.** If you ever add it, make it opt-in TelemetryDeck
+(anonymous counts only — what MacWhisper uses) and say so loudly. Never audio,
+never transcripts — that line is the brand.
+
+## 6.6 CI releases (already configured)
+
+`.github/workflows/release.yml`: push a tag → macOS runner builds whisper.cpp +
+app → DMG → GitHub Release. Add the signing/notarization secrets from steps 1–2
+(`MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `NOTARY_APPLE_ID`,
+`NOTARY_TEAM_ID`, `NOTARY_PASSWORD`) and releases come out fully notarized:
+
+```bash
+git tag v0.3.0 && git push origin v0.3.0
+```
 
 ## 7. Launch week
 

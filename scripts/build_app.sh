@@ -27,6 +27,17 @@ rm -rf "$BUNDLE"
 mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
 cp "$BIN" "$CONTENTS/MacOS/Desi Dictation"
 
+# App icon: generate once (CoreGraphics script), reuse thereafter
+ICNS="$APP_DIR/Resources/AppIcon.icns"
+if [ ! -f "$ICNS" ]; then
+  echo "==> Generating app icon"
+  mkdir -p "$APP_DIR/Resources"
+  ICONSET="$(mktemp -d)/AppIcon.iconset"
+  "$SWIFT" "$ROOT/scripts/generate_icon.swift" "$ICONSET"
+  iconutil -c icns "$ICONSET" -o "$ICNS"
+fi
+cp "$ICNS" "$CONTENTS/Resources/AppIcon.icns"
+
 cat > "$CONTENTS/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -37,11 +48,12 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
     <key>CFBundleDisplayName</key>       <string>Desi Dictation</string>
     <key>CFBundleIdentifier</key>        <string>com.desi.dictation</string>
     <key>CFBundleExecutable</key>        <string>Desi Dictation</string>
-    <key>CFBundleShortVersionString</key><string>0.1.0</string>
+    <key>CFBundleShortVersionString</key><string>0.3.0</string>
     <key>CFBundleVersion</key>           <string>1</string>
     <key>CFBundlePackageType</key>       <string>APPL</string>
     <key>LSMinimumSystemVersion</key>    <string>14.0</string>
     <key>LSUIElement</key>               <true/>
+    <key>CFBundleIconFile</key>          <string>AppIcon</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Desi Dictation records your voice to transcribe it into text. Audio never leaves your Mac.</string>
     <key>NSHumanReadableCopyright</key>  <string>© 2026 Samarth Saraswat</string>

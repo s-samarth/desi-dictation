@@ -68,10 +68,14 @@ struct ModelsSettings: View {
                 }
                 ForEach(models.installed) { Text("\($0.name) — \($0.sizeMB) MB") }
             }
-            Section("Download stock models") {
+            Section {
                 ForEach(ModelManager.catalog) { item in
                     HStack {
-                        Text(item.label + (item.pro ? "  (Pro)" : ""))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text((item.recommended ? "⭐ " : "") + item.label
+                                 + (item.pro ? "  (Pro)" : ""))
+                            Text(item.category).font(.caption2).foregroundStyle(.secondary)
+                        }
                         Spacer()
                         if let progress = models.downloadProgress[item.id] {
                             ProgressView(value: progress).frame(width: 90)
@@ -83,6 +87,11 @@ struct ModelsSettings: View {
                         }
                     }
                 }
+            } header: {
+                Text("Downloads")
+            } footer: {
+                Text("Recommendation: grab one ⭐ model per language you use, plus the VAD add-on — it makes pauses and long dictations dramatically better. Models are large, so they aren't bundled with the app.")
+                    .font(.caption)
             }
         }
         .padding()
