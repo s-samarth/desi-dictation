@@ -50,13 +50,17 @@ menu bar → **Open Desi Dictation… → Models**.
 
 **Get one ⭐ per language you speak, plus the VAD add-on:**
 
+All models are **free** during the beta:
+
 | Download | When you want | Size |
 |---|---|---|
-| ⭐ **Hinglish Apex** (Pro) | Hinglish — "kal meeting hai, deck ready rakhna" | 547 MB |
+| ⭐ **Hinglish Apex** | Hinglish — "kal meeting hai, deck ready rakhna" | 547 MB |
 | Hinglish Swift | Hinglish on older/8GB Macs (faster, lighter) | 141 MB |
-| ⭐ **Whisper Large v3 Turbo** (Pro) | English and/or शुद्ध हिन्दी (Devanagari) | 574 MB |
+| ⭐ **Whisper Large v3 Turbo** | English and/or शुद्ध हिन्दी (Devanagari) | 574 MB |
 | Whisper Base | light English/Hindi fallback | 148 MB |
 | ⭐ **Silero VAD** | everyone — massively better pauses & long dictations | 1 MB |
+
+Downloads are SHA256-verified — a corrupted or tampered file is refused automatically.
 
 Leave **Model: Auto** — the app picks the best installed model for whichever
 language mode you're in.
@@ -78,8 +82,8 @@ language mode you're in.
 - **Text & AI → Replacements**: enforce your spellings (`nahin=nahi`), fix
   names it gets wrong (`dezi=desi`) — one `find=replace` per line.
 - **History**: last 24 h of dictations, searchable, local-only, can be turned off.
-- **Pro license**: paste your Gumroad key under **License** to unlock the ⭐
-  large models and AI cleanup.
+- **AI cleanup**: pipe transcripts through a local Ollama model (Text & AI tab) —
+  optional, and like everything else, fully on-device.
 
 ## Something broken?
 

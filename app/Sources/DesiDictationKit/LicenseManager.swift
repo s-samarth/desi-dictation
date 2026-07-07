@@ -16,6 +16,10 @@ public final class LicenseManager: ObservableObject {
     /// Set to the Gumroad product ID at launch time (docs/LAUNCH.md step 4).
     public static let productID = ""
 
+    /// BETA: everything is free — no Pro tier yet. Flip to true at Gumroad
+    /// launch to re-enable gating (all the plumbing below stays intact).
+    public static let gatingEnabled = false
+
     @Published public private(set) var isActivated: Bool
     @Published public private(set) var lastError: String?
 
@@ -26,7 +30,8 @@ public final class LicenseManager: ObservableObject {
     }
 
     public var isPro: Bool {
-        isActivated || defaults.bool(forKey: "devUnlock")
+        guard Self.gatingEnabled else { return true }   // free-for-all beta
+        return isActivated || defaults.bool(forKey: "devUnlock")
     }
 
     public func activate(key: String) async {

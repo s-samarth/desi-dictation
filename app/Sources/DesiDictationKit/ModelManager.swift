@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Combine
 
@@ -23,6 +24,9 @@ public struct DownloadableModel: Identifiable {
     public let recommended: Bool
     /// Which need it serves — rendered as a section hint in the Models UI.
     public let category: String
+    /// SHA256 of the file — verified after download so a hijacked model repo
+    /// can't feed us a tampered binary (whisper.cpp parses these files in C).
+    public let sha256: String
 }
 
 public final class ModelManager: ObservableObject {
@@ -39,19 +43,24 @@ public final class ModelManager: ObservableObject {
     public static let catalog: [DownloadableModel] = [
         .init(id: "hinglish-apex-q5_0", label: "Hinglish Apex — best Hinglish accuracy",
               url: URL(string: "\(hinglishRepoBase)/ggml-hinglish-apex-q5_0.bin")!,
-              approxMB: 547, pro: true, recommended: true, category: "Hinglish"),
+              approxMB: 547, pro: true, recommended: true, category: "Hinglish",
+              sha256: "9d877151b15cec1feb9110cfbc0a3162cf377bcc0ab1935174226f461cf60f13"),
         .init(id: "hinglish-swift", label: "Hinglish Swift — light & fast",
               url: URL(string: "\(hinglishRepoBase)/ggml-hinglish-swift.bin")!,
-              approxMB: 141, pro: false, recommended: false, category: "Hinglish"),
+              approxMB: 141, pro: false, recommended: false, category: "Hinglish",
+              sha256: "4e9caa5f4b0416824d7cbeec22a37ef78a05e4b0189864eed65cd56d81c6b0a8"),
         .init(id: "large-v3-turbo-q5_0", label: "Whisper Large v3 Turbo — best English & हिन्दी",
               url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin")!,
-              approxMB: 574, pro: true, recommended: true, category: "English / हिन्दी"),
+              approxMB: 574, pro: true, recommended: true, category: "English / हिन्दी",
+              sha256: "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2"),
         .init(id: "base", label: "Whisper Base — light English/Hindi",
               url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin")!,
-              approxMB: 148, pro: false, recommended: false, category: "English / हिन्दी"),
+              approxMB: 148, pro: false, recommended: false, category: "English / हिन्दी",
+              sha256: "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe"),
         .init(id: "silero-vad", label: "Silero VAD — handles pauses & long dictations",
               url: URL(string: "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin")!,
-              approxMB: 1, pro: false, recommended: true, category: "Engine add-on"),
+              approxMB: 1, pro: false, recommended: true, category: "Engine add-on",
+              sha256: "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"),
     ]
 
     private init() { refresh() }
@@ -131,12 +140,32 @@ public final class ModelManager: ObservableObject {
         guard (response as? HTTPURLResponse)?.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
+        // Integrity check: refuse tampered/truncated files (whisper.cpp parses
+        // these in C — never feed it unverified bytes).
+        let actual = try Self.sha256(of: tempURL)
+        guard actual == model.sha256 else {
+            try? FileManager.default.removeItem(at: tempURL)
+            throw NSError(domain: "ModelManager", code: 2, userInfo: [
+                NSLocalizedDescriptionKey:
+                    "Checksum mismatch for \(model.label) — download discarded."])
+        }
         try? FileManager.default.removeItem(at: destination)
         try FileManager.default.moveItem(at: tempURL, to: destination)
         await MainActor.run {
             downloadProgress[model.id] = nil
             refresh()
         }
+    }
+
+    /// Streaming SHA256 (files are 100–600 MB; never load them whole into RAM).
+    private static func sha256(of url: URL) throws -> String {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        var hasher = SHA256()
+        while let chunk = try handle.read(upToCount: 4 * 1_048_576), !chunk.isEmpty {
+            hasher.update(data: chunk)
+        }
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
     }
 
     private final class ProgressDelegate: NSObject, URLSessionTaskDelegate {

@@ -73,7 +73,7 @@ struct ModelsSettings: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text((item.recommended ? "⭐ " : "") + item.label
-                                 + (item.pro ? "  (Pro)" : ""))
+                                 + (item.pro && LicenseManager.gatingEnabled ? "  (Pro)" : ""))
                             Text(item.category).font(.caption2).foregroundStyle(.secondary)
                         }
                         Spacer()
@@ -108,7 +108,7 @@ struct TextSettings: View {
                     .font(.system(.body, design: .monospaced))
                     .frame(height: 110)
             }
-            Section("AI cleanup (local Ollama, Pro)") {
+            Section("AI cleanup (local Ollama)") {
                 Toggle("Clean up transcript with Ollama before inserting",
                        isOn: $settings.ollamaEnabled)
                 TextField("Ollama model", text: $settings.ollamaModel)
@@ -125,20 +125,21 @@ struct LicenseSettings: View {
 
     var body: some View {
         Form {
-            if license.isPro {
-                Label("Pro features unlocked", systemImage: "checkmark.seal.fill")
+            if !LicenseManager.gatingEnabled {
+                Label("Beta: everything is free — all models, all features.",
+                      systemImage: "gift.fill")
                     .foregroundStyle(.green)
+                Text("A paid Pro tier may arrive later; whatever you use during the beta stays yours.")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                TextField("Gumroad license key", text: $settings.licenseKey)
+                Button("Activate") {
+                    Task { await license.activate(key: settings.licenseKey) }
+                }
+                if let error = license.lastError {
+                    Text(error).foregroundStyle(.red).font(.caption)
+                }
             }
-            TextField("Gumroad license key", text: $settings.licenseKey)
-            Button("Activate") {
-                Task { await license.activate(key: settings.licenseKey) }
-            }
-            if let error = license.lastError {
-                Text(error).foregroundStyle(.red).font(.caption)
-            }
-            Text("Free: Hinglish Swift + Base models, unlimited dictation.\nPro: larger models + AI cleanup.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
         }
         .padding()
     }
