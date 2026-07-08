@@ -41,32 +41,37 @@ public final class ModelManager: ObservableObject {
     public static let hinglishRepoBase = UserDefaults.standard.string(forKey: "modelRepoBase")
         ?? "https://huggingface.co/SamarthBuilds/desi-dictation-models/resolve/main"
 
+    // One model per language + the VAD add-on. Deliberately minimal (v0.5
+    // pilot feedback: base/small/swift variants just confused people).
     public static let catalog: [DownloadableModel] = [
-        .init(id: "hinglish-apex-q5_0", label: "Hinglish Apex — best Hinglish accuracy",
+        .init(id: "hinglish-apex-q5_0", label: "Hinglish Apex — our specialty",
               url: URL(string: "\(hinglishRepoBase)/ggml-hinglish-apex-q5_0.bin")!,
               approxMB: 547, pro: true, recommended: true, category: "Hinglish",
               sha256: "9d877151b15cec1feb9110cfbc0a3162cf377bcc0ab1935174226f461cf60f13"),
-        .init(id: "hinglish-swift", label: "Hinglish Swift — light & fast",
-              url: URL(string: "\(hinglishRepoBase)/ggml-hinglish-swift.bin")!,
-              approxMB: 141, pro: false, recommended: false, category: "Hinglish",
-              sha256: "4e9caa5f4b0416824d7cbeec22a37ef78a05e4b0189864eed65cd56d81c6b0a8"),
-        .init(id: "large-v3-turbo-q5_0", label: "Whisper Large v3 Turbo — best English & हिन्दी",
+        .init(id: "large-v3-turbo-q5_0", label: "Whisper Large v3 Turbo — English",
               url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin")!,
-              approxMB: 574, pro: true, recommended: true, category: "English / हिन्दी",
+              approxMB: 574, pro: true, recommended: true, category: "English",
               sha256: "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2"),
-        .init(id: "base", label: "Whisper Base — light English/Hindi",
-              url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin")!,
-              approxMB: 148, pro: false, recommended: false, category: "English / हिन्दी",
-              sha256: "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe"),
-        .init(id: "vaani-hindi-q5_0", label: "Vaani Hindi — most accurate शुद्ध हिन्दी (718h Indian speech)",
+        .init(id: "vaani-hindi-q5_0", label: "Vaani Hindi — शुद्ध हिन्दी (Devanagari)",
               url: URL(string: "\(hinglishRepoBase)/ggml-vaani-hindi-q5_0.bin")!,
               approxMB: 1060, pro: true, recommended: true, category: "हिन्दी",
               sha256: "c016cde18a36eaa285c238b7929c3c3f457f62a2dd12765d563df18d600374e7"),
-        .init(id: "silero-vad", label: "Silero VAD — handles pauses & long dictations",
+        .init(id: "silero-vad", label: "Silero VAD — smooth pauses (everyone needs this)",
               url: URL(string: "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin")!,
               approxMB: 1, pro: false, recommended: true, category: "Engine add-on",
               sha256: "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"),
     ]
+
+    /// Onboarding: catalog entry that serves a language mode.
+    public static func catalogEntry(for mode: LanguageMode) -> DownloadableModel {
+        switch mode {
+        case .hinglish: return catalog[0]
+        case .english: return catalog[1]
+        case .hindi: return catalog[2]
+        }
+    }
+
+    public static var vadEntry: DownloadableModel { catalog[3] }
 
     private init() { refresh() }
 

@@ -12,8 +12,7 @@ struct MenuContent: View {
         Text(statusLine)
 
         Button("Open Desi Dictation…") {
-            openWindow(id: "main")
-            NSApp.activate(ignoringOtherApps: true)
+            AppWindows.shared.showMain()
         }
 
         Divider()

@@ -108,6 +108,8 @@ public final class SettingsStore: ObservableObject {
     @Published public var historyEnabled: Bool { didSet { d.set(historyEnabled, forKey: "historyEnabled") } }
     @Published public var vadEnabled: Bool { didSet { d.set(vadEnabled, forKey: "vadEnabled") } }
     @Published public var micWarm: Bool { didSet { d.set(micWarm, forKey: "micWarm") } }
+    @Published public var onboarded: Bool { didSet { d.set(onboarded, forKey: "onboarded") } }
+    @Published public var launchAtLogin: Bool { didSet { d.set(launchAtLogin, forKey: "launchAtLogin") } }
 
     public static let defaultCleanupPrompt = """
     Clean up this dictated text: fix punctuation and obvious errors. \
@@ -116,7 +118,9 @@ public final class SettingsStore: ObservableObject {
     """
 
     private init() {
-        dictationEnabled = d.object(forKey: "dictationEnabled") as? Bool ?? false
+        // ON by default: a dictation app that starts disabled confuses new
+        // users ("nothing happens") — v0.5 pilot feedback.
+        dictationEnabled = d.object(forKey: "dictationEnabled") as? Bool ?? true
         hotkey = HotkeyChoice(rawValue: d.string(forKey: "hotkey") ?? "") ?? .rightOption
         activationMode = ActivationMode(rawValue: d.string(forKey: "activationMode") ?? "") ?? .pushToTalk
         languageMode = LanguageMode(rawValue: d.string(forKey: "languageMode") ?? "") ?? .hinglish
@@ -131,5 +135,7 @@ public final class SettingsStore: ObservableObject {
         historyEnabled = d.object(forKey: "historyEnabled") as? Bool ?? true
         vadEnabled = d.object(forKey: "vadEnabled") as? Bool ?? true
         micWarm = d.object(forKey: "micWarm") as? Bool ?? true
+        onboarded = d.object(forKey: "onboarded") as? Bool ?? false
+        launchAtLogin = d.object(forKey: "launchAtLogin") as? Bool ?? true
     }
 }

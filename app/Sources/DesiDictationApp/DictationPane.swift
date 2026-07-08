@@ -76,6 +76,8 @@ struct DictationPane: View {
                 Toggle("Copy to clipboard instead of pasting", isOn: $settings.copyInsteadOfPaste)
                 Toggle("Keep dictation history (last 24 h, on this Mac only)",
                        isOn: $settings.historyEnabled)
+                Toggle("Start Desi Dictation at login", isOn: $settings.launchAtLogin)
+                    .onChange(of: settings.launchAtLogin) { LoginItem.apply() }
             }
 
             Section("Permissions") {

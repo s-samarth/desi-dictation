@@ -1,3 +1,4 @@
+import ServiceManagement
 import SwiftUI
 import DesiDictationKit
 
@@ -14,13 +15,9 @@ struct DesiDictationApp: App {
         }
         .menuBarExtraStyle(.menu)
 
-        // Main app window (sidebar UI). Opened from the menu bar; the app stays
-        // a Dock-less accessory otherwise.
-        Window("Desi Dictation", id: "main") {
-            MainWindow()
-        }
-        .defaultSize(width: 780, height: 520)
-
+        // Main window + onboarding are AppKit-managed (AppWindows) so Dock
+        // clicks and the AppDelegate can summon them — SwiftUI Window scenes
+        // can't be opened from outside the view hierarchy.
         Settings {
             SettingsView()
         }
@@ -52,8 +49,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Overlay follows the dictation phase for its whole lifetime.
         OverlayCoordinator.shared.start()
 
-        if SettingsStore.shared.dictationEnabled {
+        LoginItem.apply()
+
+        if !SettingsStore.shared.onboarded {
+            // First launch: guide the user instead of sitting silently in the
+            // menu bar (v0.5 pilot feedback).
+            AppWindows.shared.showOnboarding()
+        } else if SettingsStore.shared.dictationEnabled {
             DictationController.shared.enable()
+        }
+    }
+
+    /// Clicking the app in Dock/Spotlight/Finder shows a window — before this,
+    /// "opening" the app appeared to do nothing.
+    func applicationShouldHandleReopen(_ sender: NSApplication,
+                                       hasVisibleWindows: Bool) -> Bool {
+        AppWindows.shared.handleReopen()
+        return true
+    }
+}
+
+/// Launch-at-login (SMAppService) — dictation should survive a reboot.
+@MainActor
+enum LoginItem {
+    static func apply() {
+        guard Bundle.main.bundlePath.hasSuffix(".app") else { return }  // not `swift run`
+        if SettingsStore.shared.launchAtLogin {
+            try? SMAppService.mainApp.register()
+        } else {
+            try? SMAppService.mainApp.unregister()
         }
     }
 }
