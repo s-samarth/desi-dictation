@@ -25,6 +25,8 @@ Everything written about Desi Dictation — engineering, product, strategy, and 
 | [PRODUCT_VISION.md](PRODUCT_VISION.md) | The long-range product vision |
 | [features/](features/) | Planned features — [personas](features/PERSONAS.md), [translation](features/TRANSLATION.md), [speak-desi-write-English](features/TRANSCRIBE_TRANSLATE.md), [structure-thoughts](features/STRUCTURE_THOUGHTS.md), [10 ideas](features/IDEAS.md) |
 | [problems/](problems/) | The problems that decide the product — [P1 Hinglish accuracy](problems/P1_HINGLISH_ACCURACY.md), [P2 OOD words](problems/P2_OOD_WORDS.md), [P3 freshness/data](problems/P3_MODEL_FRESHNESS.md), [P4 personalization](problems/P4_PERSONALIZATION.md), [10 more](problems/ADDITIONAL_PROBLEMS.md) |
+| [platforms/](platforms/) | Platform expansion — [Windows](platforms/WINDOWS.md) (easiest, first) → [Android](platforms/ANDROID.md) (the India must-have; voice-IME) → [iOS](platforms/IOS.md) (hardest; app-hop) — flows, min specs, and the one-shot Claude build prompts |
+| [cloud/](cloud/) | Opt-in cloud transcription — [strategy](cloud/README.md), [the endpoint explained + API design](cloud/ARCHITECTURE.md), [infra phases & scaling](cloud/INFRA_AND_SCALING.md), [unit economics](cloud/COSTS.md) |
 
 ## 📣 Go-to-market, research, competition
 | Doc | What |
