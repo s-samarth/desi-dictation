@@ -101,7 +101,7 @@ app/.build/release/desi-cli models/ggml-hinglish-swift.bin spike/audio/test-hi.w
 
 Record your own eval clips and compare models on YOUR voice — the whole flow is
 scripted: see [spike/README.md](../spike/README.md). Decision gate + how to read
-the numbers are in [plan.md](../plan.md) Phase 0.
+the numbers are in [plan.md](genesis/plan.md) Phase 0.
 
 ## H. Rebuild after code changes
 

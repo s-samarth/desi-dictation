@@ -48,16 +48,18 @@ desi-dictation/
 ├── scripts/                 # setup_whisper / convert_model / build_app / make_dmg
 ├── models/                  # converted GGML models (gitignored)
 ├── vendor/                  # whisper.cpp + openai/whisper clones (gitignored)
-└── docs/
-    ├── SYSTEM_DESIGN.md     # architecture deep-dive
-    ├── PERFORMANCE.md       # latency engineering: applied + deferred levers
-    ├── BUILD_LOG.md         # chronological build steps + all failure modes
-    ├── SETUP_GUIDE.md       # end-user install guide (start here)
-    ├── USAGE.md             # developer usage (precise steps)
-    ├── SECURITY_AUDIT.md    # privacy/security posture, verified
-    └── TROUBLESHOOTING.md   # when things break
+└── docs/                    # ALL documentation — see docs/README.md for the index
+    ├── README.md            #   the documentation index (start here)
+    ├── SYSTEM_DESIGN.md     #   architecture · PERFORMANCE · BUILD_LOG · SECURITY_AUDIT
+    ├── SETUP_GUIDE.md       #   end-user install · USAGE · TROUBLESHOOTING
+    ├── genesis/             #   founding docs: MacWhisper teardown + original plan.md
+    ├── features/            #   planned features + personas
+    ├── problems/            #   the problems that decide the product (P1–P4 + more)
+    ├── competitors/         #   per-competitor deep-dives + PATTERNS synthesis
+    └── *.md                 #   strategy/GTM/market/monetization/ICP/PMF/outcomes
 ```
-(Product strategy docs are kept out of the public repo.)
+Full index: **[docs/README.md](docs/README.md)**. This repo is private, so product,
+strategy, and business docs all live in `docs/` (they used to be gitignored).
 
 ## The stack, in one breath
 
@@ -69,12 +71,13 @@ pasteboard-swap ⌘V insertion → non-activating overlay for state. SwiftUI
 
 ## Status
 
-**v0.5.0 — free beta.** Feature-complete for the dictation wedge: 4 language
-models with per-mode auto-selection, VAD pause handling, chunked transcription
-while you speak, 24h local history, replacement dictionary, in-app feedback.
-Grab the DMG from [Releases](../../releases) and follow
-[docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md). Roadmap highlights: WhisperKit/ANE
-backend, mixed-script mode, more Indic languages, Windows.
+**v0.5.1 — free beta.** Feature-complete for the dictation wedge: first-launch
+onboarding, 4 curated models (Apex/Turbo/Vaani + VAD) with per-mode auto-selection,
+VAD pause handling, chunked transcription while you speak, 24h local history,
+replacement dictionary, in-app feedback, launch-at-login. Grab the DMG from
+[Releases](../../releases) and follow [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
+Roadmap highlights: on-device LLM layer (translate-to-English, structuring),
+own fine-tuned Hinglish model, more Indic languages, Windows/Android.
 
 ## License note
 

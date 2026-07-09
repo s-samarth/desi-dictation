@@ -68,7 +68,7 @@ download), `HistoryStore` (last 50, JSON), `LicenseManager` (Gumroad),
 At 39× realtime, even a 60 s dictation transcribes in ~1.5 s after key-release.
 Streaming/chunked pre-transcription adds state-management complexity (whisper
 context reuse, chunk-boundary word merging) for marginal perceived gain at these
-speeds. Revisit only if users dictate multi-minute monologues (plan.md P3.1).
+speeds. Revisit only if users dictate multi-minute monologues (genesis/plan.md P3.1).
 
 ### Pasteboard-swap insertion
 1. Save current clipboard string → 2. set transcript → 3. synthesize ⌘V via

@@ -34,24 +34,5 @@ spike/results/*.json
 evals/data/
 evals/reports/
 
-# Private strategy/business docs — kept local, never pushed (history retains old copies; accepted)
-plan.md
-MacWhisper.md
-docs/GTM.md
-docs/MARKET_STUDY.md
-docs/PRODUCT_VISION.md
-docs/LAUNCH.md
-docs/PRODUCT.md
-docs/MODEL_RESEARCH.md
-docs/FINETUNING.md
-docs/PERSONAS.md
-docs/MONETIZATION.md
-docs/features/
-docs/problems/
-docs/MONETIZATION.md
-docs/competitors/
-docs/STRATEGY.md
-docs/PRODUCT_MARKET_FIT.md
-docs/YC_CREDITS_PLAN.md
-docs/ICP.md
-docs/PRACTICAL_OUTCOME_REALITY.md
+# NOTE: docs/ — including strategy/business docs — are now TRACKED (repo is private).
+# (Previously these were gitignored; un-ignored on 2026-07-09 after the repo went private.)
