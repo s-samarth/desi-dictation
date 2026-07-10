@@ -1,6 +1,8 @@
-// swift-tools-version: 6.0
-// NOTE: tools-version must be >= 6.0 — the CLT 6.3 ManifestAPI cannot link older
-// manifest ABIs (see docs/BUILD_LOG.md failure mode #3). Language mode stays v5.
+// swift-tools-version: 6.2
+// NOTE: tools-version must track the installed CLT closely — the CLT ManifestAPI
+// cannot link older manifest ABIs (docs/BUILD_LOG.md failure mode #3; recurred
+// with CLT 6.3.3, which dropped the 6.0-era Package.init overload — bumped
+// 6.0 → 6.2 on 2026-07-10). Language mode stays v5.
 // Desi Dictation — SwiftPM package (no Xcode project; built with CLT only).
 // whisper.cpp is linked as prebuilt static libs staged by scripts/setup_whisper.sh
 // into ./Libraries and ./Sources/CWhisper/include.
@@ -52,5 +54,19 @@ let package = Package(
             path: "Sources/DesiCLI",
             swiftSettings: [.unsafeFlags(["-swift-version", "5"])]
         ),
-    ]
+
+        // Assertion-based test runner (CLT has no XCTest — see BUILD_LOG).
+        // Run: swift run desi-tests  → exit 0 = all green.
+        .executableTarget(
+            name: "desi-tests",
+            dependencies: ["DesiDictationKit"],
+            path: "Sources/DesiTests",
+            swiftSettings: [.unsafeFlags(["-swift-version", "5"])]
+        ),
+    ],
+    // Passed explicitly to force the `swiftLanguageModes:` init overload — the
+    // CLT 6.3.3 ManifestAPI dylib doesn't export the deprecated
+    // `swiftLanguageVersions:` overload its own swiftmodule advertises, and
+    // default-argument overload resolution picks the missing one (FM#3 redux).
+    swiftLanguageModes: [.v5]
 )
