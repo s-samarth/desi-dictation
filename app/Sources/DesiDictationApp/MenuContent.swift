@@ -6,6 +6,7 @@ struct MenuContent: View {
     @ObservedObject var settings = SettingsStore.shared
     @ObservedObject var models = ModelManager.shared
     @ObservedObject var history = HistoryStore.shared
+    @ObservedObject var appModes = AppModeStore.shared
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -30,6 +31,38 @@ struct MenuContent: View {
             }
         }
 
+        // Tone dial as modes (PATTERNS.md §1) — per-recipient switching lives
+        // one click away: Faithful for chat, Respectful for the principal.
+        Picker("Tone", selection: $settings.toneMode) {
+            ForEach(ToneMode.allCases, id: \.self) { tone in
+                Text(tone.displayName).tag(tone)
+            }
+        }
+
+        // Pin a language to the app the user is working in (IDEAS #4) —
+        // WhatsApp → Hinglish, Mail → English, set once, never switch again.
+        if settings.perAppModes, let target = appModes.currentTarget {
+            Menu("For \(target.appName)") {
+                Picker("Language", selection: Binding(
+                    get: { appModes.mode(for: target.bundleID)?.rawValue ?? "" },
+                    set: { raw in
+                        if let mode = LanguageMode(rawValue: raw) {
+                            appModes.set(mode, bundleID: target.bundleID,
+                                         appName: target.appName)
+                        } else {
+                            appModes.removeRule(bundleID: target.bundleID)
+                        }
+                        controller.modelChanged()
+                    })) {
+                    Text("Follow global setting").tag("")
+                    ForEach(LanguageMode.allCases, id: \.self) { mode in
+                        Text(mode.displayName).tag(mode.rawValue)
+                    }
+                }
+                .pickerStyle(.inline)
+            }
+        }
+
         Picker("Model", selection: Binding(
             get: { settings.modelPath },
             set: { settings.modelPath = $0; controller.modelChanged() })) {
@@ -38,6 +71,34 @@ struct MenuContent: View {
                 Text("\(model.name) (\(model.sizeMB) MB)").tag(model.path)
             }
         }
+
+        // AI-dependent features need one-time setup; say so where the user is,
+        // with a way there (house rule: no dead-looking features).
+        if needsLLMSetup {
+            Button("⚠️ Finish AI setup (one-time)…") {
+                MainNav.shared.selection = .ai
+                AppWindows.shared.showMain()
+            }
+        }
+
+        Divider()
+
+        // Thinking session (STRUCTURE_THOUGHTS.md): ramble → structured doc.
+        if controller.thinkingSessionArmed, case .recording = controller.phase {
+            Button("🧠 Finish thinking session — organize now") {
+                controller.finishThinkingSession()
+            }
+        } else {
+            Button("🧠 Structure my thoughts (beta)…") {
+                controller.startThinkingSession()
+            }
+            .disabled(controller.phase != .idle)
+        }
+
+        Button("Last dictation — edit / translate…") {
+            AppWindows.shared.showLastDictation()
+        }
+        .disabled(history.entries.isEmpty)
 
         Divider()
 
@@ -78,6 +139,12 @@ struct MenuContent: View {
         Button("Quit Desi Dictation") { NSApp.terminate(nil) }
     }
 
+    /// True when an AI-dependent choice is active but the engine isn't ready.
+    private var needsLLMSetup: Bool {
+        (settings.languageMode == .anyToEnglish || settings.toneMode != .faithful)
+            && !LLMServices.shared.status.isReady
+    }
+
     private var statusLine: String {
         switch controller.phase {
         case .disabled: return "Dictation off"
@@ -85,6 +152,8 @@ struct MenuContent: View {
             return "Ready — hold \(settings.hotkey.displayName)"
         case .recording: return "● Recording… (Esc cancels)"
         case .transcribing: return "Transcribing…"
+        case .translating: return "Translating to English…"
+        case .polishing: return "Polishing…"
         case .error(let message): return "⚠️ \(message)"
         }
     }

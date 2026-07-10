@@ -29,6 +29,7 @@ struct DesiDictationApp: App {
         case .idle: return "mic"
         case .recording: return "mic.fill"
         case .transcribing: return "waveform"
+        case .translating, .polishing: return "sparkles"
         case .error: return "mic.badge.xmark"
         }
     }
@@ -48,6 +49,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Overlay follows the dictation phase for its whole lifetime.
         OverlayCoordinator.shared.start()
+
+        // Thinking sessions route their transcript to the review window
+        // instead of pasting (STRUCTURE_THOUGHTS.md) — wired here because the
+        // kit stays UI-free.
+        DictationController.shared.onThinkingTranscript = { transcript in
+            ThoughtsSession.shared.begin(transcript: transcript)
+        }
 
         LoginItem.apply()
 

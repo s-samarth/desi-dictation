@@ -22,7 +22,7 @@ final class OverlayCoordinator {
 
     private func update(for phase: DictationPhase) {
         switch phase {
-        case .recording, .transcribing: show()
+        case .recording, .transcribing, .translating, .polishing: show()
         default: hide()
         }
     }
@@ -87,6 +87,16 @@ struct OverlayView: View {
             case .transcribing:
                 ProgressView().controlSize(.small)
                 Text("Transcribing")
+                    .font(.system(size: 13, weight: .semibold))
+            case .translating:
+                // Second pipeline stage shown honestly (TRANSCRIBE_TRANSLATE.md
+                // §3.4): the extra wait is a visible step, not a mystery.
+                ProgressView().controlSize(.small)
+                Text("Translating ✨")
+                    .font(.system(size: 13, weight: .semibold))
+            case .polishing:
+                ProgressView().controlSize(.small)
+                Text("Polishing ✨")
                     .font(.system(size: 13, weight: .semibold))
             default:
                 EmptyView()

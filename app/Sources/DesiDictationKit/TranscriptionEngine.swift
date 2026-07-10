@@ -6,10 +6,14 @@ public enum LanguageMode: String, CaseIterable, Codable, Sendable {
     case hinglish
     case english
     case hindi
+    /// Speak Hindi/Hinglish/broken English → polished written English
+    /// (TRANSCRIBE_TRANSLATE.md). Transcribes like .hinglish, then a local LLM
+    /// translation stage runs before insertion.
+    case anyToEnglish
 
     public var whisperLanguage: String {
         switch self {
-        case .hinglish, .english: return "en"
+        case .hinglish, .english, .anyToEnglish: return "en"
         case .hindi: return "hi"
         }
     }
@@ -19,6 +23,7 @@ public enum LanguageMode: String, CaseIterable, Codable, Sendable {
         case .hinglish: return "Hinglish (Roman)"
         case .english: return "English"
         case .hindi: return "हिन्दी (Devanagari)"
+        case .anyToEnglish: return "English — from any language ✨"
         }
     }
 
@@ -28,8 +33,12 @@ public enum LanguageMode: String, CaseIterable, Codable, Sendable {
         case .hinglish: return "Use a Hinglish model (hinglish-swift / prime / apex)"
         case .english: return "Any model works; Hinglish models handle Indian accents best"
         case .hindi: return "Use a stock multilingual model (base / small / large-v3-turbo)"
+        case .anyToEnglish: return "Transcribes with the Hinglish model, then writes polished English (AI model required)"
         }
     }
+
+    /// True for modes that run an LLM stage after transcription.
+    public var needsLLM: Bool { self == .anyToEnglish }
 }
 
 public struct TranscriptionResult: Sendable {

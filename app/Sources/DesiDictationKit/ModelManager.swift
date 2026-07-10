@@ -65,7 +65,7 @@ public final class ModelManager: ObservableObject {
     /// Onboarding: catalog entry that serves a language mode.
     public static func catalogEntry(for mode: LanguageMode) -> DownloadableModel {
         switch mode {
-        case .hinglish: return catalog[0]
+        case .hinglish, .anyToEnglish: return catalog[0]   // Apex handles the mix best
         case .english: return catalog[1]
         case .hindi: return catalog[2]
         }
@@ -98,7 +98,10 @@ public final class ModelManager: ObservableObject {
         let name = model.name.lowercased()
         var score = 0
         switch mode {
-        case .hinglish:
+        // anyToEnglish transcribes the same mixed speech as Hinglish mode
+        // (TRANSCRIBE_TRANSLATE.md §4: Apex handles the mix best); the English
+        // comes from the translation stage, not the ASR model.
+        case .hinglish, .anyToEnglish:
             if name.contains("hinglish-apex") { score = 100 }
             else if name.contains("hinglish-prime") { score = 90 }
             else if name.contains("hinglish-swift") { score = 50 }

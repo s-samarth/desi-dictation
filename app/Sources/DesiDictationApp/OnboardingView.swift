@@ -37,7 +37,10 @@ struct OnboardingView: View {
 
                 Text("Also download models for:").font(.subheadline)
                 HStack {
-                    ForEach(LanguageMode.allCases.filter { $0 != choice }, id: \.self) { mode in
+                    // Base languages only — "English from any language" shares
+                    // the Hinglish model + adds an AI stage (set up later in AI tab).
+                    ForEach([LanguageMode.hinglish, .english, .hindi].filter { $0 != choice },
+                            id: \.self) { mode in
                         Toggle(mode.displayName, isOn: Binding(
                             get: { alsoDownload.contains(mode) },
                             set: { on in
@@ -83,6 +86,8 @@ struct OnboardingView: View {
                 Divider()
                 Text("Then: **hold Right ⌥ (Option)**, speak, release — your words appear wherever your cursor is. Esc cancels. Change the key, language, or model anytime: menu bar mic → Open Desi Dictation.")
                     .font(.callout)
+                Text("New ✨: speak Hindi/Hinglish and paste polished English, structure your rambles into notes, or set a tone — one-time AI setup lives in Open Desi Dictation → AI.")
+                    .font(.caption).foregroundStyle(.secondary)
 
                 Button("Finish — Restart Desi Dictation") {
                     settings.languageMode = choice

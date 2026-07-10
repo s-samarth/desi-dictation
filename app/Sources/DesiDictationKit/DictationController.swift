@@ -10,6 +10,11 @@ public enum DictationPhase: Equatable {
     case idle
     case recording
     case transcribing
+    /// anyToEnglish mode: LLM translation stage (shown as its own overlay
+    /// stage so the longer wait is understood, not mysterious).
+    case translating
+    /// Tone rewrite / thought structuring stage.
+    case polishing
     case error(String)
 }
 
@@ -69,11 +74,24 @@ public final class DictationController: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Best model for the current mode ("" pinned path = Auto).
-    private func resolvedModelPath() -> String? {
+    /// Best model for a mode ("" pinned path = Auto).
+    private func resolvedModelPath(for mode: LanguageMode) -> String? {
         ModelManager.shared.resolveModel(
-            for: settings.languageMode, pinnedPath: settings.modelPath)?.path
+            for: mode, pinnedPath: settings.modelPath)?.path
     }
+
+    /// Language for the NEXT dictation: a per-app rule for the app the user is
+    /// in wins over the global setting (IDEAS #4 — zero mode-switches a day).
+    private func effectiveMode() -> LanguageMode {
+        if settings.perAppModes, let ruled = AppModeStore.shared.modeForCurrentTarget() {
+            return ruled
+        }
+        return settings.languageMode
+    }
+
+    /// Mode captured at session start — per-app rules must not flip mid-session
+    /// if the user switches apps while speaking.
+    private var sessionMode: LanguageMode = .hinglish
 
     public var hotkeyTapActive: Bool { hotkeys.isActive }
 
@@ -214,7 +232,8 @@ public final class DictationController: ObservableObject {
         default: return
         }
         errorResetTask?.cancel()
-        guard let modelPath = resolvedModelPath() else {
+        let mode = effectiveMode()
+        guard let modelPath = resolvedModelPath(for: mode) else {
             transientError("No model for this mode — open Models to download one")
             return
         }
@@ -223,9 +242,10 @@ public final class DictationController: ObservableObject {
             let wasWarm = audio.isWarm
             if settings.micWarm, !wasWarm { try? audio.warmUp() }
             try audio.beginSession()
+            sessionMode = mode
             phase = .recording
             if wasWarm { Sounds.start.play() }   // cold path: onFirstAudio plays it
-            startChunkTicker(modelPath: modelPath, mode: settings.languageMode)
+            startChunkTicker(modelPath: modelPath, mode: mode)
         } catch {
             transientError("Mic error: \(error.localizedDescription)")
         }
@@ -241,13 +261,15 @@ public final class DictationController: ObservableObject {
             transientError("Too short — nothing captured. Ready again.")
             return
         }
-        guard let modelPath = resolvedModelPath() else {
+        let mode = sessionMode
+        guard let modelPath = resolvedModelPath(for: mode) else {
             transientError("No model for this mode — open Models to download one")
             return
         }
         phase = .transcribing
-        let mode = settings.languageMode
         let rules = settings.replacementRules
+        // Snapshot on main; applied off-main via the pure static core.
+        let dictionary = PersonalDictionary.shared.entries
         let useOllama = settings.ollamaEnabled && LicenseManager.shared.isPro
         let ollamaModel = settings.ollamaModel
         let prompt = settings.cleanupPrompt
@@ -268,6 +290,7 @@ public final class DictationController: ObservableObject {
                 var text = parts.joined(separator: " ")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 text = PostProcessor.applyReplacements(text, rules: rules)
+                text = PersonalDictionary.apply(text, entries: dictionary)
                 if useOllama, !text.isEmpty {
                     let semaphore = DispatchSemaphore(value: 0)
                     Task { [t = text] in
@@ -277,7 +300,7 @@ public final class DictationController: ObservableObject {
                     }
                     semaphore.wait()
                 }
-                Task { @MainActor in self.deliver(text: text, mode: mode, copyOnly: copyOnly) }
+                Task { @MainActor in self.finishPipeline(text: text, mode: mode, copyOnly: copyOnly) }
             } catch {
                 // Nothing usable came out: say so explicitly (and that nothing
                 // was copied), then auto-reset. State is never stuck.
@@ -290,7 +313,67 @@ public final class DictationController: ObservableObject {
         }
     }
 
-    private func deliver(text: String, mode: LanguageMode, copyOnly: Bool) {
+    // MARK: - Post-transcription stages (translate / structure / tone)
+
+    /// A thinking session routes the transcript to the thought structurer
+    /// instead of pasting (STRUCTURE_THOUGHTS.md). The UI layer sets the sink;
+    /// the kit stays UI-free. Armed per-session, disarmed on delivery/cancel.
+    public var thinkingSessionArmed = false
+    public var onThinkingTranscript: ((String) -> Void)?
+
+    /// Runs after transcription+replacements: routes thinking sessions, runs
+    /// the anyToEnglish translation stage, applies the tone mode — then
+    /// delivers. Every LLM failure falls back to the raw words (house rule:
+    /// the transcript is sacred, never lost to a flaky model).
+    private func finishPipeline(text: String, mode: LanguageMode, copyOnly: Bool) {
+        if thinkingSessionArmed {
+            thinkingSessionArmed = false
+            guard !text.isEmpty else {
+                transientError("No speech detected — nothing captured.")
+                return
+            }
+            phase = .idle
+            Sounds.finish.play()
+            onThinkingTranscript?(text)
+            return
+        }
+        guard !text.isEmpty else {
+            deliver(text: text, mode: mode, copyOnly: copyOnly)   // surfaces the error
+            return
+        }
+        if mode.needsLLM {
+            phase = .translating
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if let english = try? await LLMServices.shared.translator
+                    .translate(text, to: .english),
+                    !english.isEmpty {
+                    self.deliver(text: english, mode: mode, copyOnly: copyOnly, raw: text)
+                } else {
+                    // Never lose the user's words: paste the original, say why.
+                    self.deliver(text: text, mode: mode, copyOnly: copyOnly)
+                    self.transientError("Translation failed — pasted your original words.")
+                }
+            }
+            return
+        }
+        let tone = settings.toneMode
+        if tone != .faithful {
+            phase = .polishing
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                // applyTone returns the original on any failure.
+                let rendered = await LLMServices.shared.applyTone(tone, to: text)
+                let changed = rendered != text
+                self.deliver(text: rendered, mode: mode, copyOnly: copyOnly,
+                             raw: changed ? text : nil)
+            }
+            return
+        }
+        deliver(text: text, mode: mode, copyOnly: copyOnly)
+    }
+
+    private func deliver(text: String, mode: LanguageMode, copyOnly: Bool, raw: String? = nil) {
         guard !text.isEmpty else {
             transientError("No speech detected — nothing inserted or copied.")
             return
@@ -299,7 +382,7 @@ public final class DictationController: ObservableObject {
         // The transcript is sacred: even if pasting into the target app fails,
         // it's in lastTranscript ("Copy Last" in the menu) and History.
         lastTranscript = text
-        HistoryStore.shared.add(text: text, mode: mode)
+        HistoryStore.shared.add(text: text, mode: mode, raw: raw)
         TextInserter.insert(text, copyOnly: copyOnly)
         Sounds.finish.play()
         phase = .idle
@@ -311,8 +394,25 @@ public final class DictationController: ObservableObject {
         scheduleCoolDown()
         workQueue.async { [weak self] in self?.pendingParts = [] }
         chunkedUpToSample = 0
+        thinkingSessionArmed = false
         if phase != .disabled { phase = .idle }
         Sounds.error.play()
+    }
+
+    /// Starts a thinking session (STRUCTURE_THOUGHTS.md): toggle-style capture
+    /// regardless of the push-to-talk setting — nobody holds a key for five
+    /// minutes. The next finished recording routes to `onThinkingTranscript`.
+    public func startThinkingSession() {
+        guard phase == .idle || { if case .error = phase { return true }; return false }() else { return }
+        thinkingSessionArmed = true
+        startRecording()
+        if case .recording = phase {} else { thinkingSessionArmed = false }   // mic failed
+    }
+
+    /// Ends a thinking session's capture (the menu's "Finish" action).
+    public func finishThinkingSession() {
+        guard thinkingSessionArmed, case .recording = phase else { return }
+        finishRecording()
     }
 
     // MARK: - Model management
@@ -324,13 +424,13 @@ public final class DictationController: ObservableObject {
     }
 
     private func preloadModelIfNeeded() {
-        guard let path = resolvedModelPath() else { return }
+        guard let path = resolvedModelPath(for: effectiveMode()) else { return }
         workQueue.async { [weak self] in try? self?.loadModel(path: path) }
     }
 
     /// Called when the user changes model/mode — swaps the resident model.
     public func modelChanged() {
-        guard let path = resolvedModelPath() else { return }
+        guard let path = resolvedModelPath(for: effectiveMode()) else { return }
         workQueue.async { [weak self] in try? self?.loadModel(path: path) }
     }
 }

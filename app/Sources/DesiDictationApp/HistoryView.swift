@@ -6,6 +6,7 @@ struct HistoryView: View {
     @ObservedObject var history = HistoryStore.shared
     @ObservedObject var settings = SettingsStore.shared
     @State private var query = ""
+    @State private var fixingEntry: HistoryEntry?
 
     private var filtered: [HistoryEntry] {
         guard !query.isEmpty else { return history.entries }
@@ -38,6 +39,18 @@ struct HistoryView: View {
                         Text(entry.text)
                             .textSelection(.enabled)
                             .lineLimit(4)
+                        // What was HEARD vs what was written (trust needs both
+                        // visible when an AI stage ran — TRANSCRIBE_TRANSLATE §3).
+                        if let raw = entry.raw {
+                            Text("heard: \(raw)")
+                                .font(.caption).foregroundStyle(.tertiary)
+                                .lineLimit(2).textSelection(.enabled)
+                        }
+                        if let translation = entry.translation {
+                            Text("translation: \(translation)")
+                                .font(.caption).foregroundStyle(.secondary)
+                                .lineLimit(2).textSelection(.enabled)
+                        }
                         HStack {
                             Text(entry.date, style: .relative) + Text(" ago")
                             Text(entry.mode)
@@ -53,8 +66,17 @@ struct HistoryView: View {
                         .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 4)
+                    .contextMenu {
+                        Button("Always write a word as… (add to dictionary)") {
+                            fixingEntry = entry
+                        }
+                        Button("Copy") {
+                            TextInserter.insert(entry.text, copyOnly: true)
+                        }
+                    }
                 }
                 .listStyle(.inset)
+                .sheet(item: $fixingEntry) { _ in AddDictionaryEntrySheet() }
             }
 
             Divider()

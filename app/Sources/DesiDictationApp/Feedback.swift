@@ -26,6 +26,16 @@ enum Feedback {
 
 
             """
+            // When an AI stage ran, include what was HEARD too — a translation
+            // bug and a transcription bug need different fixes.
+            if let raw = HistoryStore.shared.entries.first?.raw {
+                body += """
+                What was heard (before AI):
+                \(raw)
+
+
+                """
+            }
         }
         body += """
         (Describe what happened / what you expected)

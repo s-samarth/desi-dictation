@@ -11,6 +11,8 @@ final class AppWindows {
     static let shared = AppWindows()
     private var main: NSWindow?
     private var onboarding: NSWindow?
+    private var lastDictation: NSWindow?
+    private var thoughts: NSWindow?
 
     func showMain() {
         if main == nil {
@@ -28,6 +30,24 @@ final class AppWindows {
                                     size: NSSize(width: 560, height: 640))
         }
         present(onboarding!)
+    }
+
+    func showLastDictation() {
+        if lastDictation == nil {
+            lastDictation = makeWindow(title: "Last Dictation — edit & translate",
+                                       content: NSHostingView(rootView: LastDictationView()),
+                                       size: NSSize(width: 560, height: 400))
+        }
+        present(lastDictation!)
+    }
+
+    func showThoughts() {
+        if thoughts == nil {
+            thoughts = makeWindow(title: "Your thoughts, organized",
+                                  content: NSHostingView(rootView: ThoughtsView()),
+                                  size: NSSize(width: 600, height: 500))
+        }
+        present(thoughts!)
     }
 
     /// Dock/Spotlight re-open → show something useful.

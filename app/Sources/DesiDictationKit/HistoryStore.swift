@@ -6,12 +6,19 @@ public struct HistoryEntry: Codable, Identifiable, Equatable {
     public let date: Date
     public let text: String
     public let mode: String
+    /// Pre-transformation transcript when an LLM stage ran (anyToEnglish /
+    /// structuring): the user can always see what was HEARD vs what was
+    /// written (TRANSCRIBE_TRANSLATE.md §3.6 — trust requires both).
+    public var raw: String?
+    /// On-demand translation attached later (TRANSLATION.md Flow A).
+    public var translation: String?
 
-    public init(text: String, mode: String) {
+    public init(text: String, mode: String, raw: String? = nil) {
         self.id = UUID()
         self.date = Date()
         self.text = text
         self.mode = mode
+        self.raw = raw
     }
 }
 
@@ -32,10 +39,18 @@ public final class HistoryStore: ObservableObject {
         prune()
     }
 
-    public func add(text: String, mode: LanguageMode) {
+    public func add(text: String, mode: LanguageMode, raw: String? = nil) {
         guard !text.isEmpty, SettingsStore.shared.historyEnabled else { return }
-        entries.insert(HistoryEntry(text: text, mode: mode.rawValue), at: 0)
+        entries.insert(HistoryEntry(text: text, mode: mode.rawValue, raw: raw), at: 0)
         prune()
+        save()
+    }
+
+    /// Attaches an on-demand translation to an existing entry (Flow A) so the
+    /// original and its translation live together, same 24 h rule.
+    public func attachTranslation(_ translation: String, to id: UUID) {
+        guard let index = entries.firstIndex(where: { $0.id == id }) else { return }
+        entries[index].translation = translation
         save()
     }
 

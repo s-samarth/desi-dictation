@@ -63,6 +63,10 @@ struct DictationPane: View {
                     Text("⚠️ No suitable model installed — see the Models tab.")
                         .font(.caption).foregroundStyle(.orange)
                 }
+                if settings.languageMode.needsLLM, !LLMServices.shared.status.isReady {
+                    Text("⚠️ This mode also needs the AI model — one-time setup in the AI tab. Until then, dictations paste as heard.")
+                        .font(.caption).foregroundStyle(.orange)
+                }
             }
 
             Section("Options") {
@@ -111,7 +115,7 @@ struct DictationPane: View {
         case .disabled: return .gray
         case .idle: return .green
         case .recording: return .red
-        case .transcribing: return .orange
+        case .transcribing, .translating, .polishing: return .orange
         case .error: return .yellow
         }
     }
@@ -122,6 +126,8 @@ struct DictationPane: View {
         case .idle: return "Ready — \(settings.activationMode == .pushToTalk ? "hold" : "tap") \(settings.hotkey.displayName)"
         case .recording: return "Recording… (Esc to cancel)"
         case .transcribing: return "Transcribing…"
+        case .translating: return "Translating…"
+        case .polishing: return "Polishing…"
         case .error(let message): return message
         }
     }

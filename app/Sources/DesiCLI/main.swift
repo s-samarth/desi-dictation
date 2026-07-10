@@ -3,13 +3,53 @@
 // Usage:
 //   swift run desi-cli <model.bin> <audio.wav> [hinglish|english|hindi]
 //   swift run desi-cli <model.bin> --batch <dir-with-wavs> [mode]   # JSONL out (evals)
+//   swift run desi-cli --translate "text" [english|hindi]           # LLM spike (TRANSLATION.md §5)
+//   swift run desi-cli --structure "text" [notes|actionList|emailDraft|outline]
 import DesiDictationKit
 import Foundation
 
 let args = CommandLine.arguments
 guard args.count >= 3 else {
-    print("usage: desi-cli <model.bin> <audio file | --batch dir> [hinglish|english|hindi]")
+    print("""
+    usage: desi-cli <model.bin> <audio file | --batch dir> [hinglish|english|hindi]
+           desi-cli --translate "text" [english|hindi]
+           desi-cli --structure "text" [notes|actionList|emailDraft|outline]
+    """)
     exit(1)
+}
+
+// LLM verification paths — exercise the exact engine the app uses.
+if args[1] == "--translate" || args[1] == "--structure" {
+    let llm = OllamaLLM(model: SettingsStore.shared.llmModel)
+    let semaphore = DispatchSemaphore(value: 0)
+    Task {
+        defer { semaphore.signal() }
+        let status = await llm.status()
+        guard status.isReady else {
+            FileHandle.standardError.write("llm not ready: \(status)\n".data(using: .utf8)!)
+            exit(3)
+        }
+        do {
+            let start = Date()
+            if args[1] == "--translate" {
+                let target = TargetLanguage(rawValue: args.count > 3 ? args[3] : "english") ?? .english
+                let out = try await LLMTranslationEngine(llm: llm).translate(args[2], to: target)
+                print(out)
+            } else {
+                let style = OutputStyle(rawValue: args.count > 3 ? args[3] : "notes") ?? .notes
+                let out = try await ThoughtStructurer(llm: llm).structure(args[2], style: style)
+                print(out.structured)
+            }
+            FileHandle.standardError.write(
+                "(\(String(format: "%.1f", Date().timeIntervalSince(start)))s, model \(llm.model))\n"
+                    .data(using: .utf8)!)
+        } catch {
+            FileHandle.standardError.write("error: \(error.localizedDescription)\n".data(using: .utf8)!)
+            exit(2)
+        }
+    }
+    semaphore.wait()
+    exit(0)
 }
 let modelPath = args[1]
 let mode = LanguageMode(rawValue: args.count > 3 ? args[3] : "hinglish") ?? .hinglish

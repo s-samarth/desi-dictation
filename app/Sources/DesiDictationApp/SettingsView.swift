@@ -7,6 +7,7 @@ struct SettingsView: View {
             GeneralSettings().tabItem { Label("General", systemImage: "gear") }
             ModelsSettings().tabItem { Label("Models", systemImage: "cpu") }
             TextSettings().tabItem { Label("Text", systemImage: "character.cursor.ibeam") }
+            AISettings().tabItem { Label("AI", systemImage: "sparkles") }
             LicenseSettings().tabItem { Label("License", systemImage: "key") }
         }
         .frame(width: 480, height: 420)
@@ -31,6 +32,8 @@ struct GeneralSettings: View {
 
             Toggle("Play sounds", isOn: $settings.soundsEnabled)
             Toggle("Copy to clipboard instead of pasting", isOn: $settings.copyInsteadOfPaste)
+
+            PerAppModeSettings()
 
             Section("Permissions") {
                 permissionRow("Microphone", granted: permissions.microphone, pane: .microphone)
@@ -109,16 +112,11 @@ struct TextSettings: View {
 
     var body: some View {
         Form {
-            Section("Replacements — one per line: find=replace") {
+            DictionarySettings()
+            Section("Replacements (advanced) — one per line: find=replace") {
                 TextEditor(text: $settings.replacementRules)
                     .font(.system(.body, design: .monospaced))
-                    .frame(height: 110)
-            }
-            Section("AI cleanup (local Ollama)") {
-                Toggle("Clean up transcript with Ollama before inserting",
-                       isOn: $settings.ollamaEnabled)
-                TextField("Ollama model", text: $settings.ollamaModel)
-                TextEditor(text: $settings.cleanupPrompt).frame(height: 70)
+                    .frame(height: 80)
             }
         }
         .padding()

@@ -110,6 +110,12 @@ public final class SettingsStore: ObservableObject {
     @Published public var micWarm: Bool { didSet { d.set(micWarm, forKey: "micWarm") } }
     @Published public var onboarded: Bool { didSet { d.set(onboarded, forKey: "onboarded") } }
     @Published public var launchAtLogin: Bool { didSet { d.set(launchAtLogin, forKey: "launchAtLogin") } }
+    /// Local LLM model for translate/structure/tone (one model, all features).
+    @Published public var llmModel: String { didSet { d.set(llmModel, forKey: "llmModel") } }
+    /// Tone applied to dictations; .faithful = as spoken, no LLM pass.
+    @Published public var toneMode: ToneMode { didSet { d.set(toneMode.rawValue, forKey: "toneMode") } }
+    /// Per-app language memory (IDEAS #4) — on by default, learns silently.
+    @Published public var perAppModes: Bool { didSet { d.set(perAppModes, forKey: "perAppModes") } }
 
     public static let defaultCleanupPrompt = """
     Clean up this dictated text: fix punctuation and obvious errors. \
@@ -137,5 +143,8 @@ public final class SettingsStore: ObservableObject {
         micWarm = d.object(forKey: "micWarm") as? Bool ?? true
         onboarded = d.object(forKey: "onboarded") as? Bool ?? false
         launchAtLogin = d.object(forKey: "launchAtLogin") as? Bool ?? true
+        llmModel = d.string(forKey: "llmModel") ?? LLMServices.defaultModel
+        toneMode = ToneMode(rawValue: d.string(forKey: "toneMode") ?? "") ?? .faithful
+        perAppModes = d.object(forKey: "perAppModes") as? Bool ?? true
     }
 }
