@@ -39,17 +39,27 @@ lives in [BUILD_LOG.md](BUILD_LOG.md).
                               └────────┬───────┘
                                        ▼
                               ┌────────────────┐
-                              │ PostProcessor  │ dictionary rules → (opt) Ollama
-                              └────────┬───────┘
+                              │ PostProcessor  │ legacy rules → PersonalDictionary
+                              └────────┬───────┘ → (opt) Ollama cleanup
                                        ▼
+                              ┌─────────────────────────────┐
+                              │ finishPipeline (post stages) │ anyToEnglish →
+                              │  LLMServices (LocalLLM proto │ .translating;
+                              │  └ OllamaLLM, 127.0.0.1)     │ tone → .polishing;
+                              │  translate / tone / structure│ thinking session →
+                              └────────┬────────────────────┘ ThoughtsWindow
+                                       ▼         (every failure → raw words win)
                               ┌────────────────┐
                               │  TextInserter  │ pasteboard swap + ⌘V CGEvent
                               └────────────────┘
 ```
 
 Support singletons: `SettingsStore` (UserDefaults), `ModelManager` (scan +
-download), `HistoryStore` (last 50, JSON), `LicenseManager` (Gumroad),
-`Permissions`, `Sounds`.
+download), `HistoryStore` (last 50, JSON, now with raw/translation fields),
+`PersonalDictionary` (lexicon JSON), `AppModeStore` (per-app language rules +
+frontmost-app tracking), `LLMServices` (LLM feature wiring),
+`LicenseManager` (Gumroad), `Permissions`, `Sounds`.
+LLM feature internals: [features/implementation/](features/implementation/README.md).
 
 ## 3. Key decisions & trade-offs
 

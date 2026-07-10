@@ -8,13 +8,17 @@ Across MacWhisper, Wispr Flow, Superwhisper, VoiceInk (and echoed by Willow/Rayc
 
 | Converged feature | Who has it | Our status |
 |---|---|---|
-| **Personal dictionary / custom vocabulary** | Wispr (auto-learn), Superwhisper, VoiceInk, Raycast | ❌ **We're the only serious app without it.** P4-S1 is overdue, not optional. |
-| **Per-app modes / auto behavior switching** | MacWhisper, Wispr, Superwhisper, VoiceInk (4/4) | ❌ IDEAS #4 should jump the queue. |
-| **LLM post-processing** (cleanup/tone/structure) | All four majors | 🔜 Our LLM layer is catching up to consensus — but ours is *on-device*, which none of the quality versions are. |
-| **Modes-as-bundles** (Formal/Casual/Email/Chat) | Superwhisper, VoiceInk converged on identical UX | 🔜 Build our tone dial *as modes*, not a toggle. |
+| **Personal dictionary / custom vocabulary** | Wispr (auto-learn), Superwhisper, VoiceInk, Raycast | ✅ **Built 2026-07-10** (explicit-add; [impl](../features/implementation/PERSONAL_DICTIONARY.md)) |
+| **Per-app modes / auto behavior switching** | MacWhisper, Wispr, Superwhisper, VoiceInk (4/4) | ✅ **Built 2026-07-10** ([impl](../features/implementation/PER_APP_MODES.md)) |
+| **LLM post-processing** (cleanup/tone/structure) | All four majors | ✅ **Built 2026-07-10, on-device** (translate ×2 + structure + tones on one local engine; [impl](../features/implementation/LLM_ENGINE.md)) — none of the quality versions are on-device. |
+| **Modes-as-bundles** (Formal/Casual/Email/Chat) | Superwhisper, VoiceInk converged on identical UX | ✅ **Built 2026-07-10** as tone *modes*, Faithful default ([impl](../features/implementation/TONE_MODES.md)) |
 | **Push-to-talk + toggle, hotkey, Esc, sound cues** | Everyone | ✅ We have it. |
 
-**Implication:** two features (personal dictionary, per-app modes) are places we're now *behind the category*, not ahead. They should move up the roadmap purely to reach parity, independent of their own merit.
+**Implication (updated 2026-07-10):** the parity gap is closed — the whole
+consensus layer now exists here too, and our LLM layer is the only on-device
+one. Remaining deltas vs the majors: Wispr's *auto-learning* dictionary (ours
+is explicit-add by trust design) and beta-grade quality bars on the LLM
+features (eval gates in the feature docs).
 
 ## 2 · The white space nobody occupies (our moat, restated with evidence)
 

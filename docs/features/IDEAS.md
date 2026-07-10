@@ -2,6 +2,10 @@
 
 Ranked by (persona pain × feasibility on current stack). The first three (translation ×2, structure-thoughts) have their own docs; these are the next ten. Each idea names its persona (see PERSONAS.md) and its cost class: **S** = days on current stack, **M** = needs the LLM engine (shared with translation/structuring), **L** = new subsystem.
 
+> **Status (2026-07-10):** #1 tone dial, #3 personal dictionary, and #4
+> app-aware modes are **built** — see [implementation/](implementation/README.md).
+> The LLM engine now exists, so every **M** idea's cost dropped to "prompt + thin UI".
+
 1. **Tone dial (M)** — same message, rendered *casual / professional / respectful-formal*. Rekha's courier escalation and Rohan's US-team Slack are the same feature with different knobs. India-specific angle: a "respectful" register (elders, teachers, government) that Western tools don't model. Rides the LLM engine; it's one prompt template per tone.
 
 2. **Voice replies to screenshots / "reply mode" (M)** — user copies an email/message they received, dictates a rough reply in Hinglish, LLM drafts the response *in the same tone and language as the original*. Solves the hardest part of Rekha's and Aman's email problem: not just translation but "what does a proper reply even look like".

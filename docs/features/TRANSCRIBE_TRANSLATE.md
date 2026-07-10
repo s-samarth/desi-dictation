@@ -1,5 +1,11 @@
 # Feature: Speak Desi, Write English (Transcribe → Translate)
 
+> **Status (2026-07-10): BUILT** as `LanguageMode.anyToEnglish` — Apex ASR +
+> gemma3:4b translation stage, two-stage overlay, raw-transcript fallback, both
+> texts in History. §7's prediction held: 1.5B failed the spike, 4B passed.
+> How it works: [implementation/SPEAK_DESI_WRITE_ENGLISH.md](implementation/SPEAK_DESI_WRITE_ENGLISH.md).
+> Still open: the ~500-utterance spoken-Hinglish eval (§7) before this leaves beta.
+
 ## 1 · Explainer
 
 A new dictation mode: the user speaks naturally — Hindi, Hinglish, broken English, all mixed — and what gets pasted is **polished, complete English**. No intermediate step, no user interference: hold key → speak → release → English appears.
@@ -58,3 +64,31 @@ Extend `evals/` with a small translation suite: 30 held-out Hinglish clips → p
 - Total wait after release ≤ ~3 s for a normal message; the two-stage overlay makes longer waits legible.
 - Meaning is never inverted or dropped — fallback-to-transcript on any doubt beats confident hallucination.
 - It strengthens the brand line: *the only tool where your broken English becomes fluent English without your voice leaving your laptop.* Cloud tools (Wispr Flow etc.) can do this server-side; nobody else does it on-device for Indian speech. If quality hits the bar, this is arguably the headline feature, not an add-on.
+
+## 7 · Research validation (web research, 2026-07-09)
+
+**The hypothesis** — "current translation models are small, good, and fast enough to translate captured Hindi/Hinglish into English on-device" — **is largely validated, but it splits into two problems of different difficulty.**
+
+### Path A: Hindi → English — solved, ship-ready tech (8.5/10)
+
+- [AI4Bharat IndicTrans2](https://github.com/AI4Bharat/IndicTrans2) ([paper](https://arxiv.org/pdf/2305.16307)) beats or matches Google/commercial MT on Indic→English (+1–5 chrF++ on FLORES-200/IN22), and its **distilled ~200M-param variants retain nearly all of the 1.1B model's quality** — smaller than our Swift ASR model, CPU-realtime, trivially on-device.
+- Catch: IndicTrans2 expects **Devanagari** input. Our Apex output is Roman-script Hinglish → this path applies to the हिन्दी mode's output, or needs a transliteration hop (AI4Bharat IndicXlit) — extra moving part, evaluate in the spike.
+
+### Path B: Hinglish (code-mixed, Roman) → English — the frontier (6.5/10 zero-shot, ~8/10 fine-tuned)
+
+- Dedicated MT models (IndicTrans2, NLLB) assume clean single-language input and stumble on code-mix; even **Google Translate and Bing measurably fail on code-mixed text** — the headline finding of [PHINC](https://arxiv.org/abs/2004.09447) ([HF dataset](https://huggingface.co/datasets/LingoIITGN/PHINC), 13,738 human-translated Hinglish→English pairs, the main public benchmark). Also relevant: [WMT MixMT 2022](https://www.statmt.org/wmt22/code-mixed-translation-task.html), [COMI-LINGUA](https://arxiv.org/pdf/2503.21670) (expert-annotated Hindi-English code-mix, 2025).
+- **Small LLMs are the right tool**: Gemma-3-4B-class models reach COMET parity with much larger models on translation ([empirical study](https://arxiv.org/pdf/2502.02481)) and handle code-mix reasonably zero-shot; capability is actively improving ([RLAIF for code-mixing](https://arxiv.org/html/2411.09073v1), [2026 code-mixing playbook](https://arxiv.org/html/2602.11181)). §4's 1.5B-Q4 plan may be optimistic for code-mix — spike should compare 1.5B vs 4B (4B-Q4 ≈ 2.5 GB: fine on Macs, too big for mid-Android → cloud endpoint covers those).
+- **A LoRA fine-tune on PHINC/MixMT + our own data is where this becomes ours** — the small-LLM bet from STRATEGY.md Entry 002, made concrete.
+
+### How accuracy is measured
+
+- Standard metrics: **BLEU** (word overlap, dated), **chrF++** (character-level, better for Indic), **COMET-22** (neural meaning-preservation score, best human correlation). Mechanically like our crWER harness: test set of source→reference pairs, score model output against references.
+- **The gap nobody's benchmark covers:** public benchmarks are *text→text*; our pipeline is *speech→text→English*, so ASR errors compound into translation. **No public spoken-Hinglish→English benchmark exists — we must build one** (~500 spoken utterances + human English references, COMET + LLM-judge scoring). It slots into `evals/` beside crWER and doubles as fine-tune data. Building it is a moat asset, not a chore. (§4's 30-clip human-rated gate stays as the ship gate; this is the bigger instrument behind it.)
+
+### Cheapest validation step (before any of the above)
+
+One evening, zero cost: run ~50 real dictations through IndicTrans2-200M (Hindi path) and Gemma-3-4B zero-shot (Hinglish path) locally; eyeball + LLM-judge. If the zero-shot floor already clears "usable", the feature is green-lit and fine-tuning becomes an optimization, not a prerequisite.
+
+### Why the bar is reachable
+
+Users *read* English well (§2) — output must be **faithful and clear, not literary**. That lower bar is one current small models already clear for most utterances.

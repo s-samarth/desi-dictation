@@ -1,5 +1,10 @@
 # Feature: Translate on Demand
 
+> **Status (2026-07-10): Flow A BUILT** — via the Ollama-backed `LocalLLM`
+> engine (llama.cpp vendoring deferred; gemma3:4b won the model spike, not the
+> §4 candidates). How it works: [implementation/TRANSLATE_ON_DEMAND.md](implementation/TRANSLATE_ON_DEMAND.md)
+> + [implementation/LLM_ENGINE.md](implementation/LLM_ENGINE.md). Flow B (Services menu) remains v2.
+
 ## 1 · Explainer
 
 Any text the user has — most importantly their **last dictation** — can be translated into a language of their choice (English or Hindi to start). Two entry points:

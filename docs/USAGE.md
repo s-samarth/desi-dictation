@@ -76,15 +76,33 @@ open "/Applications/Desi Dictation.app"
 
 ## E. Power features
 
-- **Replacements** (Settings → Text): one rule per line, `find=replace`.
-  E.g. `nahin=nahi`, `dezi=desi`, your company/product names. Applied to every
-  transcript — this is how you enforce YOUR Hinglish spellings.
-- **AI cleanup via Ollama** (Settings → Text, Pro): pipes the transcript through
-  a local LLM (default prompt preserves Hinglish words). Needs
-  [Ollama](https://ollama.com) running (`ollama serve`) with the configured model
-  pulled. Fails safe: raw transcript is used if Ollama is unreachable.
+- **Personal dictionary** (Settings → Text, or right-click a History entry →
+  "Always write a word as…"): names, brands, code terms — whole-word,
+  keeps casing (`saraswath`→`Saraswat`, `gpt`→`GPT`). The old `find=replace`
+  Replacements box still works underneath (labeled "advanced").
+- **Per-app language** (menu bar → "For <app>"): pin WhatsApp→Hinglish,
+  Mail→English-from-any, etc. Review/remove rules in Settings → General.
 - **History**: menu bar → History → click any entry to re-copy it. Local file,
-  clearable.
+  clearable. AI-transformed entries show a "heard:" line with the original.
+
+## E². AI features (one-time setup: Ollama + a model, all on-device)
+
+Prereq: the free [Ollama](https://ollama.com) app running; then **Open Desi
+Dictation → AI → Get AI model** (default gemma3:4b on ≥12 GB Macs — the
+2026-07-10 spike winner for Hinglish; details in
+[features/implementation/LLM_ENGINE.md](features/implementation/LLM_ENGINE.md)).
+
+- **English — from any language ✨** (Language picker): speak Hindi/Hinglish/
+  broken English → polished English pastes. Overlay shows Transcribing →
+  Translating. If the AI stage fails, your original words paste instead.
+- **Last dictation — edit / translate…** (menu): fix mishears, then
+  Translate → English / हिन्दी. Result attaches to History.
+- **🧠 Structure my thoughts (beta)** (menu): ramble as long as you like, tap
+  finish → review window with Notes / Action list / Email draft / Outline.
+- **Tone** (menu picker): Faithful (default, zero rewrite) / Casual /
+  Professional / Respectful.
+- **AI cleanup via Ollama** (AI tab, Pro): the original custom-prompt cleanup;
+  fails safe.
 - **Dev unlock** (pre-launch builds — licensing isn't wired to a product yet):
   ```bash
   defaults write com.desi.dictation devUnlock -bool true
@@ -95,6 +113,13 @@ open "/Applications/Desi Dictation.app"
 ```bash
 # transcribe any audio file through any model — great for model comparisons
 app/.build/release/desi-cli models/ggml-hinglish-swift.bin spike/audio/test-hi.wav hinglish
+
+# exercise the LLM features exactly as the app runs them (needs Ollama up)
+app/.build/debug/desi-cli --translate "kal meeting hai, deck ready rakhna" english
+app/.build/debug/desi-cli --structure "<rambly text>" notes
+
+# run the test suite (76 assertions; exit 0 = green)
+cd app && swift run desi-tests
 ```
 
 ## G. Model evaluation (recommended before daily-driving)
@@ -106,6 +131,10 @@ the numbers are in [plan.md](genesis/plan.md) Phase 0.
 ## H. Rebuild after code changes
 
 ```bash
+# ⚠️ CLT 6.3.3 ships a broken manifest lib — builds need this export first
+# (one-time setup + full explanation: BUILD_LOG.md failure mode #17):
+export SWIFTPM_CUSTOM_LIBS_DIR=$HOME/.swiftpm-fixed-libs
+
 ./scripts/build_app.sh && open "app/dist/Desi Dictation.app"
 # ⚠️ re-grant Accessibility + Input Monitoring after each rebuild (ad-hoc signing)
 ```

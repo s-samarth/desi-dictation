@@ -1,5 +1,11 @@
 # Feature: Structure Your Thoughts
 
+> **Status (2026-07-10): BUILT (beta)** — thinking sessions + review window with
+> style picker, zero-loss raw transcript, 👍/👎 feedback. Known limit: hard
+> backtracking can still leak both versions (repro + mitigations:
+> [implementation/STRUCTURE_THOUGHTS_IMPL.md](implementation/STRUCTURE_THOUGHTS_IMPL.md)).
+> The §4 30-clip human-rated gate still applies before it loses the (beta) label.
+
 ## 1 · Explainer
 
 A long-form dictation mode for *thinking out loud*. The user rambles — repeats themselves, backtracks ("nahi wait, pehle wala point better tha"), jumps topics — for as long as they want. When they stop, the app hands back a **structured document**: headings, bullet points, action items, in clean text. The mumbling is the input; the structure is the output.

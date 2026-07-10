@@ -339,3 +339,39 @@ is all B2B/Gov (Sarvam/Gnani/CoRover) — consumer shelf empty. Roadmap implicat
 ranked in §8 (voice commands → team pack → Windows → clinics vertical).
 
 <!-- Append new entries below as the build progresses. -->
+
+## 2026-07-10 — the 0.6 feature wave (LLM layer + parity features)
+
+Built in one loop session: **personal dictionary** (P4-S1), **per-app language
+modes** (IDEAS #4), **LocalLLM engine** (Ollama backend), **Translate on
+Demand** (Flow A window), **"English — from any language ✨" mode**
+(transcribe→translate pipeline with `.translating` overlay stage), **Structure
+my thoughts (beta)** (thinking session → review window), **tone modes**
+(Faithful default = no LLM pass). Full how-it's-built docs:
+[features/implementation/](features/implementation/README.md). Tests: new
+`desi-tests` target (no XCTest under CLT), 76 assertions green; ASR regression
+one-off vs evals clip 0000 = exact match at 3× realtime.
+
+Model spike (decisive, recorded in implementation/LLM_ENGINE.md): Hinglish→
+English needs **gemma3:4b** — qwen2.5:1.5b/3b invert meaning ("thoda adjust
+kar lena yaar" → "I will adjust"), mangle lakh-numbers, and literalize idiom
+("scene kya hai"). Default is RAM-gated: ≥12 GB → gemma3:4b, else 1.5b.
+
+### Failure mode #17 — CLT 6.3.3 ships a stale private swiftinterface (manifest won't link)
+
+**Symptom:** every `swift build` dies linking the *manifest*: undefined symbol
+`PackageDescription.Package.__allocating_init(... swiftLanguageVersions:
+[SwiftVersion]? ...)`.
+**Cause:** in `/Library/Developer/CommandLineTools/usr/lib/swift/pm/ManifestAPI`,
+`PackageDescription.swiftmodule`'s `*.private.swiftinterface` is from an older
+build (old API: `enum SwiftVersion`, `swiftLanguageVersions:` inits) while
+`libPackageDescription.dylib` is newer (only `SwiftLanguageMode`/
+`swiftLanguageModes:` symbols). The compiler prefers the private interface →
+emits calls to symbols the dylib no longer exports. Root-owned files; can't
+patch in place without sudo.
+**Fix (user-local, no sudo):** copy ManifestAPI+PluginAPI to
+`~/.swiftpm-fixed-libs/`, delete the stale `*.private.swiftinterface` copies
+(compiler falls back to the correct public `.swiftinterface`), and export
+`SWIFTPM_CUSTOM_LIBS_DIR=$HOME/.swiftpm-fixed-libs` for every build. Also
+bumped `swift-tools-version` 6.0 → 6.2 while diagnosing (harmless, kept).
+A CLT update/reinstall should obsolete this workaround — retest after updating.

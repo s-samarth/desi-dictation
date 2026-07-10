@@ -44,6 +44,12 @@ We hold Input Monitoring permission (for the hotkey). Could we use it to watch t
 
 ### S1 · One-click "always write it my way" — the explicit fast path
 
+> **Status (2026-07-10): BUILT** — `PersonalDictionary` (local JSON lexicon,
+> first-class UI in Settings → Text) + History right-click "always write a word
+> as…", word-boundary + casing-aware, applied before every LLM stage. The
+> token-context guards ("main"→"mai" inside English) remain open — see
+> [implementation doc](../features/implementation/PERSONAL_DICTIONARY.md).
+
 Kill the settings-tab data entry; move correction capture to the moment of recognition. Surfaces: (a) History entries and the last-dictation window get *tap-a-word → "always write it as…"* (pre-filled with an edit box); (b) after the translation feature's edit-window ships, any word the user edits there offers a one-tap "remember this spelling". Each acceptance writes to a **personal lexicon** (local file, user-viewable, user-deletable — a first-class object, not a buried setting), which feeds both the PostProcessor (deterministic rewrite) and the prompt-bias subsystem (P1-S2/P2-S2).
 
 - **Trade-offs**: still requires a deliberate act per word (but *one tap in-flow* vs. *form-filling out-of-flow* — autocorrect-exception-level friction, which history shows people do accept); word-level rules are context-blind ("main"→"mai" must not fire inside English "main street" — rules need token-context guards, same machinery as P2-S3).
