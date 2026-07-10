@@ -48,8 +48,8 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
     <key>CFBundleDisplayName</key>       <string>Desi Dictation</string>
     <key>CFBundleIdentifier</key>        <string>com.desi.dictation</string>
     <key>CFBundleExecutable</key>        <string>Desi Dictation</string>
-    <key>CFBundleShortVersionString</key><string>0.5.1</string>
-    <key>CFBundleVersion</key>           <string>1</string>
+    <key>CFBundleShortVersionString</key><string>0.6.0</string>
+    <key>CFBundleVersion</key>           <string>2</string>
     <key>CFBundlePackageType</key>       <string>APPL</string>
     <key>LSMinimumSystemVersion</key>    <string>14.0</string>
     <key>LSUIElement</key>               <true/>
@@ -57,6 +57,25 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
     <key>NSMicrophoneUsageDescription</key>
     <string>Desi Dictation records your voice to transcribe it into text. Audio never leaves your Mac.</string>
     <key>NSHumanReadableCopyright</key>  <string>© 2026 Samarth Saraswat</string>
+    <!-- Right-click → Services → Translate, on selected text in any app.
+         Return type = macOS replaces the selection in place where editable. -->
+    <key>NSServices</key>
+    <array>
+        <dict>
+            <key>NSMenuItem</key><dict><key>default</key><string>Translate to English (Desi Dictation)</string></dict>
+            <key>NSMessage</key><string>translateToEnglish</string>
+            <key>NSPortName</key><string>Desi Dictation</string>
+            <key>NSSendTypes</key><array><string>NSStringPboardType</string></array>
+            <key>NSReturnTypes</key><array><string>NSStringPboardType</string></array>
+        </dict>
+        <dict>
+            <key>NSMenuItem</key><dict><key>default</key><string>Translate to हिन्दी (Desi Dictation)</string></dict>
+            <key>NSMessage</key><string>translateToHindi</string>
+            <key>NSPortName</key><string>Desi Dictation</string>
+            <key>NSSendTypes</key><array><string>NSStringPboardType</string></array>
+            <key>NSReturnTypes</key><array><string>NSStringPboardType</string></array>
+        </dict>
+    </array>
 </dict>
 </plist>
 PLIST

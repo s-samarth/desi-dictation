@@ -37,9 +37,15 @@ struct DesiDictationApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private let services = ServiceProvider()
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Menu-bar-only app (no Dock icon), also when run via `swift run`.
         NSApp.setActivationPolicy(.accessory)
+
+        // Right-click → Services → Translate, from any app (Flow B).
+        NSApp.servicesProvider = services
+        NSUpdateDynamicServices()
 
         // Surface permission prompts early instead of on first dictation.
         let status = Permissions.check()
