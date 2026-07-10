@@ -11,6 +11,19 @@ struct AISettings: View {
     var body: some View {
         Form {
             Section {
+                Toggle("Enable AI features", isOn: $settings.aiFeaturesEnabled)
+                    .onChange(of: settings.aiFeaturesEnabled) {
+                        if !settings.aiFeaturesEnabled,
+                           settings.languageMode.needsLLM {
+                            settings.languageMode = .hinglish
+                        }
+                    }
+                Text("Off = the classic dictation app: no AI menu items, no LLM modes, nothing extra to download. Dictation itself is untouched either way.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            if settings.aiFeaturesEnabled {
+            Section {
                 statusRow
                 if let guidance = llm.statusGuidance {
                     Text(guidance).font(.caption).foregroundStyle(.secondary)
@@ -60,8 +73,9 @@ struct AISettings: View {
                         .onSubmit { llm.modelChanged() }
                     Button("Apply") { llm.modelChanged() }
                 }
-                Text("Default for this Mac: \(LLMServices.defaultModel). gemma3:4b (~3.3 GB) translates Hinglish best; qwen2.5:1.5b-instruct (~1 GB) fits 8 GB Macs but handles only simple sentences well.")
+                Text("Default for this Mac: \(LLMServices.defaultModel). gemma3:4b (~3.3 GB) translates Hinglish best; qwen3:1.7b (~1.4 GB) fits 8 GB Macs — numbers are handled by the app either way, but complex sentences suit the bigger model.")
                     .font(.caption).foregroundStyle(.secondary)
+            }
             }
         }
         .padding()

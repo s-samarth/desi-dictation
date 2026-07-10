@@ -15,24 +15,43 @@ the map of that layer.
 | `ThoughtStructurer.swift` | `structure(transcript, style) → StructuredThoughts{raw, structured, style}`. Inputs >12k chars (~15 min speech) are capped at a word boundary and the tail is appended verbatim under "Beyond the 15-minute mark" — words are never silently dropped. |
 | `LLMServices.swift` | The singleton wiring: owns the backend, rebuilds it on model change, exposes `translator`/`structurer`/`applyTone`, publishes `status` + `pullProgress`, and computes the RAM-gated default model. |
 
-## The model decision (spike, 2026-07-10 — re-run it before changing defaults)
+## The model decision (full matrix 2026-07-10 — re-run before changing defaults)
 
-Method: 8 real Hinglish sentences through `desi-cli --translate` (which
-exercises the exact app code path). Verdict per model:
+Two rounds. Round 1 (8 sentences, `desi-cli --translate`): gemma3:4b beat
+qwen2.5 1.5b/3b decisively. Round 2 (the re-validation matrix: 12 sentences ×
+7 models via the exact production prompt, warm latency measured, harness at
+`scratchpad/model_matrix.py` of session bc4d88f6):
 
-| Model | Size | Result |
-|---|---|---|
-| qwen2.5:1.5b-instruct | ~1.0 GB | ✗ dropped "kal", inverted "thoda adjust kar lena" (wrong subject), nonsense on "scene kya hai", broke "do lakh pachaas hazaar" |
-| qwen2.5:3b | ~1.9 GB | ✗ "tomorrow"→"today", "2,50,000"→"25,000 units", literal "What scene is there" |
-| **gemma3:4b** | ~3.3 GB | ✓ all 8 faithful and natural, incl. lakh-numbers, idiom ("What's your plan for this evening?"), and correct subject in requests |
+| Model | Size | Median warm | Verdict |
+|---|---|---|---|
+| gemma3:1b | 815 MB | 0.8 s | ✗✗ hallucinates whole sentences ("Aadhaar mail", "Please stop talking to me") |
+| qwen2.5:1.5b-instruct | 986 MB | 0.5 s | ✗✗ hallucinates ("trains exist only in your imagination") |
+| **qwen3:1.7b** (think:false) | 1.4 GB | 0.6 s | ✗→△ homographs OK; numbers/negation fail — **numbers fixed by the digit prepass** → usable small fallback |
+| qwen2.5:3b | 1.9 GB | ~1 s | ✗ number + literal-idiom errors |
+| llama3.2:3b | 2.0 GB | 0.8 s | ✗ leaks prompt text into output, inverts meanings |
+| **gemma3:4b** | 3.3 GB | 2.2 s | ✓ best overall — **default** |
+| qwen3.5:4b (think:false) | 3.4 GB | 2.7 s | ✓ close second ("kal"→today, one number slip) |
 
-This matches TRANSCRIBE_TRANSLATE.md §7's research (Gemma-3-4B-class = COMET
-parity for code-mix). Hence `LLMServices.defaultModel`:
+**The finding that changed the architecture:** every model — including both
+4Bs — mangled Hindi number-words ("assi hazaar" → 60k/10k) and date-words
+("parso" → "Paris"/"Sunday"). But every model got the same sentences right
+when digits were substituted first. So `HindiNumbers.normalize()` (a
+deterministic spoken-Hindi number parser, lakh/crore grouping, ~40
+false-positive guards tested) now runs BEFORE the LLM in both the translation
+and structuring paths, and the prompt pins the date words. Rules fix what
+model size cannot — that, not model routing, is the orchestration that works
+at this scale. Residual known weakness: contrastive negation ("kal NAHI,
+parso") still slips on 4B models — tracked for the spoken-Hinglish eval set.
+
+`LLMServices.defaultModel`:
 
 ```
-physicalMemory ≥ 12 GB → "gemma3:4b"        (needs ~3.5 GB resident)
-else                   → "qwen2.5:1.5b-instruct"  (honest fallback, simple sentences only)
+physicalMemory ≥ 12 GB → "gemma3:4b"   (~3.4 GB resident incl. context)
+else                   → "qwen3:1.7b"  (1.4 GB; digit prepass covers its worst class)
 ```
+
+`OllamaLLM` always sends `"think": false` (qwen3-family answers instead of
+deliberating; non-thinking models ignore the key — verified on gemma3).
 
 Users can override in **AI tab → Model (advanced)** (stored as `llmModel` in
 UserDefaults, applied via `LLMServices.modelChanged()`).

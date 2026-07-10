@@ -42,6 +42,31 @@ written to be read two months from now.
    v1 is explicit-add only (History right-click / Settings) — silent learning
    without UX for review contradicts the trust posture.
 
+## Re-validation round (2026-07-10, same day — after holistic testing)
+
+A second pass tested the features end-to-end (`desi-cli --e2e`: wav →
+whisper → dictionary → translate) and re-validated the model choice against
+6 smaller/newer candidates (matrix in LLM_ENGINE.md). It produced fixes:
+
+1. **Homograph-aware prompt** — ASR spells Hindi as English lookalikes
+   ("die hain" = diye hain, "ke beach" = beech); the translate prompt now
+   teaches this class + date words (parso ≠ Paris). Fixed 2 of 3 failing clips.
+2. **`HindiNumbers` deterministic prepass** — every LLM ≤4B mangles
+   "assi hazaar"-class figures; digits substituted before the LLM fix it for
+   all of them (19 new tests).
+3. **Esc during Translating/Polishing** now pastes the words as heard
+   immediately (before: a hung LLM call held the pipeline up to 60 s with no
+   exit).
+4. **No fake "Polishing"** when the AI engine isn't ready — the stage is
+   skipped instead of flashing and changing nothing.
+5. **"Enable AI features" master switch** (AI tab, default on) — off = the
+   classic dictation app: no AI menu items, no LLM modes, nothing to download.
+6. **Small-Mac default model** qwen2.5:1.5b → qwen3:1.7b (matrix: the 1.5b
+   hallucinates whole sentences; 1.7b + prepass is repairable), and
+   `think:false` sent always.
+7. Thinking-session overlay is now visibly distinct ("🧠 Thinking — take your
+   time"); restyle races guarded in ThoughtsSession.
+
 ## Known quality limits (honest, with live repro examples)
 
 - **Small-model translation**: the 2026-07-10 spike (see LLM_ENGINE.md) showed

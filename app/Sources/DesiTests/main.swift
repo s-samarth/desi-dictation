@@ -5,6 +5,7 @@ import Foundation
 
 runDictionaryTests()
 runStoreTests()
+runNumberTests()
 
 let group = DispatchGroup()
 group.enter()

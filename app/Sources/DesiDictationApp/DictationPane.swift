@@ -46,7 +46,9 @@ struct DictationPane: View {
 
             Section("Language & model") {
                 Picker("Language", selection: $settings.languageMode) {
-                    ForEach(LanguageMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                    ForEach(LanguageMode.allCases.filter {
+                        settings.aiFeaturesEnabled || !$0.needsLLM
+                    }, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 Picker("Model", selection: Binding(
                     get: { settings.modelPath },

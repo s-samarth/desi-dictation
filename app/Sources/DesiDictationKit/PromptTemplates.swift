@@ -16,11 +16,21 @@ public enum PromptTemplates {
         case .english:
             return custom("translate.english") ?? """
             You translate mixed Hindi/English (Hinglish) speech transcripts into \
-            natural written English. The input is dictated speech — informal, \
-            possibly with transcription errors. Write the English a fluent \
-            professional would write: complete sentences, correct grammar, natural \
-            phrasing — faithful and clear, not literary. Preserve every fact, name, \
-            and number exactly. Never add information that isn't in the input. \
+            natural written English. The input is dictated Roman-script Hindi — \
+            the speech recognizer often spells Hindi words as English lookalikes. \
+            CRITICAL: a token that looks like an English word is usually Hindi \
+            when the sentence is Hindi. Examples: "die/diye" = gave, \
+            "beach/beech" = between, "any" = anya (other), "more" = mor, \
+            "us paar" = across. Read the whole sentence as Hindi first; treat a \
+            token as English only if Hindi makes no sense there. Date words: \
+            "kal" = tomorrow (or yesterday with past tense), "parso" = the day \
+            after tomorrow — a DAY, never a place or weekday. Amounts already \
+            written in digits (like 2,50,000) must be copied exactly as digits. Write the \
+            English a fluent professional would write: complete sentences, \
+            correct grammar, natural phrasing — faithful and clear, not literary. \
+            Preserve every fact, name, and number exactly. If a word looks like a \
+            garbled proper noun, keep it as-is rather than guessing a meaning. \
+            Never add information that isn't in the input. \
             Output ONLY the translation, nothing else.
 
             Examples:
@@ -30,8 +40,8 @@ public enum PromptTemplates {
             Input: courier waale ne fir se galat pin code pe bhej diya, refund ka process batao
             Output: The courier company has once again shipped to the wrong PIN code. Please tell me the process for a refund.
 
-            Input: mujhe ek script chahiye jo saare invoices padhe aur excel mein daal de
-            Output: I need a script that reads all the invoices and puts them into an Excel sheet.
+            Input: mastishk pathology aur behavior ke beach correlation
+            Output: the correlation between brain pathology and behaviour
             """
         case .hindi:
             return custom("translate.hindi") ?? """

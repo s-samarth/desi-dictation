@@ -18,6 +18,39 @@ guard args.count >= 3 else {
     exit(1)
 }
 
+// Holistic end-to-end: wav → whisper → dictionary → LLM translate — the full
+// anyToEnglish pipeline through the same classes the app runs, minus UI.
+// Usage: desi-cli --e2e <whisper-model.bin> <audio.wav>
+if args[1] == "--e2e", args.count >= 4 {
+    let semaphore = DispatchSemaphore(value: 0)
+    Task {
+        defer { semaphore.signal() }
+        do {
+            let engine = WhisperCppEngine()
+            try engine.load(modelPath: args[2])
+            let samples = try AudioFileLoader.loadSamples(url: URL(fileURLWithPath: args[3]))
+            let asr = try engine.transcribe(samples: samples, mode: .anyToEnglish)
+            var text = PostProcessor.applyReplacements(
+                asr.text, rules: SettingsStore.shared.replacementRules)
+            text = PersonalDictionary.shared.apply(to: text)
+            print("HEARD (\(String(format: "%.1f", asr.duration))s ASR): \(text)")
+            let llm = OllamaLLM(model: SettingsStore.shared.llmModel)
+            guard (await llm.status()).isReady else {
+                print("LLM not ready — app would paste the raw words above"); exit(3)
+            }
+            let start = Date()
+            let english = try await LLMTranslationEngine(llm: llm)
+                .translate(text, to: .english)
+            print("PASTED (\(String(format: "%.1f", Date().timeIntervalSince(start)))s LLM): \(english)")
+        } catch {
+            FileHandle.standardError.write("e2e error: \(error.localizedDescription)\n".data(using: .utf8)!)
+            exit(2)
+        }
+    }
+    semaphore.wait()
+    exit(0)
+}
+
 // LLM verification paths — exercise the exact engine the app uses.
 if args[1] == "--translate" || args[1] == "--structure" {
     let llm = OllamaLLM(model: SettingsStore.shared.llmModel)

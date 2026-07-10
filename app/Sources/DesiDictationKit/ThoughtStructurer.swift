@@ -38,7 +38,9 @@ public final class ThoughtStructurer {
         guard !trimmed.isEmpty else {
             return StructuredThoughts(raw: trimmed, structured: "", style: style)
         }
-        let (head, overflow) = Self.capped(trimmed, at: inputCap)
+        // Digits substituted before the LLM (same rationale as translation);
+        // `raw` keeps the user's actual words untouched.
+        let (head, overflow) = Self.capped(HindiNumbers.normalize(trimmed), at: inputCap)
         var structured = try await llm.generate(
             system: PromptTemplates.structure(style: style), user: head)
         if let overflow {

@@ -79,7 +79,9 @@ struct OverlayView: View {
                                value: pulse)
                     .onAppear { pulse = true }
                     .onDisappear { pulse = false }
-                Text("Listening")
+                // Thinking sessions look different — the user must know this
+                // recording won't paste (it opens the review window instead).
+                Text(controller.thinkingSessionArmed ? "🧠 Thinking — take your time" : "Listening")
                     .font(.system(size: 13, weight: .semibold))
                 Text("esc to cancel")
                     .font(.system(size: 11))
@@ -94,10 +96,16 @@ struct OverlayView: View {
                 ProgressView().controlSize(.small)
                 Text("Translating ✨")
                     .font(.system(size: 13, weight: .semibold))
+                Text("esc pastes as heard")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
             case .polishing:
                 ProgressView().controlSize(.small)
                 Text("Polishing ✨")
                     .font(.system(size: 13, weight: .semibold))
+                Text("esc pastes as heard")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
             default:
                 EmptyView()
             }

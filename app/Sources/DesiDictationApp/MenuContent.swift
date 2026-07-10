@@ -7,6 +7,7 @@ struct MenuContent: View {
     @ObservedObject var models = ModelManager.shared
     @ObservedObject var history = HistoryStore.shared
     @ObservedObject var appModes = AppModeStore.shared
+    @ObservedObject var llm = LLMServices.shared
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -26,16 +27,20 @@ struct MenuContent: View {
             }))
 
         Picker("Language", selection: $settings.languageMode) {
-            ForEach(LanguageMode.allCases, id: \.self) { mode in
+            ForEach(LanguageMode.allCases.filter {
+                settings.aiFeaturesEnabled || !$0.needsLLM
+            }, id: \.self) { mode in
                 Text(mode.displayName).tag(mode)
             }
         }
 
         // Tone dial as modes (PATTERNS.md §1) — per-recipient switching lives
         // one click away: Faithful for chat, Respectful for the principal.
-        Picker("Tone", selection: $settings.toneMode) {
-            ForEach(ToneMode.allCases, id: \.self) { tone in
-                Text(tone.displayName).tag(tone)
+        if settings.aiFeaturesEnabled {
+            Picker("Tone", selection: $settings.toneMode) {
+                ForEach(ToneMode.allCases, id: \.self) { tone in
+                    Text(tone.displayName).tag(tone)
+                }
             }
         }
 
@@ -74,31 +79,33 @@ struct MenuContent: View {
 
         // AI-dependent features need one-time setup; say so where the user is,
         // with a way there (house rule: no dead-looking features).
-        if needsLLMSetup {
+        if settings.aiFeaturesEnabled, needsLLMSetup {
             Button("⚠️ Finish AI setup (one-time)…") {
                 MainNav.shared.selection = .ai
                 AppWindows.shared.showMain()
             }
         }
 
-        Divider()
+        if settings.aiFeaturesEnabled {
+            Divider()
 
-        // Thinking session (STRUCTURE_THOUGHTS.md): ramble → structured doc.
-        if controller.thinkingSessionArmed, case .recording = controller.phase {
-            Button("🧠 Finish thinking session — organize now") {
-                controller.finishThinkingSession()
+            // Thinking session (STRUCTURE_THOUGHTS.md): ramble → structured doc.
+            if controller.thinkingSessionArmed, case .recording = controller.phase {
+                Button("🧠 Finish thinking session — organize now") {
+                    controller.finishThinkingSession()
+                }
+            } else {
+                Button("🧠 Structure my thoughts (beta)…") {
+                    controller.startThinkingSession()
+                }
+                .disabled(controller.phase != .idle)
             }
-        } else {
-            Button("🧠 Structure my thoughts (beta)…") {
-                controller.startThinkingSession()
-            }
-            .disabled(controller.phase != .idle)
-        }
 
-        Button("Last dictation — edit / translate…") {
-            AppWindows.shared.showLastDictation()
+            Button("Last dictation — edit / translate…") {
+                AppWindows.shared.showLastDictation()
+            }
+            .disabled(history.entries.isEmpty)
         }
-        .disabled(history.entries.isEmpty)
 
         Divider()
 
@@ -142,7 +149,7 @@ struct MenuContent: View {
     /// True when an AI-dependent choice is active but the engine isn't ready.
     private var needsLLMSetup: Bool {
         (settings.languageMode == .anyToEnglish || settings.toneMode != .faithful)
-            && !LLMServices.shared.status.isReady
+            && !llm.status.isReady
     }
 
     private var statusLine: String {

@@ -25,7 +25,11 @@ public final class LLMTranslationEngine: TranslationEngine {
     public func status() async -> LLMStatus { await llm.status() }
 
     public func translate(_ text: String, to language: TargetLanguage) async throws -> String {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Digits are substituted deterministically BEFORE the LLM sees the
+        // text — the 2026-07-10 matrix showed every ≤4B model mangles
+        // "assi hazaar"-class figures, and every one gets digits right.
+        let trimmed = HindiNumbers.normalize(
+            text.trimmingCharacters(in: .whitespacesAndNewlines))
         guard !trimmed.isEmpty else { return trimmed }
         let system = PromptTemplates.translate(to: language)
 

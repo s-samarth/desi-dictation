@@ -54,8 +54,12 @@ public final class DictationController: ObservableObject {
 
     private init() {
         hotkeys.sessionActive = { [weak self] in
-            if case .recording = self?.phase { return true }
-            return false
+            switch self?.phase {
+            // Esc must also work while an LLM stage runs — a hung local model
+            // must never hold the user's words hostage (cancel pastes them).
+            case .recording, .translating, .polishing: return true
+            default: return false
+            }
         }
         hotkeys.onDictateDown = { [weak self] in self?.hotkeyDown() }
         hotkeys.onDictateUp = { [weak self] in self?.hotkeyUp() }
@@ -82,11 +86,14 @@ public final class DictationController: ObservableObject {
 
     /// Language for the NEXT dictation: a per-app rule for the app the user is
     /// in wins over the global setting (IDEAS #4 — zero mode-switches a day).
+    /// With AI features switched off, LLM modes degrade to plain Hinglish.
     private func effectiveMode() -> LanguageMode {
+        var mode = settings.languageMode
         if settings.perAppModes, let ruled = AppModeStore.shared.modeForCurrentTarget() {
-            return ruled
+            mode = ruled
         }
-        return settings.languageMode
+        if mode.needsLLM, !settings.aiFeaturesEnabled { return .hinglish }
+        return mode
     }
 
     /// Mode captured at session start — per-app rules must not flip mid-session
@@ -342,12 +349,14 @@ public final class DictationController: ObservableObject {
             return
         }
         if mode.needsLLM {
-            phase = .translating
+            let token = beginLLMStage(.translating, raw: (text, mode, copyOnly))
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                if let english = try? await LLMServices.shared.translator
-                    .translate(text, to: .english),
-                    !english.isEmpty {
+                let english = try? await LLMServices.shared.translator
+                    .translate(text, to: .english)
+                guard self.llmStageToken == token else { return }  // user cancelled
+                self.inFlightRaw = nil
+                if let english, !english.isEmpty {
                     self.deliver(text: english, mode: mode, copyOnly: copyOnly, raw: text)
                 } else {
                     // Never lose the user's words: paste the original, say why.
@@ -358,12 +367,16 @@ public final class DictationController: ObservableObject {
             return
         }
         let tone = settings.toneMode
-        if tone != .faithful {
-            phase = .polishing
+        // Skip the stage outright when the engine isn't ready — a "Polishing"
+        // overlay that changes nothing reads as a broken feature.
+        if tone != .faithful, LLMServices.shared.status.isReady {
+            let token = beginLLMStage(.polishing, raw: (text, mode, copyOnly))
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 // applyTone returns the original on any failure.
                 let rendered = await LLMServices.shared.applyTone(tone, to: text)
+                guard self.llmStageToken == token else { return }  // user cancelled
+                self.inFlightRaw = nil
                 let changed = rendered != text
                 self.deliver(text: rendered, mode: mode, copyOnly: copyOnly,
                              raw: changed ? text : nil)
@@ -371,6 +384,20 @@ public final class DictationController: ObservableObject {
             return
         }
         deliver(text: text, mode: mode, copyOnly: copyOnly)
+    }
+
+    // MARK: - LLM-stage cancellation (Esc pastes the raw words immediately)
+
+    private var llmStageToken = 0
+    private var inFlightRaw: (text: String, mode: LanguageMode, copyOnly: Bool)?
+
+    private func beginLLMStage(
+        _ stage: DictationPhase, raw: (String, LanguageMode, Bool)
+    ) -> Int {
+        phase = stage
+        llmStageToken += 1
+        inFlightRaw = raw
+        return llmStageToken
     }
 
     private func deliver(text: String, mode: LanguageMode, copyOnly: Bool, raw: String? = nil) {
@@ -389,6 +416,10 @@ public final class DictationController: ObservableObject {
     }
 
     public func cancel() {
+        // Esc during translate/polish: abandon the LLM result, paste the words
+        // as heard — the user keeps everything, immediately.
+        if case .translating = phase { return cancelLLMStage() }
+        if case .polishing = phase { return cancelLLMStage() }
         stopChunkTicker()
         audio.cancelSession()
         scheduleCoolDown()
@@ -397,6 +428,13 @@ public final class DictationController: ObservableObject {
         thinkingSessionArmed = false
         if phase != .disabled { phase = .idle }
         Sounds.error.play()
+    }
+
+    private func cancelLLMStage() {
+        llmStageToken += 1   // in-flight Task result will be dropped
+        guard let raw = inFlightRaw else { phase = .idle; return }
+        inFlightRaw = nil
+        deliver(text: raw.text, mode: raw.mode, copyOnly: raw.copyOnly)
     }
 
     /// Starts a thinking session (STRUCTURE_THOUGHTS.md): toggle-style capture

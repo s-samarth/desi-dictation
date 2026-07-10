@@ -51,6 +51,10 @@ public final class OllamaLLM: LocalLLM {
                 ["role": "user", "content": user],
             ],
             "stream": false,
+            // Reasoning models (qwen3 family) must answer, not deliberate —
+            // 10× latency otherwise. Non-thinking models ignore this key
+            // (verified against gemma3, 2026-07-10).
+            "think": false,
             // Translation/structuring want faithfulness, not creativity.
             "options": ["temperature": 0.2],
         ]

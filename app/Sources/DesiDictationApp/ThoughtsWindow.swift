@@ -22,20 +22,28 @@ final class ThoughtsSession: ObservableObject {
         run()
     }
 
+    private var runToken = 0
+
     func run() {
         let text = transcript, style = style
         working = true
         failed = false
+        runToken += 1
+        let token = runToken
         Task { @MainActor in
-            defer { working = false }
             do {
                 let result = try await LLMServices.shared.structurer
                     .structure(text, style: style)
+                // A newer restyle superseded this run — drop the stale result.
+                guard token == runToken else { return }
+                working = false
                 structured = result.structured
                 HistoryStore.shared.add(text: result.structured,
                                         mode: SettingsStore.shared.languageMode,
                                         raw: text)
             } catch {
+                guard token == runToken else { return }
+                working = false
                 // Rambling is never lost: the raw transcript is right below.
                 failed = true
             }

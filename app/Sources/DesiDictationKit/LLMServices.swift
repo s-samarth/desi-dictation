@@ -17,9 +17,12 @@ public final class LLMServices: ObservableObject {
     /// exactly the §7 research prediction. 4B needs ~3.5 GB resident → only
     /// machines with 12 GB+ default to it; 8 GB Airs get the small model and
     /// honest docs about its limits.
+    /// Small-Mac fallback re-picked 2026-07-10 matrix: qwen2.5:1.5b hallucinated
+    /// whole sentences; qwen3:1.7b (with think:false + the digit prepass) is the
+    /// only sub-2 GB model whose errors stay repairable.
     public static let defaultModel: String =
         ProcessInfo.processInfo.physicalMemory >= 12 * 1_073_741_824
-            ? "gemma3:4b" : "qwen2.5:1.5b-instruct"
+            ? "gemma3:4b" : "qwen3:1.7b"
 
     @Published public private(set) var status: LLMStatus = .serverDown
     @Published public var pullProgress: Double?   // nil = not pulling
