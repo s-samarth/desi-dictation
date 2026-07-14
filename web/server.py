@@ -82,10 +82,17 @@ async def transcribe(request: Request, audio: UploadFile = File(...),
     with tempfile.TemporaryDirectory() as tmp:
         src, wav = Path(tmp) / "in.bin", Path(tmp) / "in.wav"
         src.write_bytes(blob)
-        proc = subprocess.run(
-            ["ffmpeg", "-y", "-i", str(src), "-t", str(MAX_SECONDS),
-             "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", str(wav)],
-            capture_output=True, timeout=30)
+        # async subprocess — a blocking subprocess.run here would stall the
+        # whole event loop (every other visitor's request) for its duration.
+        proc = await asyncio.create_subprocess_exec(
+            "ffmpeg", "-y", "-i", str(src), "-t", str(MAX_SECONDS),
+            "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", str(wav),
+            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=30)
+        except asyncio.TimeoutError:
+            proc.kill()
+            raise HTTPException(400, "Couldn't read that audio — try again?")
         if proc.returncode != 0 or not wav.exists():
             raise HTTPException(400, "Couldn't read that audio — try again?")
 

@@ -7,6 +7,7 @@
 | [ARCHITECTURE.md](ARCHITECTURE.md) | What "an endpoint" actually is, the API design, app integration, no-retention design |
 | [INFRA_AND_SCALING.md](INFRA_AND_SCALING.md) | Phase-wise infra: API-proxy → serverless GPU → own instances; scaling math |
 | [COSTS.md](COSTS.md) | Unit economics — cost per user per month, scenarios at 100 / 1k / 10k users |
+| [SERVING_STACK.md](SERVING_STACK.md) | Production serving decisions — faster-whisper vs whisper.cpp, when vLLM earns its place, what's overkill |
 
 ## Why cloud at all
 

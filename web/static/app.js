@@ -1,10 +1,10 @@
 // Desi Dictation demo — mic capture + API glue. Plain JS, no build step.
-// Flow: tap mic → MediaRecorder → tap again → POST blob → transcript card
-//       → optional AI chips (translate/organize) → second card.
+// Flow: tap mic → MediaRecorder → tap again → POST blob → text types out
+//       into the editable box → optional AI chips (translate/organize).
 const $ = (id) => document.getElementById(id);
-const mic = $("mic"), hint = $("hint");
+const mic = $("mic"), hint = $("hint"), box = $("box");
 let lang = "english";
-let recorder = null, chunks = [], timerId = null, startedAt = 0;
+let recorder = null, chunks = [], timerId = null, startedAt = 0, typerId = null;
 let health = { asr: true, hindi: true, ai: true };
 
 // ── language pills ──────────────────────────────────────────────
@@ -36,10 +36,14 @@ async function start() {
   const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
     ? "audio/webm;codecs=opus" : "";       // Safari falls back to its default (mp4)
   recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
+  // Capture NOW — by the time onstop fires, the `recorder` global is null
+  // again and reading recorder.mimeType there throws (BUILD_LOG FM#18: the
+  // silent "transcribing… forever" bug).
+  const blobType = recorder.mimeType || "audio/webm";
   recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
   recorder.onstop = () => {
     stream.getTracks().forEach((t) => t.stop());
-    send(new Blob(chunks, { type: recorder.mimeType || "audio/webm" }));
+    send(new Blob(chunks, { type: blobType }));
   };
   recorder.start();
   mic.classList.add("rec");
@@ -55,6 +59,7 @@ async function start() {
 function stop() {
   clearInterval(timerId);
   mic.classList.remove("rec");
+  mic.disabled = true;                      // one clip at a time
   recorder?.stop();
   recorder = null;
   setHint("transcribing…");
@@ -62,33 +67,43 @@ function stop() {
 
 // ── API ─────────────────────────────────────────────────────────
 async function send(blob) {
-  const form = new FormData();
-  form.append("audio", blob, "clip");
-  form.append("lang", lang);
   try {
+    const form = new FormData();
+    form.append("audio", blob, "clip");
+    form.append("lang", lang);
     const res = await fetch("/api/transcribe", { method: "POST", body: form });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "try again?");
-    if (!data.text) return setHint("Couldn’t hear anything — try once more, thoda paas se.", true);
-    showTranscript(data.text);
-    setHint("tap to speak again");
+    if (!data.text) throw new Error("Couldn’t hear anything — try once more, thoda paas se.");
+    typeInto(data.text);
+    setHint("tap to speak again — or edit the text");
   } catch (err) {
     setHint(err.message, true);
+  } finally {
+    mic.disabled = false;
   }
 }
 
-function showTranscript(text) {
-  $("result").hidden = false;
-  $("aiCard").hidden = true;
-  $("transcript").textContent = text;
-  $("transcriptTag").textContent = { english: "english", hinglish: "hinglish", hindi: "हिन्दी" }[lang];
-  $("result").scrollIntoView({ behavior: "smooth", block: "nearest" });
+// Types the transcript out character by character; repeat dictations append.
+function typeInto(text) {
+  clearInterval(typerId);
+  const prefix = box.value.trim() ? box.value.replace(/\s+$/, "") + " " : "";
+  let i = 0;
+  box.focus();
+  typerId = setInterval(() => {
+    i = Math.min(i + 2, text.length);       // 2 chars/tick ≈ 130 chars/s
+    box.value = prefix + text.slice(0, i);
+    box.scrollTop = box.scrollHeight;
+    if (i >= text.length) clearInterval(typerId);
+  }, 15);
 }
 
-// AI chips — transcript is editable, so fixes flow into the AI action.
+$("clearBox").addEventListener("click", () => { box.value = ""; $("aiCard").hidden = true; box.focus(); });
+
+// AI chips — the box is editable, so fixes flow into the AI action.
 document.querySelectorAll(".actions .chip").forEach((chip) =>
   chip.addEventListener("click", async () => {
-    const text = $("transcript").textContent.trim();
+    const text = box.value.trim();
     if (!text || chip.disabled) return;
     chip.classList.add("busy");
     const label = chip.textContent;
@@ -114,15 +129,15 @@ document.querySelectorAll(".actions .chip").forEach((chip) =>
   }));
 
 // copy buttons
-function wireCopy(buttonId, sourceId) {
+function wireCopy(buttonId, getText) {
   $(buttonId).addEventListener("click", async () => {
-    await navigator.clipboard.writeText($(sourceId).textContent);
+    await navigator.clipboard.writeText(getText());
     $(buttonId).textContent = "copied ✓";
     setTimeout(() => ($(buttonId).textContent = "copy"), 1200);
   });
 }
-wireCopy("copyTranscript", "transcript");
-wireCopy("copyAI", "aiText");
+wireCopy("copyBox", () => box.value);
+wireCopy("copyAI", () => $("aiText").textContent);
 
 // ── adapt UI to what this host actually runs ────────────────────
 (async () => {

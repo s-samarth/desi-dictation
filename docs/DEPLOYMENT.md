@@ -134,3 +134,6 @@ itself** — the pipeline is already wired ([CICD.md](CICD.md)).
   tunnel (Stage 2) is genuinely enough until traffic proves otherwise.
 - Real production (autoscaling, serverless GPU, quotas) is a different design
   and already written up in [cloud/](cloud/README.md) — don't build it early.
+- Tempted by vLLM/SGLang/Kubernetes "to be production-grade"? The verdict on
+  what's overkill when — and the one swap that matters (faster-whisper) — is
+  recorded in [cloud/SERVING_STACK.md](cloud/SERVING_STACK.md).

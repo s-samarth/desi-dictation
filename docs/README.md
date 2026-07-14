@@ -31,7 +31,7 @@ Everything written about Desi Dictation — engineering, product, strategy, and 
 | [features/implementation/](features/implementation/) | **How the built features actually work** (0.6 wave, 2026-07-10) — LLM engine, dictionary, per-app modes, translate ×2, structure, tones, testing |
 | [problems/](problems/) | The problems that decide the product — [P1 Hinglish accuracy](problems/P1_HINGLISH_ACCURACY.md), [P2 OOD words](problems/P2_OOD_WORDS.md), [P3 freshness/data](problems/P3_MODEL_FRESHNESS.md), [P4 personalization](problems/P4_PERSONALIZATION.md), [10 more](problems/ADDITIONAL_PROBLEMS.md) |
 | [platforms/](platforms/) | Platform expansion — [Windows](platforms/WINDOWS.md) (easiest, first) → [Android](platforms/ANDROID.md) (the India must-have; voice-IME) → [iOS](platforms/IOS.md) (hardest; app-hop) — flows, min specs, and the one-shot Claude build prompts |
-| [cloud/](cloud/) | Opt-in cloud transcription — [strategy](cloud/README.md), [the endpoint explained + API design](cloud/ARCHITECTURE.md), [infra phases & scaling](cloud/INFRA_AND_SCALING.md), [unit economics](cloud/COSTS.md) |
+| [cloud/](cloud/) | Opt-in cloud transcription — [strategy](cloud/README.md), [the endpoint explained + API design](cloud/ARCHITECTURE.md), [infra phases & scaling](cloud/INFRA_AND_SCALING.md), [unit economics](cloud/COSTS.md), [serving stack: what's overkill when](cloud/SERVING_STACK.md) |
 
 ## 📣 Go-to-market, research, competition
 | Doc | What |

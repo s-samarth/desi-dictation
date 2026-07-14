@@ -20,6 +20,14 @@ PIDS=()
 cleanup() { echo; echo "==> stopping"; kill "${PIDS[@]}" 2>/dev/null || true; }
 trap cleanup EXIT
 
+# A previous run that wasn't cleanly stopped leaves whisper-servers holding the
+# ports; duplicates then pile up (each loads the model, all fight for CPU) and
+# transcription crawls. Clear the ports before starting.
+for port in 8080 8081 8082; do
+  lsof -ti tcp:"$port" 2>/dev/null | xargs kill 2>/dev/null || true
+done
+sleep 1
+
 VAD_FLAGS=()
 [ -f "$VAD" ] && VAD_FLAGS=(--vad --vad-model "$VAD")
 

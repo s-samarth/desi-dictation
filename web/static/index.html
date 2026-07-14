@@ -15,7 +15,6 @@
 
 <header class="top">
   <div class="wordmark"><span class="desi">देसी</span> Dictation</div>
-  <a class="mac-link" href="https://github.com/s-samarth/desi-dictation" target="_blank" rel="noopener">Get the Mac app ↗</a>
 </header>
 
 <main>
@@ -25,52 +24,48 @@
     deck ready rakhna — and writes it the way you meant it.</p>
   </section>
 
-  <section class="stage">
-    <div class="langs" role="tablist" aria-label="Language">
-      <button class="pill active" data-lang="english"  role="tab">English</button>
-      <button class="pill"        data-lang="hinglish" role="tab">Hinglish</button>
-      <button class="pill"        data-lang="hindi"    role="tab">हिन्दी</button>
+  <div class="langs" role="tablist" aria-label="Language">
+    <button class="pill active" data-lang="english"  role="tab">English</button>
+    <button class="pill"        data-lang="hinglish" role="tab">Hinglish</button>
+    <button class="pill"        data-lang="hindi"    role="tab">हिन्दी</button>
+  </div>
+
+  <section class="card editor">
+    <textarea id="box" spellcheck="false" rows="5"
+      placeholder="Tap the mic, speak — your words type out here. Edit anything before using the AI actions."></textarea>
+    <div class="toolbar">
+      <button id="mic" class="mic" aria-label="Start dictation">
+        <span class="ring"></span><span class="ring r2"></span>
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="2.5" width="6" height="11.5" rx="3"/>
+          <path d="M5 11.5a7 7 0 0 0 14 0M12 18.5v3"/>
+        </svg>
+      </button>
+      <div id="hint" class="hint">tap to speak</div>
+      <div class="spacer"></div>
+      <button class="chip ghost" id="copyBox">copy</button>
+      <button class="chip ghost" id="clearBox">clear</button>
     </div>
-
-    <button id="mic" class="mic" aria-label="Start dictation">
-      <span class="ring"></span><span class="ring r2"></span>
-      <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor"
-           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="9" y="2.5" width="6" height="11.5" rx="3"/>
-        <path d="M5 11.5a7 7 0 0 0 14 0M12 18.5v3"/>
-      </svg>
-    </button>
-    <div id="hint" class="hint">tap to speak</div>
+    <div class="actions">
+      <button class="chip" data-action="english">→ English ✨</button>
+      <button class="chip" data-action="hindi">→ हिन्दी</button>
+      <button class="chip" data-action="structure">🧠 Organize</button>
+    </div>
+    <div class="ai-note" id="aiNote" hidden>AI actions aren’t available on this demo host right now.</div>
   </section>
 
-  <section id="result" class="cards" hidden>
-    <article class="card" id="transcriptCard">
-      <div class="card-top"><span class="tag" id="transcriptTag">heard</span>
-        <button class="chip ghost" id="copyTranscript">copy</button></div>
-      <div class="text" id="transcript" contenteditable="true" spellcheck="false"></div>
-      <div class="actions">
-        <button class="chip" data-action="english">→ English ✨</button>
-        <button class="chip" data-action="hindi">→ हिन्दी</button>
-        <button class="chip" data-action="structure">🧠 Organize</button>
-      </div>
-      <div class="ai-note" id="aiNote" hidden>AI actions aren’t available on this demo host right now.</div>
-    </article>
-
-    <article class="card ai" id="aiCard" hidden>
-      <div class="card-top"><span class="tag saffron" id="aiTag">english</span>
-        <button class="chip ghost" id="copyAI">copy</button></div>
-      <div class="text" id="aiText"></div>
-    </article>
+  <section class="card ai" id="aiCard" hidden>
+    <div class="card-top"><span class="tag saffron" id="aiTag">english</span>
+      <button class="chip ghost" id="copyAI">copy</button></div>
+    <div class="text" id="aiText"></div>
   </section>
 
-  <p class="fineprint">Demo clips are processed on our machine and never stored.
-  The <a href="https://github.com/s-samarth/desi-dictation" target="_blank" rel="noopener">Mac app</a>
-  runs 100% on your own device — nothing leaves it, ever.</p>
+  <p class="fineprint">Demo clips are processed on our machine and never stored — nothing is saved, ever.</p>
 </main>
 
 <footer>
   <span>Made in India 🇮🇳</span>
-  <a href="mailto:samarth.iitg@gmail.com?subject=Desi%20Dictation%20demo%20feedback">Send feedback</a>
 </footer>
 
 <script src="/app.js"></script>

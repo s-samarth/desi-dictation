@@ -1,7 +1,8 @@
 # Desi Dictation — web demo
 
-A shareable, zero-install demo: open a link, tap the mic, speak Hinglish,
-get text — plus the AI actions (→ English ✨ / → हिन्दी / 🧠 Organize).
+A shareable, zero-install demo: open a link, tap the mic, speak Hinglish —
+the transcript **types out into an editable text box** (repeat dictations
+append; edits flow into the AI actions → English ✨ / → हिन्दी / 🧠 Organize).
 **Fully separate from the Mac app** (`app/` is untouched); it reuses only the
 model files on disk and the vendored whisper.cpp.
 
@@ -86,10 +87,15 @@ demo nobody's clicking at 3 am — the laptop + tunnel covers launch week.
 The production-grade path (serverless GPU, our own endpoint, quotas) is a
 different beast and already designed in [docs/cloud/](../docs/cloud/README.md).
 
-## What was verified (2026-07-10, this machine)
+## What was verified (2026-07-14, this machine)
 
 - `/api/health`, `/api/transcribe` (wav AND browser webm/opus — accurate
-  Roman-Hinglish vs. eval reference), `/api/refine` (₹2,50,000 prepass ✓)
-- Full UI flow in a real browser: pills → transcript card → "→ English ✨"
-  chip → correct translation card. Mic capture itself needs a human + mic
+  Roman-Hinglish vs. eval reference, 1.6–2.3 s for a short clip),
+  `/api/refine` (₹2,50,000 prepass ✓)
+- Full UI flow in a real browser: pills → blob through the exact `onstop`
+  code path → transcript types into the editable box → "→ English ✨" chip →
+  correct translation card. Mic *capture* itself needs a human + mic
   permission — untested headlessly.
+- Known past failures worth reading before touching this code:
+  BUILD_LOG FM#18 (the stuck-"transcribing…" recorder-null bug) and FM#19
+  (duplicate whisper-servers from repeated run_demo.sh launches).

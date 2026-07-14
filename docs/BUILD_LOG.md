@@ -392,3 +392,35 @@ web/README.md.
 `check_parity.sh` diffs the Swift and Python number-normalizers on shared
 sentences and greps prompt sentinels — porting drift fails the build. Dormant
 auto-deploy job for the web host (enable via DEPLOY_ENABLED + secrets).
+
+## 2026-07-14 — web demo: the stuck-"transcribing…" bug + editor rework
+
+UI reworked around an **editable text box** (transcript types out into it,
+repeat dictations append, edits flow into the AI actions); mic button lives in
+the box's toolbar; "Get the Mac app" + feedback links removed for now.
+Serving-stack decisions (vLLM/SGLang verdict, what's overkill when) recorded
+in docs/cloud/SERVING_STACK.md.
+
+### Failure mode #18 — transcription "never completes" (recorder.mimeType read after null)
+
+**Symptom:** every browser recording ends stuck on "transcribing…" forever; no
+error, no transcript. The API itself is healthy (curl works).
+**Cause:** `stop()` set the global `recorder = null` *before* MediaRecorder's
+async `onstop` fired; the `onstop` closure then read `recorder.mimeType` →
+TypeError on null → `send()` never ran → the hint never updated. A silent
+client-side death that looks exactly like a slow server.
+**Fix:** capture `const blobType = recorder.mimeType` at setup time, use it in
+`onstop`. **Lesson:** in event closures, never read globals another handler
+may have cleared — capture at bind time. And when "the server is slow",
+check the browser console *first*.
+
+### Failure mode #19 — duplicate whisper-servers after repeated run_demo.sh
+
+**Symptom:** transcription slow; `ps` shows 3× whisper-server per port, each
+with the model loaded, fighting for CPU.
+**Cause:** run_demo.sh's EXIT trap only kills PIDs from *its own* run;
+crashed/abandoned runs leave holders on :8080–:8082 and re-runs stack up.
+**Fix:** run_demo.sh now clears listeners on its ports (`lsof -ti | xargs
+kill`) before starting. Also made the gateway's ffmpeg call async — a blocking
+`subprocess.run` inside an async route stalls the whole event loop (every
+other visitor) for up to 30 s.
