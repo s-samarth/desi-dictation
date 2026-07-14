@@ -36,3 +36,5 @@ evals/reports/
 
 # NOTE: docs/ — including strategy/business docs — are now TRACKED (repo is private).
 # (Previously these were gitignored; un-ignored on 2026-07-09 after the repo went private.)
+web/.venv/
+web/__pycache__/

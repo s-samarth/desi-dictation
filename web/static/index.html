@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desi Dictation — Bolo. It types.</title>
+<meta name="description" content="Hinglish dictation that actually gets you. Speak Hindi, Hinglish or English — get clean text, translated and organized.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>">
+</head>
+<body>
+
+<header class="top">
+  <div class="wordmark"><span class="desi">देसी</span> Dictation</div>
+  <a class="mac-link" href="https://github.com/s-samarth/desi-dictation" target="_blank" rel="noopener">Get the Mac app ↗</a>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Bolo. <em>It types.</em></h1>
+    <p class="sub">Dictation that understands <strong>Hinglish</strong> — kal meeting hai,
+    deck ready rakhna — and writes it the way you meant it.</p>
+  </section>
+
+  <section class="stage">
+    <div class="langs" role="tablist" aria-label="Language">
+      <button class="pill active" data-lang="english"  role="tab">English</button>
+      <button class="pill"        data-lang="hinglish" role="tab">Hinglish</button>
+      <button class="pill"        data-lang="hindi"    role="tab">हिन्दी</button>
+    </div>
+
+    <button id="mic" class="mic" aria-label="Start dictation">
+      <span class="ring"></span><span class="ring r2"></span>
+      <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="2.5" width="6" height="11.5" rx="3"/>
+        <path d="M5 11.5a7 7 0 0 0 14 0M12 18.5v3"/>
+      </svg>
+    </button>
+    <div id="hint" class="hint">tap to speak</div>
+  </section>
+
+  <section id="result" class="cards" hidden>
+    <article class="card" id="transcriptCard">
+      <div class="card-top"><span class="tag" id="transcriptTag">heard</span>
+        <button class="chip ghost" id="copyTranscript">copy</button></div>
+      <div class="text" id="transcript" contenteditable="true" spellcheck="false"></div>
+      <div class="actions">
+        <button class="chip" data-action="english">→ English ✨</button>
+        <button class="chip" data-action="hindi">→ हिन्दी</button>
+        <button class="chip" data-action="structure">🧠 Organize</button>
+      </div>
+      <div class="ai-note" id="aiNote" hidden>AI actions aren’t available on this demo host right now.</div>
+    </article>
+
+    <article class="card ai" id="aiCard" hidden>
+      <div class="card-top"><span class="tag saffron" id="aiTag">english</span>
+        <button class="chip ghost" id="copyAI">copy</button></div>
+      <div class="text" id="aiText"></div>
+    </article>
+  </section>
+
+  <p class="fineprint">Demo clips are processed on our machine and never stored.
+  The <a href="https://github.com/s-samarth/desi-dictation" target="_blank" rel="noopener">Mac app</a>
+  runs 100% on your own device — nothing leaves it, ever.</p>
+</main>
+
+<footer>
+  <span>Made in India 🇮🇳</span>
+  <a href="mailto:samarth.iitg@gmail.com?subject=Desi%20Dictation%20demo%20feedback">Send feedback</a>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>
