@@ -134,6 +134,7 @@ the numbers are in [plan.md](genesis/plan.md) Phase 0.
 ./scripts/preflight.sh   # build + 95 tests + app↔web parity + web tests
 ```
 Green preflight = green CI (the pipeline runs the same steps — docs/CICD.md).
+Full edit-to-ship walkthrough incl. the docs checklist: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## H. Rebuild after code changes
 

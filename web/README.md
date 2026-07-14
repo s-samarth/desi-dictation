@@ -47,6 +47,11 @@ URL tied to your own domain, create a named tunnel in the Cloudflare dashboard
 **When:** you want 24/7 uptime, or >~5 concurrent users (one M3 handles a demo
 crowd fine — ASR is 3–15× realtime — but the LLM serializes).
 
+> Never used AWS? [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md) walks the whole
+> thing from account creation (MFA, billing alarm, the GPU-quota trap, key
+> pair, security group, Elastic IP, DNS on your domain) to systemd + Caddy.
+> The steps below are the condensed on-server version.
+
 | Instance | Specs | ~$/mo on-demand | Fit |
 |---|---|---|---|
 | c7g.xlarge | 4 vCPU Graviton, 8 GB | ~$105 | ASR-only demo (drop AI chips) |

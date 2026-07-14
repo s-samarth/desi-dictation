@@ -1,6 +1,9 @@
 # CI/CD — how a change travels from your editor to users
 
-Three delivery surfaces, one gate. Written 2026-07-10.
+Three delivery surfaces, one gate. Written 2026-07-10; first live run green
+2026-07-14 (`macos-26` runner label confirmed). Developer-facing walkthrough
+of the same flow: [CONTRIBUTING.md](CONTRIBUTING.md). Hosting the web demo:
+[DEPLOYMENT.md](DEPLOYMENT.md).
 
 ```
                  you edit code
@@ -67,10 +70,9 @@ launched app (learned the hard way; see implementation/USER_WALKTHROUGH.md §0).
   `DEPLOY_ENABLED=true` + secrets `DEPLOY_HOST`/`DEPLOY_KEY` and every green
   push to main deploys itself.
 
-## Runner note (first-run honesty)
+## Runner note
 
 Workflows target `runs-on: macos-26` because the manifest needs Swift ≥ 6.2.
-These workflows were authored offline and not yet exercised on GitHub's
-runners — if the image label differs, the first Actions run says so; adjust
-the one line. Everything the workflows execute is byte-identical to the local
-preflight, which IS verified green.
+Verified live 2026-07-14: the first ci.yml run completed green on GitHub's
+runners (app ✓ · web ✓ · deploy-web correctly skipped while dormant).
+Everything the workflows execute is byte-identical to the local preflight.
