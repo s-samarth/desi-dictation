@@ -30,6 +30,9 @@ What exists, how well it works, and where it's going. Update this every release.
 | AI cleanup via local Ollama | ✅ shipped (Pro) | off by default, fails safe; now lives in the AI tab |
 | Gumroad licensing | 🔨 code ready | needs product ID at launch |
 | App icon | ✅ shipped | generated, tricolor mic |
+| **Web demo (zero-install)** | ✅ built 2026-07-10 | browser mic → transcript + AI chips; share via tunnel ([web/](../web/README.md)) |
+| **Right-click Services translation** | ✅ built 2026-07-10 | select text anywhere → Services → English/हिन्दी |
+| **CI/CD** | ✅ built 2026-07-10 | preflight = CI gate, tag→DMG release, app↔web parity enforced ([CICD.md](CICD.md)) |
 
 **LLM features need one-time setup** (free Ollama app + a model download from
 the AI tab; default gemma3:4b on ≥12 GB Macs). Test coverage: `desi-tests`

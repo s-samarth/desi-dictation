@@ -14,7 +14,9 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14   # Apple Silicon; has Xcode, so plain `swift` works
+    # Needs Swift ≥ 6.2 (Package.swift tools-version, bumped 2026-07-10 for
+    # CLT 6.3.3 — see BUILD_LOG FM#17). macos-14's Xcode is too old.
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
@@ -23,8 +25,21 @@ jobs:
           brew install cmake || true
           ./scripts/setup_whisper.sh
 
+      - name: Preflight — tests + app↔web parity (same gate as CI)
+        run: |
+          (cd app && swift build)
+          app/.build/debug/desi-tests
+          ./scripts/check_parity.sh
+
       - name: Build app bundle
         run: DESI_SWIFT=swift ./scripts/build_app.sh
+
+      - name: Sanity — bundle version matches the tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          V=$(defaults read "$PWD/app/dist/Desi Dictation.app/Contents/Info.plist" CFBundleShortVersionString)
+          echo "bundle=$V tag=${GITHUB_REF_NAME#v}"
+          [ "v$V" == "$GITHUB_REF_NAME" ] || { echo "::error::bump CFBundleShortVersionString in scripts/build_app.sh to match the tag"; exit 1; }
 
       - name: Import signing cert (if configured)
         if: ${{ env.CERT != '' }}

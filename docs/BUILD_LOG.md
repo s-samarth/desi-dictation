@@ -375,3 +375,20 @@ patch in place without sudo.
 `SWIFTPM_CUSTOM_LIBS_DIR=$HOME/.swiftpm-fixed-libs` for every build. Also
 bumped `swift-tools-version` 6.0 → 6.2 while diagnosing (harmless, kept).
 A CLT update/reinstall should obsolete this workaround — retest after updating.
+
+## 2026-07-10 (later) — web demo + CI/CD
+
+**Web demo** (`web/`, fully separate from `app/`): zero-install browser demo —
+FastAPI gateway + vendored whisper-server (Apex/Vaani resident) + Ollama with
+the app's exact prompts and a Python port of HindiNumbers. Verified end-to-end
+incl. browser-format (webm/opus) audio and full UI flow. Share via
+`cloudflared tunnel` (mic requires HTTPS off-localhost). AWS path + sizing in
+web/README.md.
+
+**CI/CD** (docs/CICD.md): `scripts/preflight.sh` = the local gate (build,
+95 tests, app↔web parity, web tests); `ci.yml` mirrors it on every push;
+`release.yml` (updated: macos-26, preflight gate, version-tag sanity) turns
+`git tag v*` into a DMG release. **Parity is enforced, not remembered**:
+`check_parity.sh` diffs the Swift and Python number-normalizers on shared
+sentences and greps prompt sentinels — porting drift fails the build. Dormant
+auto-deploy job for the web host (enable via DEPLOY_ENABLED + secrets).

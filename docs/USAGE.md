@@ -128,6 +128,13 @@ Record your own eval clips and compare models on YOUR voice — the whole flow i
 scripted: see [spike/README.md](../spike/README.md). Decision gate + how to read
 the numbers are in [plan.md](genesis/plan.md) Phase 0.
 
+## G². Before every push
+
+```bash
+./scripts/preflight.sh   # build + 95 tests + app↔web parity + web tests
+```
+Green preflight = green CI (the pipeline runs the same steps — docs/CICD.md).
+
 ## H. Rebuild after code changes
 
 ```bash

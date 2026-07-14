@@ -1,0 +1,61 @@
+# CI — mirrors scripts/preflight.sh exactly: a green local preflight means a
+# green pipeline. Runs on every push/PR that touches code (docs-only skipped).
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**"]
+  pull_request:
+    paths-ignore: ["**.md", "docs/**"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    # Needs Swift ≥ 6.2 (Package.swift tools-version). If this image name is
+    # unavailable, bump/adjust — the whisper static libs in app/Libraries are
+    # committed, so no vendor setup is needed on the runner.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build (app + cli + tests)
+        working-directory: app
+        run: swift build
+      - name: Unit + combination tests (desi-tests)
+        run: app/.build/debug/desi-tests
+      - name: App ↔ web parity (numbers + prompt sentinels)
+        run: ./scripts/check_parity.sh
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Web demo unit tests (normalizer port + prompt sentinels)
+        run: python3 web/test_web.py
+      - name: Server compiles
+        run: |
+          pip install --quiet fastapi httpx python-multipart uvicorn
+          python3 -m py_compile web/server.py web/prompts.py web/hindi_numbers.py
+
+  # Auto-deploy of web/ to the demo server. Dormant until server secrets are
+  # configured (Settings → Secrets: DEPLOY_HOST, DEPLOY_KEY) — until then the
+  # laptop is the host and scripts/deploy_web.sh is run by hand.
+  deploy-web:
+    needs: [app, web]
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rsync web/ to demo host and restart
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh && echo "$DEPLOY_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${DEPLOY_HOST#*@}" >> ~/.ssh/known_hosts
+          ./scripts/deploy_web.sh "$DEPLOY_HOST"

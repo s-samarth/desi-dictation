@@ -51,6 +51,13 @@ if args[1] == "--e2e", args.count >= 4 {
     exit(0)
 }
 
+// Parity hook: print HindiNumbers.normalize(text) — scripts/check_parity.sh
+// diffs this against the web demo's Python port so the two never drift.
+if args[1] == "--normalize" {
+    print(HindiNumbers.normalize(args[2]))
+    exit(0)
+}
+
 // LLM verification paths — exercise the exact engine the app uses.
 if args[1] == "--translate" || args[1] == "--structure" {
     let llm = OllamaLLM(model: SettingsStore.shared.llmModel)

@@ -11,6 +11,8 @@ Everything written about Desi Dictation — engineering, product, strategy, and 
 | [SECURITY_AUDIT.md](SECURITY_AUDIT.md) | Privacy/security posture, verified |
 | [SETUP_GUIDE.md](SETUP_GUIDE.md) | End-user install guide (start here to *use* it) |
 | [USAGE.md](USAGE.md) | Developer usage — precise build/run steps |
+| [CICD.md](CICD.md) | Preflight → CI → DMG release → web deploy; the app↔web parity gate |
+| [../web/README.md](../web/README.md) | **Zero-install browser demo** — run locally, share via tunnel, AWS path |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | When things break (incl. "can't be opened" triage) |
 
 ## 🌱 Genesis (where it began)
