@@ -109,9 +109,25 @@ jobs:
             echo "note=Beta build, **ad-hoc signed**. First open needs Privacy & Security → Open Anyway, AND Accessibility + Input Monitoring must be re-granted after every update (remove with −, add again with +, relaunch). See docs/TROUBLESHOOTING.md §1." >> "$GITHUB_OUTPUT"
           fi
 
+      # scripts/release.sh publishes a DMG signed with the stable identity from
+      # the maintainer's keychain. If it already did, this job must NOT replace
+      # that asset with an ad-hoc-signed one — that would silently reset every
+      # existing user's Accessibility/Input Monitoring grants on update.
+      - name: Is a DMG already attached to this release?
+        id: existing
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          COUNT=$(gh release view "$GITHUB_REF_NAME" \
+                  --json assets --jq '[.assets[] | select(.name | endswith(".dmg"))] | length' \
+                  2>/dev/null || echo 0)
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          [ "$COUNT" = "0" ] || echo "::notice::release already has a DMG (published by scripts/release.sh) — this build verified the tag but will not replace it"
+
       - name: Upload release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && steps.existing.outputs.count == '0'
         with:
           files: app/dist/DesiDictation-*.dmg
           generate_release_notes: true

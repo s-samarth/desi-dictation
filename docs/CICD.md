@@ -94,6 +94,12 @@ what secrets were set. The variables now live at job level. The identity
 matcher also used `find-identity -v`, which lists only Apple-trusted
 identities and can never see a self-signed cert.
 
+A tag push runs `release.yml` too, but it **will not replace a DMG that is
+already attached** to that release — otherwise the ad-hoc-signed CI build would
+overwrite the properly-signed one from `release.sh` and silently reset every
+user's permission grants. When that happens the job still builds and verifies
+the tag, and logs a notice saying it skipped the upload.
+
 Setup for CI signing (exporting the .p12 into secrets): docs/LAUNCH.md §0.5.
 
 ## Latency gate (added 2026-08-19)
