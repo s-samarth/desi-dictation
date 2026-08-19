@@ -14,13 +14,61 @@ it". Strategy/why lives in [GTM.md](GTM.md); this is the how. Estimated total:
 - [ ] Pick the final name. "Desi Dictation" is a working title — check
       trademark + .com/.in + App-Store-collision before printing it anywhere.
 
+## 0.5 Signing beta builds (before you pay Apple anything)
+
+Betas ship signed with the project's **own self-signed identity**, "Desi
+Dictation Dev" (`./scripts/make_dev_cert.sh`, one time). It does *not* clear
+Gatekeeper — testers still do the "Open Anyway" dance once — but it fixes the
+thing that actually annoys them on every update:
+
+| | ad-hoc | self-signed "Desi Dictation Dev" | Developer ID + notarized |
+|---|---|---|---|
+| "Apple could not verify…" on first open | yes | yes (once per machine) | **no** |
+| Accessibility / Input Monitoring survive an update | **no** | **yes** | yes |
+| Cost | — | — | $99/yr |
+
+macOS ties permission grants to the code signature. Ad-hoc signatures are
+regenerated per build, so every update looks like a different app and testers
+must remove (−) and re-add the app in Privacy & Security
+(TROUBLESHOOTING.md §1). A stable identity ends that.
+
+**Cut a signed release from this Mac** (the identity lives in your login
+keychain — this is the path to use today):
+
+```bash
+./scripts/release.sh v0.6.1        # preflight → build → sign → DMG → GitHub Release
+```
+
+It refuses to publish a dirty tree, a tag that disagrees with the bundle
+version, or an ad-hoc-signed bundle.
+
+**To let CI sign instead** (optional — needed only if you want tag-pushes to
+produce signed DMGs without your laptop):
+
+```bash
+# Export the identity — macOS will prompt for your login password.
+security export -k ~/Library/Keychains/login.keychain-db -t identities \
+  -f pkcs12 -P "choose-a-password" -o /tmp/desi-dev.p12
+base64 -i /tmp/desi-dev.p12 | pbcopy       # now in your clipboard
+```
+Then in the repo: **Settings → Secrets and variables → Actions → New secret**
+- `MACOS_CERT_P12_BASE64` — paste the clipboard
+- `MACOS_CERT_PASSWORD` — the password you chose
+
+Delete `/tmp/desi-dev.p12` afterwards. `release.yml` imports it and signs
+automatically; without the secrets it falls back to ad-hoc and says so in the
+release notes. Same two secrets later hold the Developer ID cert — the workflow
+prefers a Developer ID identity when one is present and adds the hardened
+runtime for notarization.
+
 ## 1. Apple Developer setup ($99/yr — the only mandatory cost)
 
 1. Enroll: https://developer.apple.com/programs/enroll/
 2. Create a **Developer ID Application** certificate (Certificates → +) and
    install it in Keychain.
 3. Find identity: `security find-identity -v -p codesigning`
-4. In `scripts/build_app.sh`, replace ad-hoc signing:
+4. `build_app.sh` already prefers the best identity it finds; for a Developer ID
+   build make sure it signs with the hardened runtime:
    ```bash
    codesign --force --deep --options runtime \
      --sign "Developer ID Application: YOUR NAME (TEAMID)" "$BUNDLE"

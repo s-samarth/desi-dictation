@@ -75,7 +75,7 @@ Input-Monitoring grants across rebuilds. Ad-hoc builds lose them every time
 | **Your Mac** (dev loop) | §3 above | manual, each iteration |
 | **Web demo — laptop** | laptop runs the working tree; Ctrl-C + `./web/run_demo.sh` | manual, after pull/edit |
 | **Web demo — server** | `./scripts/deploy_web.sh ubuntu@host` (rsync + deps + host tests + service restart) | manual — or **automatic** on every green push to main once repo variable `DEPLOY_ENABLED=true` + secrets `DEPLOY_HOST`/`DEPLOY_KEY` are set ([CICD.md](CICD.md)) |
-| **DMG for users** | bump `CFBundleShortVersionString` in `scripts/build_app.sh` → `git tag v0.6.1 && git push --tags` → release.yml builds, gates on preflight, publishes to GitHub Releases | tag push |
+| **DMG for users** | bump `CFBundleShortVersionString` in `scripts/build_app.sh`, then `./scripts/release.sh v0.6.2` — preflight, build, **sign with the stable identity**, DMG, GitHub Release. (A bare `git push --tags` also works but CI can only ad-hoc sign until the cert is in secrets — LAUNCH.md §0.5.) | one command |
 
 One commit, all surfaces: CI re-verifies it, the server redeploys itself (once
 enabled), and the next tag ships it in the DMG. Nothing is deployed that

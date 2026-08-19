@@ -78,6 +78,24 @@ runners (app ✓ · web ✓ · deploy-web correctly skipped while dormant).
 Everything the workflows execute is byte-identical to the local preflight.
 
 
+## Releases (updated 2026-08-19)
+
+Two paths, both gated by preflight:
+
+| Path | Command | Signing |
+|---|---|---|
+| **From this Mac** (use today) | `./scripts/release.sh v0.6.1` | "Desi Dictation Dev" — stable identity, permission grants survive updates |
+| From a tag push | `git tag v0.6.1 && git push --tags` → `release.yml` | signs only if `MACOS_CERT_P12_BASE64` + `MACOS_CERT_PASSWORD` secrets exist; otherwise ad-hoc, and the release notes say so |
+
+`release.yml` had a latent bug until 2026-08-19: the signing and notarization
+steps were gated on `env.CERT`/`env.NID` defined in the step's *own* `env:`
+block, which their `if:` could not see — so both steps never ran, no matter
+what secrets were set. The variables now live at job level. The identity
+matcher also used `find-identity -v`, which lists only Apple-trusted
+identities and can never see a self-signed cert.
+
+Setup for CI signing (exporting the .p12 into secrets): docs/LAUNCH.md §0.5.
+
 ## Latency gate (added 2026-08-19)
 
 `preflight.sh` step 5 runs `scripts/latency_gate.sh`: a short clip per language

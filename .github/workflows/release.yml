@@ -1,10 +1,18 @@
 # Release pipeline: push a tag like v0.3.0 → build whisper.cpp + app → DMG →
 # GitHub Release. Best practice for Mac apps built without Xcode projects.
 #
-# Signing/notarization run ONLY if secrets are configured (LAUNCH.md steps 1–2):
-#   MACOS_CERT_P12_BASE64, MACOS_CERT_PASSWORD  — Developer ID Application cert
-#   NOTARY_APPLE_ID, NOTARY_TEAM_ID, NOTARY_PASSWORD — app-specific password
-# Without them the DMG is ad-hoc signed (fine for testing, not distribution).
+# Signing/notarization run ONLY if secrets are configured:
+#   MACOS_CERT_P12_BASE64, MACOS_CERT_PASSWORD  — either the self-signed
+#     "Desi Dictation Dev" identity (beta: stable identity → macOS permission
+#     grants survive updates) or a real Developer ID Application cert (launch:
+#     also clears Gatekeeper, LAUNCH.md steps 1–2).
+#   NOTARY_APPLE_ID, NOTARY_TEAM_ID, NOTARY_PASSWORD — Developer ID only.
+# Without them the DMG is ad-hoc signed: it still runs, but every update looks
+# like a different app to macOS and the user must re-grant Accessibility and
+# Input Monitoring (TROUBLESHOOTING.md §1).
+#
+# Signing from THIS Mac instead (the cert lives in your login keychain):
+#   ./scripts/release.sh v0.6.1
 name: Release DMG
 
 on:
@@ -17,6 +25,14 @@ jobs:
     # Needs Swift ≥ 6.2 (Package.swift tools-version, bumped 2026-07-10 for
     # CLT 6.3.3 — see BUILD_LOG FM#17). macos-14's Xcode is too old.
     runs-on: macos-26
+    # Job-level so the `if:` on the signing steps can see them. A step's own
+    # `env:` block is NOT reliably visible to that step's `if:` — both
+    # conditionals silently evaluated to false before 2026-08-19, so signing
+    # and notarization never ran even when secrets were set.
+    env:
+      CERT: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+      CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+      NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -43,27 +59,35 @@ jobs:
 
       - name: Import signing cert (if configured)
         if: ${{ env.CERT != '' }}
-        env:
-          CERT: ${{ secrets.MACOS_CERT_P12_BASE64 }}
         run: |
           echo "$CERT" | base64 -d > cert.p12
           security create-keychain -p ci build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p ci build.keychain
           security import cert.p12 -k build.keychain \
-            -P "${{ secrets.MACOS_CERT_PASSWORD }}" -T /usr/bin/codesign
+            -P "$CERT_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k ci build.keychain
-          IDENTITY=$(security find-identity -v -p codesigning | awk -F'"' '/Developer ID/{print $2; exit}')
-          codesign --force --deep --options runtime --sign "$IDENTITY" \
+          # NOTE: `find-identity -v` lists only Apple-TRUSTED identities, so the
+          # self-signed beta cert is invisible to it — match without -v.
+          IDENTITY=$(security find-identity -p codesigning build.keychain \
+                     | awk -F'"' '/Developer ID/{print $2; exit}')
+          RUNTIME=(--options runtime)   # hardened runtime: required to notarize
+          if [ -z "$IDENTITY" ]; then
+            IDENTITY=$(security find-identity -p codesigning build.keychain \
+                       | awk -F'"' '/"/{print $2; exit}')
+            RUNTIME=()                  # self-signed beta cert: no notarization
+          fi
+          [ -n "$IDENTITY" ] || { echo "::error::cert imported but no codesigning identity found"; exit 1; }
+          echo "Signing with: $IDENTITY"
+          codesign --force --deep "${RUNTIME[@]}" --sign "$IDENTITY" \
             "app/dist/Desi Dictation.app"
+          codesign -dv "app/dist/Desi Dictation.app" 2>&1 | head -3
 
       - name: Make DMG
         run: ./scripts/make_dmg.sh
 
-      - name: Notarize (if configured)
-        if: ${{ env.NID != '' }}
-        env:
-          NID: ${{ secrets.NOTARY_APPLE_ID }}
+      - name: Notarize (if configured — Developer ID only)
+        if: ${{ env.NOTARY_APPLE_ID != '' }}
         run: |
           xcrun notarytool submit app/dist/DesiDictation-*.dmg --wait \
             --apple-id "${{ secrets.NOTARY_APPLE_ID }}" \
@@ -71,9 +95,30 @@ jobs:
             --password "${{ secrets.NOTARY_PASSWORD }}"
           xcrun stapler staple app/dist/DesiDictation-*.dmg
 
+      # Say plainly what the user is downloading: an unsigned/ad-hoc DMG needs a
+      # different install dance than a signed one, and guessing wrong wastes
+      # their evening (TROUBLESHOOTING.md §1).
+      - name: Describe the build
+        id: describe
+        run: |
+          if [ -n "$NOTARY_APPLE_ID" ]; then
+            echo "note=Signed with a Developer ID and notarized — opens normally." >> "$GITHUB_OUTPUT"
+          elif [ -n "$CERT" ]; then
+            echo "note=Beta build, signed with the project's own certificate. macOS shows \"Apple could not verify…\" on first open → System Settings → Privacy & Security → **Open Anyway** (once). Permission grants carry over between updates signed this way." >> "$GITHUB_OUTPUT"
+          else
+            echo "note=Beta build, **ad-hoc signed**. First open needs Privacy & Security → Open Anyway, AND Accessibility + Input Monitoring must be re-granted after every update (remove with −, add again with +, relaunch). See docs/TROUBLESHOOTING.md §1." >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: app/dist/DesiDictation-*.dmg
           generate_release_notes: true
+          body: |
+            ${{ steps.describe.outputs.note }}
+
+            **Updating:** quit the app from the menu bar first, then drag the new
+            one into Applications and choose Replace. Do **not** uninstall —
+            settings, history, dictionary and downloaded models are kept.
+            Install guide: docs/SETUP_GUIDE.md
