@@ -92,5 +92,9 @@ echo "==> Codesigning with: $IDENTITY"
 codesign --force --deep --sign "$IDENTITY" "$BUNDLE"
 
 echo "==> Done:"
-codesign -dv "$BUNDLE" 2>&1 | head -2
+# NB: no `| head` here — an early-exiting reader closes the pipe, codesign dies
+# on SIGPIPE and `set -o pipefail` fails the build (only visible when stdout is
+# redirected, e.g. from scripts/release.sh).
+SIGINFO="$(codesign -dv "$BUNDLE" 2>&1 || true)"
+printf '%s\n' "$SIGINFO" | sed -n '1,2p' || true
 du -sh "$BUNDLE"

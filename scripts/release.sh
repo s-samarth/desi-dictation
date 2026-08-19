@@ -41,7 +41,10 @@ VERSION="$(defaults read "$BUNDLE/Contents/Info.plist" CFBundleShortVersionStrin
 # The identity check is the point of this script: shipping an ad-hoc DMG by
 # accident is a silent downgrade for every existing user's permissions.
 SIGINFO="$(codesign -dvv "$BUNDLE" 2>&1 || true)"
-AUTHORITY="$(printf '%s\n' "$SIGINFO" | sed -n 's/^Authority=//p' | head -1)"
+AUTHORITY=""
+while IFS= read -r line; do
+  case "$line" in Authority=*) AUTHORITY="${line#Authority=}"; break ;; esac
+done <<< "$SIGINFO"
 if [ -z "$AUTHORITY" ]; then
   echo "✗ bundle is ad-hoc signed — run ./scripts/make_dev_cert.sh, then retry."
   echo "  (Ad-hoc updates make macOS forget Accessibility/Input Monitoring.)"

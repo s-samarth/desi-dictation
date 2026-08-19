@@ -16,7 +16,10 @@ VERSION="$(defaults read "$BUNDLE/Contents/Info.plist" CFBundleShortVersionStrin
 # every existing user their Accessibility/Input Monitoring grants on update
 # (TROUBLESHOOTING.md §1), so say it out loud rather than shipping it quietly.
 SIGINFO="$(codesign -dvv "$BUNDLE" 2>&1 || true)"
-AUTHORITY="$(printf '%s\n' "$SIGINFO" | sed -n 's/^Authority=//p' | head -1)"
+AUTHORITY=""
+while IFS= read -r line; do
+  case "$line" in Authority=*) AUTHORITY="${line#Authority=}"; break ;; esac
+done <<< "$SIGINFO"
 if [ -n "$AUTHORITY" ]; then
   echo "==> Signed by: $AUTHORITY"
 else
