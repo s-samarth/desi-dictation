@@ -12,9 +12,9 @@
 
 ### ⚠️ Beta builds only: "Apple could not verify…" dialog
 
-Early builds aren't notarized with Apple yet (that costs the developer $99/yr —
-coming before the public launch). macOS will block the first open. This is
-expected, not malware:
+Beta builds are signed with the project's own certificate, but not notarized by
+Apple yet (that costs the developer $99/yr — coming before the public launch),
+so macOS blocks the first open. This is expected, not malware:
 
 1. Double-click the app → macOS shows the block dialog → click **Done** (not Move to Trash!)
 2. **System Settings → Privacy & Security** → scroll down → next to
@@ -25,6 +25,23 @@ Terminal-comfortable? This skips the dance entirely:
 ```bash
 xattr -dr com.apple.quarantine "/Applications/Desi Dictation.app"
 ```
+
+## 1b. Updating later
+
+New version? **Quit the app first** (menu bar → Quit), then drag the new one
+into Applications and choose **Replace**.
+
+- **Do not uninstall first** — your settings, history, dictionary and
+  downloaded models are kept, and uninstalling would make you re-download the
+  models.
+- From v0.6.1 onward, updates **keep your permission grants**; you only repeat
+  the "Open Anyway" step above if macOS asks again.
+- Coming from an older beta (0.6.0 or earlier)? Those were signed differently,
+  so this one time you may have to re-grant Accessibility and Input Monitoring:
+  select Desi Dictation in each list, remove it with **−**, add it back with
+  **+**, then quit and relaunch.
+
+Releases: <https://github.com/s-samarth/desi-dictation/releases>
 
 ## 2. Grant the 3 permissions (one time)
 

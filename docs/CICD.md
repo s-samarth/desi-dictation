@@ -51,13 +51,14 @@ launched app (learned the hard way; see implementation/USER_WALKTHROUGH.md §0).
 ## Shipping a DMG
 
 1. Bump `CFBundleShortVersionString` in `scripts/build_app.sh`.
-2. `git tag v0.6.1 && git push --tags`.
-3. `release.yml`: fresh whisper.cpp libs → preflight gate → .app → DMG →
-   GitHub Release. Signing/notarization activate automatically once the
-   Developer ID secrets exist (workflow header lists them; LAUNCH.md steps 1–2);
-   until then CI DMGs are ad-hoc (testers right-click → Open) and the
-   properly-signed build is the local one (make_dev_cert.sh identity).
-   The workflow fails if the bundle version ≠ tag — no mismatched releases.
+2. `./scripts/release.sh v0.6.2` — preflight → build → **verify the bundle is
+   signed, not ad-hoc** → DMG → tag + push → GitHub Release with install and
+   update notes. It refuses a dirty tree or a tag that disagrees with the
+   bundle version, so there are no mismatched releases.
+
+The tag push also starts `release.yml`, which rebuilds from clean (fresh
+whisper.cpp libs, preflight gate) as a check on the tag — see **Releases**
+below for why it will not touch the uploaded DMG.
 
 ## Web demo deploys
 

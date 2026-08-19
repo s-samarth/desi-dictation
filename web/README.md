@@ -20,6 +20,12 @@ browser mic (MediaRecorder, webm/opus or mp4)
 Audio lives in a temp dir for one request and is deleted. No accounts, no
 storage, 30 requests / 5 min / IP, 60 s / 12 MB per clip.
 
+**Note (v0.6.1):** the Mac app's *English* mode now runs Parakeet TDT, not
+whisper (docs/MODEL_RESEARCH.md §E). This demo still uses whisper-server for
+everything, so its English output and speed do not match the app's. Aligning
+them is a demo-side change nobody has needed yet — the parity rules
+(`HindiNumbers`/`PromptTemplates` ports) are unaffected either way.
+
 ## Run it on this laptop
 
 ```bash

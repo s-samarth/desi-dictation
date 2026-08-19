@@ -127,6 +127,9 @@ replacements + eval set) can stay ahead of generic players.
 
 ## Actions
 
+0. **Done 2026-08-19:** English mode moved to Parakeet TDT 0.6B v3 (§E) — the
+   only architecture change so far that cut latency instead of trading accuracy
+   for it. Hinglish and हिन्दी stay on whisper.cpp.
 1. **Now (running):** convert Trelis → GGML; eval vs Apex on the personal eval
    set. If it holds up → ships as the **Mixed script** language mode (4th mode)
    and possibly as a robustness alternative for Hinglish mode (user OK with

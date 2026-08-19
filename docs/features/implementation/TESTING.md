@@ -9,12 +9,13 @@ export SWIFTPM_CUSTOM_LIBS_DIR=~/.swiftpm-fixed-libs   # see BUILD_LOG FM#17
 swift run desi-tests          # exit 0 = green; prints ✓/✗ per assertion
 ```
 
-76 assertions as of 2026-07-10, all green. Files in `app/Sources/DesiTests/`:
+119 assertions as of 2026-08-19, all green. Files in `app/Sources/DesiTests/`:
 
 | File | Covers |
 |---|---|
 | `TestHarness.swift` | `T.expect/equal/begin/finish`, temp-file factory (stores under test never touch real Application Support data) |
 | `DictionaryTests.swift` | word-boundary matching, casing preservation (Meating/MEATING/gpt-4), latest-wins editing, persistence round-trip, legacy `replacementRules` regression |
+| `ModelRoutingTests.swift` | v0.6.1: per-language model pins + migration from the old global pin; catalog lookup by id; language-scoped candidates (**Parakeet hidden outside English**, Hinglish models hidden for हिन्दी); engine routing by filename; chunk-threshold floors that keep a short dictation to one engine call |
 | `StoreTests.swift` | AppModeStore rules+persistence; `anyToEnglish` contract (whisper token, `needsLLM`, **pinned raw values** — they live in UserDefaults/history JSON, renaming = data migration); model routing incl. "Hindi never gets a Hinglish model" regression; HistoryEntry decode of **pre-0.6 JSON** (backward compat) |
 | `EngineTests.swift` | translation chunking invariants (budget respected, zero word loss), `MockLLM`-driven translate incl. failure propagation, structurer capping/overflow/zero-loss, `stripReasoning`, prompt-template sanity (every style forbids invention; faithful tone = nil) |
 | `CombinationTests.swift` | the real pipeline order: legacy rules → dictionary → LLM stage; anyToEnglish failure→raw fallback; tone rides corrected text; structure carries exact raw; per-app rule × anyToEnglish (the Rekha flow) |

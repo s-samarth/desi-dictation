@@ -36,7 +36,7 @@ That's it. Three testable claims hide inside it:
 
 ## 2 · Where we actually are (honest)
 
-- **Product state:** a working, usable, on-device Hinglish/English/Hindi dictation app (v0.5.1). This is a **Proof of Concept that has matured into an early product** — it proves the thing is *possible and usable*. It does **not** prove anyone *needs* it.
+- **Product state:** a working, usable, on-device Hinglish/English/Hindi dictation app (v0.6.1). This is a **Proof of Concept that has matured into an early product** — it proves the thing is *possible and usable*. It does **not** prove anyone *needs* it.
 - **Evidence state:** a friends-and-family beta with warm reactions and the founder's own love of the tool. **This is pre-PMF, and the current signal is the classic false positive.** Friends and the founder are the least representative users alive.
 - **What we do NOT yet have** (i.e., all the actual PMF evidence): retention data from strangers, any payment/willingness-to-pay signal, a measured "very disappointed" rate, organic pull, or a defined beachhead we've saturated.
 

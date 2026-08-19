@@ -60,6 +60,7 @@ app/.build/debug/desi-tests            # 119 assertions, exit 0 = green
 ./scripts/latency_gate.sh              # short-dictation latency per language
 ./scripts/preflight.sh                 # the full pre-push gate
 ./scripts/build_app.sh                 # rebuild the .app bundle (v in this file)
+./scripts/release.sh v0.6.2            # signed DMG + GitHub Release (one command)
 ./web/run_demo.sh                      # web demo → http://localhost:8080
 ```
 

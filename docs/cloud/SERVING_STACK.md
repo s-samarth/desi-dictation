@@ -1,6 +1,7 @@
 # Serving stack — what's production-grade, what's overkill, when to migrate
 
-Decision record, 2026-07-14. Question asked: "do we need vLLM/SGLang or some
+Decision record, 2026-07-14 (ASR-engine note added 2026-08-19 after the Mac app
+moved English to Parakeet — see MODEL_RESEARCH.md §E). Question asked: "do we need vLLM/SGLang or some
 production serving stack to serve this well?" Short answer: **not for the
 demo, and when production arrives the big swap is on the ASR side
 (faster-whisper), not the LLM side.**
@@ -26,6 +27,7 @@ the *client* engine (Mac app); CT2 becomes the *server* engine.
 | Layer | Demo (now) | Production | Verdict |
 |---|---|---|---|
 | ASR serving | whisper.cpp server | **faster-whisper / CTranslate2** (dynamic batching) | The one migration that matters. Do it at cloud Phase 1, not before. |
+| ASR serving — English only | Parakeet TDT (client-side since v0.6.1) | evaluate **NVIDIA NIM / NeMo Parakeet** or CT2 alongside it | Open question, not a decision: the client win came from *no 30 s padding*, which matters less under server-side dynamic batching. Benchmark before assuming it transfers. |
 | LLM serving | Ollama | **vLLM** — only if LLM features ship in the cloud path with real concurrency | Overkill today. Ollama serializes, but demo traffic never queues. |
 | Gateway | FastAPI + uvicorn | Same, + Redis for quota/auth | Production-grade as-is. Never needs replacing. |
 | TLS / front door | Caddy or Cloudflare tunnel | Same (ALB at Phase 2) | Done. |

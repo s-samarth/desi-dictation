@@ -34,7 +34,7 @@ docs are fine to publish.
 
 | Vector | Status |
 |---|---|
-| Model downloads (HTTPS) | ✅ + **SHA256 pinned per catalog entry** (v0.3.2) — a hijacked model repo can't feed tampered GGML into whisper.cpp's C parser; mismatches are deleted |
+| Model downloads (HTTPS) | ✅ + **SHA256 pinned per catalog entry** (v0.3.2) — a hijacked model repo can't feed tampered GGML into the C parsers (whisper.cpp, and since v0.6.1 libparakeet); mismatches are deleted |
 | Network calls | Only 3, all visible in code: model downloads (user-initiated), Gumroad license verify (dormant — gating disabled), Ollama at 127.0.0.1 (opt-in, localhost-only) |
 | Telemetry / analytics | **None. Zero.** |
 | Keystroke access (Input Monitoring) | Tap inspects keycodes for the hotkey/Esc only; no logging, no buffering of other keys — auditable in `HotkeyManager.swift` (~120 lines) |

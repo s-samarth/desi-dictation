@@ -30,14 +30,14 @@ edit code
 (cd app && swift build)                     # compiles?
   │
   ▼
-app/.build/debug/desi-tests                 # 95 assertions green?
+app/.build/debug/desi-tests                 # 119 assertions green?
   │            (add a test for your change — DesiTests/*.swift)
   ▼
 try it for real  ──────────────┬─ app change: build_app.sh + ditto + relaunch (§3)
   │                            └─ web change: ./web/run_demo.sh → localhost:8080
   ▼
 ./scripts/preflight.sh                      # the full gate: build · tests ·
-  │                                         # app↔web parity · web tests
+  │                                         # parity · web tests · latency
   ▼
 update the docs (§5) → conventional commit → push
   │
@@ -79,7 +79,7 @@ Input-Monitoring grants across rebuilds. Ad-hoc builds lose them every time
 
 One commit, all surfaces: CI re-verifies it, the server redeploys itself (once
 enabled), and the next tag ships it in the DMG. Nothing is deployed that
-didn't pass the same 95-test + parity gate.
+didn't pass the same 119-test + parity + latency gate.
 
 ## 5. Docs are part of the change
 

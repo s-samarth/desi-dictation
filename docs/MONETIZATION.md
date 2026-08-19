@@ -70,7 +70,7 @@ Not a payment model but the boundary question. Three boundary types seen in the 
 | Free forever | Pro |
 |---|---|
 | Core dictation, all 3 language modes | **Translation suite** (translate-on-demand + speak-desi-write-English) |
-| All current models (Apex/Turbo/Vaani/VAD) + updates to them | **Structure Your Thoughts** (all output styles) |
+| All current models (Apex/Parakeet/Turbo/Vaani/VAD) + updates to them | **Structure Your Thoughts** (all output styles) |
 | Hotkeys, toggle mode, history 24h, replacements | Tone dial / reply mode / prompt templates (IDEAS.md #1/#2/#5) |
 | Personal lexicon basics (P4-S1 one-tap corrections) | WhatsApp-import cold start (P4-S3), extended history (30d), app-aware modes |
 | Weekly word-list updates (P3-S2) | Early access to new fine-tuned models (window-exclusive, then free) |

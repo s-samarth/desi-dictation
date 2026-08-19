@@ -51,9 +51,12 @@ open "/Applications/Desi Dictation.app"
 
 1. Menu bar mic → **Enable Dictation** (first enable preloads the model; ~8 s
    one-time — the icon settles once ready).
-2. Model defaults to **Auto** — it picks the best installed model per language
-   (Hinglish→Apex, English/Hindi→Large-v3-Turbo). Override via the Model picker
-   only if you want to trade accuracy for speed (e.g. hinglish-swift).
+2. Model defaults to **Auto** per language — Hinglish→Apex, English→Parakeet,
+   हिन्दी→Vaani. Each language remembers **its own** default: change the Model
+   picker while English is selected and only English is affected
+   (Settings → Models → *Default model per language*). The picker only lists
+   models that can actually produce that language's script
+   ([MODEL_ROUTING.md](features/implementation/MODEL_ROUTING.md)).
    The full control panel lives at menu bar → **Open Desi Dictation…**
    (sidebar: Dictation / History / Models / Text & AI / License).
 3. Click into any text field (Notes, WhatsApp Web, Slack, VS Code…).
@@ -71,8 +74,8 @@ open "/Applications/Desi Dictation.app"
 | Mode | Output | Use with model |
 |---|---|---|
 | **Hinglish (Roman)** | `kal meeting hai please deck ready rakhna` | hinglish-swift / -prime / -apex |
-| **English** | plain English (handles Indian accents) | any |
-| **हिन्दी (Devanagari)** | `कल मीटिंग है` | stock model (Base/Small/Turbo from Settings → Models) |
+| **English** | plain English (handles Indian accents) | Parakeet (fastest + most accurate), or any Whisper model |
+| **हिन्दी (Devanagari)** | `कल मीटिंग है` | Vaani, or a stock model (Base/Small/Turbo) |
 
 ## E. Power features
 
@@ -118,7 +121,7 @@ app/.build/release/desi-cli models/ggml-hinglish-swift.bin spike/audio/test-hi.w
 app/.build/debug/desi-cli --translate "kal meeting hai, deck ready rakhna" english
 app/.build/debug/desi-cli --structure "<rambly text>" notes
 
-# run the test suite (76 assertions; exit 0 = green)
+# run the test suite (119 assertions; exit 0 = green)
 cd app && swift run desi-tests
 ```
 
@@ -131,7 +134,7 @@ the numbers are in [plan.md](genesis/plan.md) Phase 0.
 ## G². Before every push
 
 ```bash
-./scripts/preflight.sh   # build + 95 tests + app↔web parity + web tests
+./scripts/preflight.sh   # build + 119 tests + parity + web tests + latency gate
 ```
 Green preflight = green CI (the pipeline runs the same steps — docs/CICD.md).
 Full edit-to-ship walkthrough incl. the docs checklist: [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -144,5 +147,7 @@ Full edit-to-ship walkthrough incl. the docs checklist: [CONTRIBUTING.md](CONTRI
 export SWIFTPM_CUSTOM_LIBS_DIR=$HOME/.swiftpm-fixed-libs
 
 ./scripts/build_app.sh && open "app/dist/Desi Dictation.app"
-# ⚠️ re-grant Accessibility + Input Monitoring after each rebuild (ad-hoc signing)
+# ⚠️ re-grant Accessibility + Input Monitoring if a rebuild loses them.
+# Prevention: ./scripts/make_dev_cert.sh once — a stable identity keeps grants
+# across rebuilds (and across released updates; LAUNCH.md §0.5).
 ```

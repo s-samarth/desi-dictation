@@ -1,4 +1,4 @@
-# Feature Implementation Docs — the 0.6 feature wave (built 2026-07-10)
+# Feature Implementation Docs — the 0.6 wave (2026-07-10) + 0.6.1 (2026-08-19)
 
 The *plan* docs one level up ([TRANSLATION.md](../TRANSLATION.md),
 [TRANSCRIBE_TRANSLATE.md](../TRANSCRIBE_TRANSLATE.md),
@@ -7,7 +7,7 @@ The *plan* docs one level up ([TRANSLATION.md](../TRANSLATION.md),
 uses, and where to reach in when you want to change it.** One doc per feature,
 written to be read two months from now.
 
-## What was built (all tested — `swift run desi-tests`, 76 assertions green)
+## What was built (all tested — `swift run desi-tests`, 119 assertions green)
 
 | Feature | Spec source | Implementation doc |
 |---|---|---|
@@ -18,6 +18,7 @@ written to be read two months from now.
 | "English — from any language ✨" mode | TRANSCRIBE_TRANSLATE.md | [SPEAK_DESI_WRITE_ENGLISH.md](SPEAK_DESI_WRITE_ENGLISH.md) |
 | Structure my thoughts (beta) | STRUCTURE_THOUGHTS.md | [STRUCTURE_THOUGHTS_IMPL.md](STRUCTURE_THOUGHTS_IMPL.md) |
 | Tone modes (Faithful/Casual/Professional/Respectful) | IDEAS #1, PATTERNS §1 | [TONE_MODES.md](TONE_MODES.md) |
+| Model routing — one language, one default model | v0.6.1 user feedback | [MODEL_ROUTING.md](MODEL_ROUTING.md) |
 | Test harness + how everything is verified | — | [TESTING.md](TESTING.md) |
 
 ## What was deliberately NOT built, and why

@@ -19,7 +19,10 @@ context in [BUILD_LOG.md](BUILD_LOG.md).
   Privacy & Security, then **quit and relaunch the app** (grants apply at
   process start).
 - **Toggle shows ON but still denied = stale grant** (the #1 trap): the grant
-  was recorded for a previous build of the binary. Fix:
+  was recorded for a previous build of the binary. Releases from **v0.6.1
+  onward are signed with a stable identity**, so grants now survive updates —
+  this should only bite you when moving *from* an older ad-hoc build, or on a
+  local rebuild made before `./scripts/make_dev_cert.sh` was run. Fix:
   ```bash
   tccutil reset Accessibility com.desi.dictation
   tccutil reset ListenEvent com.desi.dictation
@@ -52,6 +55,21 @@ context in [BUILD_LOG.md](BUILD_LOG.md).
   copy a converted model there and hit **Refresh Models**.
 - Model file corrupt (interrupted download/conversion): re-run
   `./scripts/convert_model.sh swift`.
+
+## 3b. Dictation feels slow
+
+The Dictation screen shows what the last one actually cost:
+*"Last: 4.2s speech · 0.31s to paste · 1 call"*. Quote that line in any report.
+
+- **Which language?** English (Parakeet) ≈ 0.2 s, Hinglish (Apex) ≈ 1.5 s,
+  हिन्दी (Vaani, a 1.06 GB model) ≈ 3.5 s on an M3 Air — roughly double those
+  on an M1 Air. हिन्दी is genuinely the slow path today (PERFORMANCE.md).
+- **English still slow?** You are probably still on a Whisper model. Download
+  **Parakeet** in Models, then set Language → English → Model → **Auto**.
+- **"2 calls" or more for a short dictation?** That should not happen under
+  30 s of speech — file it with the timings line (PERF_RCA_2026-08.md).
+- **First dictation after the Mac woke up** is slower: the model gets paged
+  back in. Subsequent ones are not.
 
 ## 4. First dictation after enabling is slow
 

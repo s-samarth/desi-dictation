@@ -37,24 +37,31 @@ What exists, how well it works, and where it's going. Update this every release.
 
 **LLM features need one-time setup** (free Ollama app + a model download from
 the AI tab; default gemma3:4b on ≥12 GB Macs). Test coverage: `desi-tests`
-(76 assertions) + live spike results — see
+(119 assertions) + live spike results — see
 [implementation/TESTING.md](features/implementation/TESTING.md).
 
 ### Measured quality (M3, release build)
 - Hinglish (Apex q5): word-perfect on eval clips; ~3× realtime; **15× realtime
   with VAD** on pause-heavy audio; long-form degradation eliminated.
-- English (Turbo q5): verbatim on eval clips.
+- English (Parakeet TDT v3 q4_k): 4.3 % nWER on Svarah Indian-accented English, 0.21 s/call — better and ~9× faster than the Turbo q5 it replaced ([research §E](MODEL_RESEARCH.md)).
 - Known limits: Hinglish spelling variance (mitigate: replacements); very noisy
   environments untested; proper-noun bias toward common words.
 
 ## Direction — ranked backlog
 
-**Next (v0.4):**
-1. **Parakeet V3 for English mode** — 2026's best local English model (~6.3% WER,
-   ~10× faster, silence-proof); whisper.cpp already ships support in our build.
+**Next:**
+1. **CoreML/ANE encoder** — the remaining big speed lever, and now the only one
+   that helps हिन्दी (Vaani is 3.55 s/call, the slowest path we ship).
+   ~1–2 days ([PERFORMANCE.md](PERFORMANCE.md) deferred #1).
 2. **Personal eval harness round 2** — user-voice eval set to CI-gate model changes.
-3. First-run onboarding flow (permissions → model download → first dictation, guided).
-4. Menu bar quick language switcher improvements (per-mode hotkeys?).
+3. Menu bar quick language switcher improvements (per-mode hotkeys?).
+4. Developer ID + notarization — kills the "Apple could not verify…" dialog for
+   every tester ([LAUNCH.md](LAUNCH.md) §1).
+
+**Done:**
+- ~~Parakeet V3 for English mode~~ — shipped v0.6.1: 4.3 % nWER, 0.21 s/call
+  ([MODEL_RESEARCH.md](MODEL_RESEARCH.md) §E).
+- ~~First-run onboarding flow~~ — shipped v0.5.1.
 
 **Later:**
 - Mixed-script mode ("मेरा favourite festival Diwali है") — shunyalabs/Srota, needs MLX runner

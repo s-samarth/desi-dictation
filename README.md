@@ -74,7 +74,8 @@ pasteboard-swap ⌘V insertion → non-activating overlay for state. SwiftUI
 ## Status
 
 **v0.6.1 — free beta.** Feature-complete for the dictation wedge: first-launch
-onboarding, 4 curated models (Apex/Turbo/Vaani + VAD) with per-mode auto-selection,
+onboarding, 5 curated models (Apex/Parakeet/Turbo/Vaani + VAD) with per-language
+defaults,
 VAD pause handling, chunked transcription while you speak, 24h local history,
 replacement dictionary, in-app feedback, launch-at-login. Grab the DMG from
 [Releases](../../releases) and follow [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).

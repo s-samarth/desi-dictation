@@ -164,7 +164,9 @@ dashboard for activation failures.
 
 ## What "do not launch yet" means for this build
 
-Current build is **deliberately pre-launch**: ad-hoc signed (no $99 spent),
-`LicenseManager.productID` empty (dev-unlock flag instead), models are
-locally-converted only. Steps 1–4 above are exactly the delta between this
-build and a sellable one.
+Current build is **deliberately pre-launch**: signed with the project's own
+certificate but **not notarized** (no $99 spent — §0.5), `LicenseManager.productID`
+empty (dev-unlock flag instead), gating disabled. Models are published on
+Hugging Face and download in-app; the Hinglish ones are still our own
+conversions. Steps 1–4 above are exactly the delta between this build and a
+sellable one.

@@ -121,7 +121,7 @@ Both of your fears are valid and point to the same answer: **bootstrap the wedge
 
 So the scoring below is anchored to a real, not imagined, state:
 
-- **Shipped:** `v0.5.1`, GitHub release **beta-0.5.1** (2026-07-08). Private friends-and-family beta, hand-delivered DMGs. Everything free; `LicenseManager.gatingEnabled = false`.
+- **Shipped:** `v0.6.1`, GitHub release **v0.6.1** (2026-08-19) — signed with a stable identity, so updates no longer reset testers' permissions. Private friends-and-family beta; everything free, `LicenseManager.gatingEnabled = false`. (Earlier: v0.5.1 / beta-0.5.1, 2026-07-08, hand-delivered ad-hoc DMGs.)
 - **Platform:** macOS 14+, **Apple Silicon only** (Intel permanently unsupported). Not notarized (no $99 Developer ID yet → the Gatekeeper/`xattr` wall, ADDITIONAL_PROBLEMS A1).
 - **What works today:** system-wide push-to-talk + toggle dictation; three modes (Hinglish→Apex, English→large-v3-turbo, हिन्दी→Vaani) with Auto model selection; VAD/pause handling; chunked-while-speaking transcription; warm-mic with cool-down; 24 h local history; replacements; hotkey choices; first-launch onboarding; menu-bar-first controls; transparent mailto feedback. Zero telemetry.
 - **Model reality:** core Hinglish capability is **Oriserve Apex** (Apache-2.0, *their* fine-tune, not ours) run in whisper.cpp. We own the stack around it, not the model (competitors/15-oriserve).

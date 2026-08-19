@@ -15,6 +15,8 @@ cd evals
 uv sync
 uv run download_data.py --limit 50     # ~3 suites × 50 labeled clips
 uv run run_eval.py                     # all installed models × all suites
+                                       # (Parakeet runs the english suite only —
+                                       #  no Hindi, no Devanagari, no Hinglish)
 uv run aggregate.py                    # trend table across all past reports
 ```
 
