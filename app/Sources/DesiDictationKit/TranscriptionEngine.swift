@@ -39,6 +39,14 @@ public enum LanguageMode: String, CaseIterable, Codable, Sendable {
 
     /// True for modes that run an LLM stage after transcription.
     public var needsLLM: Bool { self == .anyToEnglish }
+
+    /// Which model-default slot this mode uses. `anyToEnglish` transcribes with
+    /// the Hinglish model (the English comes from the LLM stage), so the two
+    /// share one pin — two separate defaults for one ASR job would just be a
+    /// second thing to keep in sync.
+    public var modelKey: String {
+        self == .anyToEnglish ? LanguageMode.hinglish.rawValue : rawValue
+    }
 }
 
 public struct TranscriptionResult: Sendable {

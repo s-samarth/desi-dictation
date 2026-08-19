@@ -68,11 +68,18 @@ struct MenuContent: View {
             }
         }
 
-        Picker("Model", selection: Binding(
-            get: { settings.modelPath },
-            set: { settings.modelPath = $0; controller.modelChanged() })) {
-            Text("Auto (recommended)").tag("")
-            ForEach(models.installed) { model in
+        // Model list is scoped to the language above it: picking "English" and
+        // then having to know which file speaks English was the app leaking its
+        // internals (v0.6.1 feedback). Whatever is chosen here becomes THIS
+        // language's default and is remembered per language.
+        Picker("Model for \(settings.languageMode.displayName)", selection: Binding(
+            get: { settings.modelPath(for: settings.languageMode) },
+            set: {
+                settings.setModelPath($0, for: settings.languageMode)
+                controller.modelChanged()
+            })) {
+            Text(autoLabel).tag("")
+            ForEach(models.candidates(for: settings.languageMode)) { model in
                 Text("\(model.name) (\(model.sizeMB) MB)").tag(model.path)
             }
         }
@@ -144,6 +151,15 @@ struct MenuContent: View {
 
         Divider()
         Button("Quit Desi Dictation") { NSApp.terminate(nil) }
+    }
+
+    /// "Auto" names what it actually resolves to — a default the user can't see
+    /// is a default they don't trust.
+    private var autoLabel: String {
+        guard let pick = models.autoChoice(for: settings.languageMode) else {
+            return "Auto — no model for this language yet"
+        }
+        return "Auto (\(pick.name))"
     }
 
     /// True when an AI-dependent choice is active but the engine isn't ready.

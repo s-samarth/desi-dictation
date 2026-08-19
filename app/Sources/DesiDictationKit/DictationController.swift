@@ -27,9 +27,19 @@ public final class DictationController: ObservableObject {
 
     @Published public private(set) var phase: DictationPhase = .disabled
     @Published public private(set) var lastTranscript: String = ""
+    /// Stage timings for the last dictation (PERF_RCA_2026-08.md).
+    @Published public private(set) var lastTimings: DictationTimings?
+
+    /// Engine-call accounting for the session in progress. Touched on the
+    /// workQueue and on main between sessions — never concurrently.
+    private nonisolated(unsafe) var engineCalls = 0
+    private nonisolated(unsafe) var engineSeconds = 0.0
+    private var releaseTime: Date?
+    private var sessionAudioSeconds = 0.0
 
     // Accessed only on workQueue (serial) — safe despite nonisolated access.
-    private nonisolated(unsafe) let engine = WhisperCppEngine()
+    // The router picks whisper.cpp or Parakeet from the model file.
+    private nonisolated(unsafe) let engine = EngineRouter()
     private let audio = AudioCapture()
     private let hotkeys = HotkeyManager()
     private let workQueue = DispatchQueue(label: "desi.dictation.engine", qos: .userInitiated)
@@ -76,12 +86,25 @@ public final class DictationController: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.modelChanged() }
             .store(in: &cancellables)
+
+        // Same reason, for per-app rules: switching apps can change the mode,
+        // and a mode can imply a different model. Without this the swap runs
+        // lazily inside the transcribing phase and the user pays the load time
+        // as dictation latency (PERF_RCA_2026-08.md RC5).
+        AppModeStore.shared.$currentTarget
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.settings.perAppModes, self.phase == .idle else { return }
+                self.modelChanged()
+            }
+            .store(in: &cancellables)
     }
 
-    /// Best model for a mode ("" pinned path = Auto).
+    /// Best model for a mode — the language's own pin, or Auto if it has none.
     private func resolvedModelPath(for mode: LanguageMode) -> String? {
         ModelManager.shared.resolveModel(
-            for: mode, pinnedPath: settings.modelPath)?.path
+            for: mode, pinnedPath: settings.modelPath(for: mode))?.path
     }
 
     /// Language for the NEXT dictation: a per-app rule for the app the user is
@@ -105,6 +128,13 @@ public final class DictationController: ObservableObject {
     // MARK: - Lifecycle
 
     public func enable() {
+        // enable() is also the "settings changed" path (reloadHotkey). If it
+        // runs mid-session it must tear the session down, or the chunk ticker
+        // is orphaned: it keeps polling forever and the NEXT dictation starts a
+        // second one, so every chunk gets transcribed twice — compounding for
+        // the life of the process (PERF_RCA_2026-08.md RC5).
+        stopChunkTicker()
+        audio.cancelSession()
         hotkeys.start(hotkey: settings.hotkey)
         switch hotkeys.tapMode {
         case .active, .listenOnly:
@@ -181,9 +211,26 @@ public final class DictationController: ObservableObject {
     // MARK: - Session
 
     // MARK: - Incremental chunking (perceived-latency fix, v0.4)
-    // While the user speaks, completed ~12 s stretches are transcribed in the
-    // background (cut at quiet moments; forced at 20 s). On release only the
-    // tail remains → even multi-minute dictations insert in ~1 s.
+    // While the user speaks, completed stretches are transcribed in the
+    // background; on release only the tail remains → even multi-minute
+    // dictations insert quickly.
+    //
+    // Thresholds re-derived from measurement in v0.6.1 (PERF_RCA_2026-08.md):
+    // whisper always encodes a padded 30 s window, so a chunk call costs the
+    // SAME ~1.5 s (M3) / ~3 s (M1 Air) whether it holds 2 s of speech or 30 s.
+    // The old 12 s cut therefore taxed every ordinary dictation with extra
+    // full-price calls — and the tail queues behind any chunk still decoding on
+    // this serial queue. So: don't chunk short dictations at all, and when we
+    // do chunk, make each chunk far longer than the call it costs.
+
+    /// No chunking below this — a normal dictation should cost exactly one call.
+    public nonisolated static let chunkFloorSamples = 30 * 16000        // 30 s of speech
+    /// Minimum audio per chunk once chunking starts.
+    public nonisolated static let chunkEverySamples = 25 * 16000        // 25 s
+    /// Cut here even mid-sentence, so one bad cut can't poison more than this.
+    public nonisolated static let chunkForceSamples = 35 * 16000        // 35 s
+    /// Below this the "tail" is key-release noise, not speech.
+    public nonisolated static let tailFloorSamples = 5600               // 0.35 s
 
     /// Accessed only on workQueue (serial) — safe despite nonisolated access.
     private nonisolated(unsafe) var pendingParts: [String] = []
@@ -192,19 +239,22 @@ public final class DictationController: ObservableObject {
 
     private func startChunkTicker(modelPath: String, mode: LanguageMode) {
         chunkedUpToSample = 0
+        engineCalls = 0
+        engineSeconds = 0
         workQueue.async { [weak self] in self?.pendingParts = [] }
         chunkTicker = Task { @MainActor [weak self] in
             while let self, !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 guard case .recording = self.phase else { continue }
                 let total = self.audio.sessionSampleCount
+                // Short dictations never chunk: one call is cheaper than two.
+                guard total >= Self.chunkFloorSamples else { continue }
                 let pending = total - self.chunkedUpToSample
-                guard pending >= 12 * 16000 else { continue }
-                // Cut at a quiet moment, or force at 20 s so memory of a bad
-                // cut is bounded to one chunk.
+                guard pending >= Self.chunkEverySamples else { continue }
+                // Cut at a quiet moment, or force so a bad cut is bounded.
                 let tail = self.audio.snapshotSession(fromSample: total - 4000, toSample: total)
                 let quiet = (tail.map(abs).max() ?? 0) < 0.01
-                guard quiet || pending >= 20 * 16000 else { continue }
+                guard quiet || pending >= Self.chunkForceSamples else { continue }
                 let chunk = self.audio.snapshotSession(
                     fromSample: self.chunkedUpToSample, toSample: total)
                 self.chunkedUpToSample = total
@@ -224,11 +274,15 @@ public final class DictationController: ObservableObject {
         chunkTicker = nil
     }
 
+    /// The ONE place an engine call happens — so counting them is honest.
     private nonisolated func transcribeRaw(
         _ samples: [Float], path: String, mode: LanguageMode
     ) throws -> String {
         try loadModel(path: path)
-        return try engine.transcribe(samples: samples, mode: mode).text
+        let result = try engine.transcribe(samples: samples, mode: mode)
+        engineCalls += 1
+        engineSeconds += result.duration
+        return result.text
     }
 
     private func startRecording() {
@@ -274,6 +328,8 @@ public final class DictationController: ObservableObject {
             return
         }
         phase = .transcribing
+        releaseTime = Date()
+        sessionAudioSeconds = Double(samples.count) / 16000.0
         let rules = settings.replacementRules
         // Snapshot on main; applied off-main via the pure static core.
         let dictionary = PersonalDictionary.shared.entries
@@ -290,9 +346,17 @@ public final class DictationController: ObservableObject {
                 let tail = Array(samples[min(tailStart, samples.count)...])
                 var parts = self.pendingParts
                 self.pendingParts = []
-                if tail.count > 1600 {
-                    let text = try self.transcribeRaw(tail, path: modelPath, mode: mode)
-                    if !text.isEmpty { parts.append(text) }
+                if tail.count > Self.tailFloorSamples {
+                    if parts.isEmpty {
+                        // Nothing else to show — a failure here must surface.
+                        let text = try self.transcribeRaw(tail, path: modelPath, mode: mode)
+                        if !text.isEmpty { parts.append(text) }
+                    } else if let text = try? self.transcribeRaw(tail, path: modelPath, mode: mode),
+                              !text.isEmpty {
+                        // Chunks already succeeded: a silent/failed tail must
+                        // never throw away words we already have.
+                        parts.append(text)
+                    }
                 }
                 var text = parts.joined(separator: " ")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -408,11 +472,27 @@ public final class DictationController: ObservableObject {
         controllerLog.info("deliver: \(text.count, privacy: .public) chars, copyOnly=\(copyOnly, privacy: .public)")
         // The transcript is sacred: even if pasting into the target app fails,
         // it's in lastTranscript ("Copy Last" in the menu) and History.
+        recordTimings(llmStage: raw != nil)
         lastTranscript = text
         HistoryStore.shared.add(text: text, mode: mode, raw: raw)
         TextInserter.insert(text, copyOnly: copyOnly)
         Sounds.finish.play()
         phase = .idle
+    }
+
+    /// Snapshots what this dictation cost, publishes it, and writes it to the
+    /// system log — the data the next "why is it slow?" report will need.
+    private func recordTimings(llmStage: Bool) {
+        guard let releaseTime else { return }
+        var timings = DictationTimings()
+        timings.audioSeconds = sessionAudioSeconds
+        timings.engineCalls = engineCalls
+        timings.engineSeconds = engineSeconds
+        timings.releaseToPaste = Date().timeIntervalSince(releaseTime)
+        timings.llmStage = llmStage
+        timings.log()
+        lastTimings = timings
+        self.releaseTime = nil
     }
 
     public func cancel() {
@@ -457,7 +537,6 @@ public final class DictationController: ObservableObject {
 
     /// Loads a model on the worker queue (no-op if already resident).
     private nonisolated func loadModel(path: String) throws {
-        if engine.isLoaded, engine.loadedModelPath == path { return }
         try engine.load(modelPath: path)
     }
 

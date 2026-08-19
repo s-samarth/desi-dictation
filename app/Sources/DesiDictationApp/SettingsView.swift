@@ -64,6 +64,7 @@ struct ModelsSettings: View {
 
     var body: some View {
         Form {
+            DefaultModelSettings()
             Section("Installed (\(AppPaths.modelsDirectory.path))") {
                 if models.installed.isEmpty {
                     Text("No models yet. Download below, or convert Hinglish models with scripts/convert_model.sh")

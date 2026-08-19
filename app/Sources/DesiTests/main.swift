@@ -6,6 +6,7 @@ import Foundation
 runDictionaryTests()
 runStoreTests()
 runNumberTests()
+runModelRoutingTests()
 
 let group = DispatchGroup()
 group.enter()

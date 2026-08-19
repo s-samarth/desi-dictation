@@ -424,3 +424,48 @@ crashed/abandoned runs leave holders on :8080–:8082 and re-runs stack up.
 kill`) before starting. Also made the gateway's ffmpeg call async — a blocking
 `subprocess.run` inside an async route stalls the whole event loop (every
 other visitor) for up to 30 s.
+
+## 2026-08-19 — the slowness investigation (v0.6.1)
+
+Users (and the author) reported dictation taking 10 s+ and "getting worse the
+longer the app runs". Full root-cause analysis: [PERF_RCA_2026-08.md](PERF_RCA_2026-08.md).
+It was neither the AI modules nor a leak (`leaks` on an 18-day-old process: 14 KB,
+all system XPC). It was model tier × a fixed per-call cost × the chunker.
+Shipped in response: Parakeet TDT for English, corrected chunk thresholds,
+flash attention on, per-dictation timings, per-language model defaults, and a
+latency gate in preflight.
+
+### Failure mode #20 — the chunker charged short dictations for extra full-price calls
+
+**Symptom:** a 2-second tail took ~2 s to appear on an M3 (worse on an M1 Air),
+and "release → text" sometimes took several seconds for an ordinary sentence.
+**Cause:** whisper encodes a **padded 30-second window** on every call, so a
+call costs ~1.5 s (M3) / ~3 s (M1) *regardless of how much audio it holds*. The
+chunker cut every 12 s, so a normal dictation paid 2–4 of those; worse, chunk
+jobs and the final tail share one serial queue, so releasing while a chunk was
+mid-decode made the user wait for both.
+**Fix:** don't chunk below 30 s of speech; chunk every ≥25 s (forced at 35 s)
+after that. **Lesson:** an optimization built on "cost scales with length" is
+wrong when the cost is fixed per call — measure the constant term before
+designing around it. Guarded by `scripts/latency_gate.sh` (short clip, per
+language) so RTF-on-a-long-clip can never hide this again.
+
+### Failure mode #21 — `enable()` mid-session orphans the chunk ticker
+
+**Symptom:** none reported yet — found while reading the hot path. Would present
+as the app getting progressively slower within a session, with duplicated words.
+**Cause:** `reloadHotkey()` calls `enable()`, which reset `phase` without
+stopping the chunk ticker. Changing a setting *while recording* left a ticker
+polling forever; the next dictation started a second one, and both cut chunks →
+every chunk transcribed twice, compounding for the life of the process.
+**Fix:** `enable()` now tears the session down (`stopChunkTicker()` +
+`audio.cancelSession()`) before restarting the hotkey tap.
+
+### Failure mode #12 (flash attention) — retested and reversed
+
+The v0.3 NaN-logits problem with quantized models on Metal did **not** reproduce
+on current whisper.cpp: 18 clips across apex/turbo/vaani q5_0, zero NaN, zero
+empty decodes, text identical on 17/18 (one single-token difference), ~11 % less
+encode time. Flash attention is now **on** with a kill switch in Options.
+**Lesson:** a workaround for an upstream bug is a dated decision, not a
+permanent one — re-test it on every dependency bump.

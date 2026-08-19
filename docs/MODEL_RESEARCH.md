@@ -38,6 +38,58 @@ unbeatable; see "bottleneck" below.
 - Implication: the best Indian ASR lives behind APIs. **A local-first app cannot
   use them — and that's our moat, not our weakness.**
 
+### E. English mode — the 2026-08 bake-off (decided: Parakeet TDT)
+
+Question asked: a **lighter** English model that is still *really* good, because
+English is what most people try first. Answer found by measuring, not reading
+leaderboards — and the measurement changed the reasoning.
+
+**The insight:** whisper always encodes a **padded 30-second window**, so a
+3-second dictation costs the same as a 30-second one (docs/PERF_RCA_2026-08.md).
+Nothing whisper-shaped fixes that. Distil-Whisper v3.5 doesn't either — it keeps
+large-v3's encoder **frozen** and only trims decoder layers, and the encoder is
+our bottleneck. A different **architecture** was needed, not a smaller whisper.
+
+**Measured** — 20 clips of `ai4bharat/Svarah` (Indian-accented English, 117
+speakers), through the shipping engine path on an M3 Air, nWER (normalized):
+
+| Engine | nWER | per call | size | note |
+|---|---|---|---|---|
+| **Parakeet TDT 0.6B v3 q4_k** | **4.3 %** | **0.39 s** | **416 MB** | shipped default for English |
+| Parakeet TDT 0.6B v3 q8_0 | 4.5 % | 0.44 s | 669 MB | no accuracy gain for 253 MB |
+| Whisper large-v3-turbo q5_0 | 4.5 % | 1.94 s | 574 MB | previous default, now the fallback |
+| Whisper small (multi) | 7.3 % | 0.71 s | 488 MB | |
+| Whisper base (multi) | 11.4 % | 0.28 s | 148 MB | |
+| Hinglish Apex q5_0 | 12.5 % | 1.93 s | 574 MB | good Indian English ≠ good English |
+
+With the model resident (the real app state) Parakeet answers a 10 s clip in
+**0.21 s** vs turbo's ~1.9 s. Accuracy is equal-or-better *on Indian-accented
+English specifically*, which is the only English that matters for us.
+
+**Why it's fast:** FastConformer-TDT encodes the audio it was actually given, so
+short dictations get radically cheaper. The trade-off is that its compute buffer
+grows with audio length (0.64 GB at 12 s, 1.8 GB at 138 s), which is why long
+sessions still chunk.
+
+**License:** CC-BY-4.0, commercial use permitted (NVIDIA). Ships as
+`ggml-org/parakeet-GGUF`, converted by the whisper.cpp project itself.
+
+**Scope — English only, deliberately.** Parakeet v3 covers English + 24
+European languages. It has **no Hindi**, cannot emit Devanagari, and cannot emit
+Roman-Hinglish. `ModelManager.score()` therefore returns 0 for it in every mode
+except English, and the pickers never show it there.
+
+**Runtime:** whisper.cpp ships `libparakeet` (own static lib over the same ggml
+backends — no duplicate symbols), so it's a second engine behind
+`TranscriptionEngine`, chosen by filename in `EngineRouter`. Whisper stays the
+engine for Hinglish and हिन्दी.
+
+**Not chosen, and why:** distil-large-v3.5 (same frozen large encoder → same
+per-call cost); whisper small/base (accuracy loss too big); Canary-Qwen 2.5B and
+IBM Granite Speech (top of the Open ASR Leaderboard but far too heavy for a
+menu-bar app on an 8 GB Air); parakeet.cpp as a separate project (unnecessary —
+support is in whisper.cpp itself).
+
 ## Why so few open Hinglish models? (the bottleneck, as asked)
 
 1. **Economics.** Code-mixed Indian ASR monetizes as B2B voice-bot/call-center
@@ -95,4 +147,4 @@ replacements + eval set) can stay ahead of generic players.
      it doesn't ship.
 
 ## Sources
-[Trelis announcement](https://trelis.substack.com/p/whisper-hinglish) · [Trelis HF card](https://huggingface.co/Trelis/whisper-hinglish-preview) · [Sarvam models](https://www.sarvam.ai/models) · [Saaras v3](https://www.sarvam.ai/blogs/asr) · [Sarvam on ASR metrics](https://www.sarvam.ai/blogs/evaluating-indian-language-asr) · [Sarvam 30B/105B open-sourcing](https://www.sarvam.ai/blogs/sarvam-30b-105b) · [IndicConformer 600M](https://huggingface.co/ai4bharat/indic-conformer-600m-multilingual) · [whisper-large-v3-vaani-hindi](https://huggingface.co/ARTPARK-IISc/whisper-large-v3-vaani-hindi) · [Vaani dataset](https://huggingface.co/datasets/ARTPARK-IISc/Vaani) · [Vaani paper](https://arxiv.org/pdf/2603.28714) · [Vistaar benchmarks](https://arxiv.org/pdf/2305.15386) · [Aksharantar/IndicXlit](https://www.researchgate.net/publication/376402890_Aksharantar_Open_Indic-language_Transliteration_datasets_and_models_for_the_Next_Billion_Users) · [Oriserve Apex](https://huggingface.co/Oriserve/Whisper-Hindi2Hinglish-Apex) · [Open ASR leaderboard](https://github.com/huggingface/open_asr_leaderboard)
+[Trelis announcement](https://trelis.substack.com/p/whisper-hinglish) · [Trelis HF card](https://huggingface.co/Trelis/whisper-hinglish-preview) · [Sarvam models](https://www.sarvam.ai/models) · [Saaras v3](https://www.sarvam.ai/blogs/asr) · [Sarvam on ASR metrics](https://www.sarvam.ai/blogs/evaluating-indian-language-asr) · [Sarvam 30B/105B open-sourcing](https://www.sarvam.ai/blogs/sarvam-30b-105b) · [IndicConformer 600M](https://huggingface.co/ai4bharat/indic-conformer-600m-multilingual) · [whisper-large-v3-vaani-hindi](https://huggingface.co/ARTPARK-IISc/whisper-large-v3-vaani-hindi) · [Vaani dataset](https://huggingface.co/datasets/ARTPARK-IISc/Vaani) · [Vaani paper](https://arxiv.org/pdf/2603.28714) · [Vistaar benchmarks](https://arxiv.org/pdf/2305.15386) · [Aksharantar/IndicXlit](https://www.researchgate.net/publication/376402890_Aksharantar_Open_Indic-language_Transliteration_datasets_and_models_for_the_Next_Billion_Users) · [Oriserve Apex](https://huggingface.co/Oriserve/Whisper-Hindi2Hinglish-Apex) · [Open ASR leaderboard](https://github.com/huggingface/open_asr_leaderboard) · [Parakeet TDT 0.6B v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) · [parakeet-GGUF](https://huggingface.co/ggml-org/parakeet-GGUF) · [distil-large-v3.5](https://huggingface.co/distil-whisper/distil-large-v3.5) · [Svarah](https://huggingface.co/datasets/ai4bharat/Svarah)

@@ -12,8 +12,8 @@ enum Feedback {
         let os = ProcessInfo.processInfo.operatingSystemVersionString
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"]
             as? String ?? "dev"
-        let model = settings.modelPath.isEmpty
-            ? "auto" : (settings.modelPath as NSString).lastPathComponent
+        let pinned = settings.modelPath(for: settings.languageMode)
+        let model = pinned.isEmpty ? "auto" : (pinned as NSString).lastPathComponent
 
         var body = ""
         if includeLastTranscript {

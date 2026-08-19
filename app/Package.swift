@@ -11,6 +11,8 @@ import PackageDescription
 let whisperLinkerSettings: [LinkerSetting] = [
     .unsafeFlags(["-L\(Context.packageDirectory)/Libraries"]),
     .linkedLibrary("whisper"),
+    // Parakeet TDT runtime (English mode) — own static lib, shared ggml.
+    .linkedLibrary("parakeet"),
     .linkedLibrary("ggml"),
     .linkedLibrary("ggml-base"),
     .linkedLibrary("ggml-cpu"),

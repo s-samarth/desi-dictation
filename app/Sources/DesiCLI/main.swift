@@ -26,7 +26,9 @@ if args[1] == "--e2e", args.count >= 4 {
     Task {
         defer { semaphore.signal() }
         do {
-            let engine = WhisperCppEngine()
+            // Router, not a bare whisper engine: the CLI must exercise the exact
+    // path the app takes, including Parakeet models (English mode).
+    let engine = EngineRouter()
             try engine.load(modelPath: args[2])
             let samples = try AudioFileLoader.loadSamples(url: URL(fileURLWithPath: args[3]))
             let asr = try engine.transcribe(samples: samples, mode: .anyToEnglish)
@@ -100,7 +102,9 @@ if args[2] == "--batch", args.count >= 4 {
     let dir = URL(fileURLWithPath: args[3])
     let batchMode = LanguageMode(rawValue: args.count > 4 ? args[4] : "hinglish") ?? .hinglish
     do {
-        let engine = WhisperCppEngine()
+        // Router, not a bare whisper engine: the CLI must exercise the exact
+    // path the app takes, including Parakeet models (English mode).
+    let engine = EngineRouter()
         try engine.load(modelPath: modelPath)
         let files = try FileManager.default.contentsOfDirectory(
             at: dir, includingPropertiesForKeys: nil)
@@ -128,7 +132,9 @@ if args[2] == "--batch", args.count >= 4 {
 let audioURL = URL(fileURLWithPath: args[2])
 
 do {
-    let engine = WhisperCppEngine()
+    // Router, not a bare whisper engine: the CLI must exercise the exact
+    // path the app takes, including Parakeet models (English mode).
+    let engine = EngineRouter()
     let loadStart = Date()
     try engine.load(modelPath: modelPath)
     print("model loaded in \(String(format: "%.2f", Date().timeIntervalSince(loadStart)))s")

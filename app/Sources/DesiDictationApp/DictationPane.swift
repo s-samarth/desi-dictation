@@ -24,6 +24,13 @@ struct DictationPane: View {
                         }))
                         .toggleStyle(.switch)
                 }
+                // Last dictation's real cost. Visible on purpose: speed is the
+                // core promise, so it should be checkable without a debugger —
+                // and it's the line to quote in a bug report.
+                if let timings = controller.lastTimings {
+                    Text("Last: \(timings.summary)")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
 
             Section("Controls") {
@@ -50,16 +57,22 @@ struct DictationPane: View {
                         settings.aiFeaturesEnabled || !$0.needsLLM
                     }, id: \.self) { Text($0.displayName).tag($0) }
                 }
+                // Only models that serve the selected language (v0.6.1) — and
+                // the choice is remembered per language, not globally.
                 Picker("Model", selection: Binding(
-                    get: { settings.modelPath },
-                    set: { settings.modelPath = $0; controller.modelChanged() })) {
-                    Text("Auto — best for language (recommended)").tag("")
-                    ForEach(models.installed) { model in
+                    get: { settings.modelPath(for: settings.languageMode) },
+                    set: {
+                        settings.setModelPath($0, for: settings.languageMode)
+                        controller.modelChanged()
+                    })) {
+                    Text("Auto — best for this language (recommended)").tag("")
+                    ForEach(models.candidates(for: settings.languageMode)) { model in
                         Text("\(model.name) (\(model.sizeMB) MB)").tag(model.path)
                     }
                 }
-                if let auto = models.resolveModel(for: settings.languageMode,
-                                                  pinnedPath: settings.modelPath) {
+                if let auto = models.resolveModel(
+                    for: settings.languageMode,
+                    pinnedPath: settings.modelPath(for: settings.languageMode)) {
                     Text("Using: \(auto.name)").font(.caption).foregroundStyle(.secondary)
                 } else {
                     Text("⚠️ No suitable model installed — see the Models tab.")
@@ -73,6 +86,11 @@ struct DictationPane: View {
 
             Section("Options") {
                 Toggle("Smart pause handling (VAD)", isOn: $settings.vadEnabled)
+                Toggle("Flash attention (faster; turn off to diagnose garbled output)",
+                       isOn: $settings.flashAttention)
+                    .onChange(of: settings.flashAttention) {
+                        DictationController.shared.modelChanged()
+                    }
                 Toggle("Quick restart (mic stays warm 20 s after dictating)",
                        isOn: $settings.micWarm)
                     .onChange(of: settings.micWarm) {

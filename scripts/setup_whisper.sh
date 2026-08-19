@@ -35,6 +35,14 @@ echo "==> Building libwhisper + whisper-cli"
 cmake --build "$VENDOR/build" --config Release -j "$(sysctl -n hw.ncpu)" \
   --target whisper whisper-cli
 
+# Parakeet (NVIDIA FastConformer-TDT) is a SEPARATE ggml model runtime that
+# ships inside whisper.cpp — its own static lib over the same ggml backends, so
+# there is no duplicate-symbol problem. English mode runs on it (measured 5x
+# faster than large-v3-turbo at equal accuracy: docs/MODEL_RESEARCH.md).
+echo "==> Building libparakeet + parakeet-cli"
+cmake --build "$VENDOR/build" --config Release -j "$(sysctl -n hw.ncpu)" \
+  --target parakeet parakeet-cli
+
 echo "==> Building whisper-quantize (for 0.8B model q5_0 quants)"
 cmake --build "$VENDOR/build" --config Release -j "$(sysctl -n hw.ncpu)" \
   --target whisper-quantize
@@ -43,6 +51,7 @@ echo "==> Staging headers + static libs into the Swift package"
 APP="$ROOT/app"
 mkdir -p "$APP/Libraries" "$APP/Sources/CWhisper/include"
 cp "$VENDOR/include/whisper.h" "$APP/Sources/CWhisper/include/"
+cp "$VENDOR/include/parakeet.h" "$APP/Sources/CWhisper/include/"
 cp "$VENDOR"/ggml/include/*.h "$APP/Sources/CWhisper/include/"
 find "$VENDOR/build" -name "*.a" -not -name "libcommon.a" \
   -exec cp {} "$APP/Libraries/" \;

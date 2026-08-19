@@ -1,5 +1,6 @@
 module CWhisper [system] {
     header "include/whisper.h"
+    header "include/parakeet.h"
     header "include/ggml.h"
     export *
 }

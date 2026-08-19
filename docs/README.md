@@ -6,7 +6,8 @@ Everything written about Desi Dictation — engineering, product, strategy, and 
 | Doc | What |
 |---|---|
 | [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md) | Architecture deep-dive — the full pipeline, key decisions |
-| [PERFORMANCE.md](PERFORMANCE.md) | Latency engineering: applied + deferred levers |
+| [PERFORMANCE.md](PERFORMANCE.md) | Latency engineering: applied + deferred levers, and the numbers that are gated |
+| [PERF_RCA_2026-08.md](PERF_RCA_2026-08.md) | **Why dictation got slow** — the root-cause analysis behind the v0.6.1 speed work |
 | [BUILD_LOG.md](BUILD_LOG.md) | Chronological build steps + every failure mode (FM#1–16) |
 | [SECURITY_AUDIT.md](SECURITY_AUDIT.md) | Privacy/security posture, verified |
 | [SETUP_GUIDE.md](SETUP_GUIDE.md) | End-user install guide (start here to *use* it) |
@@ -28,7 +29,7 @@ Everything written about Desi Dictation — engineering, product, strategy, and 
 | [PRODUCT.md](PRODUCT.md) | Product & features reference |
 | [PRODUCT_VISION.md](PRODUCT_VISION.md) | The long-range product vision |
 | [features/](features/) | Planned features — [personas](features/PERSONAS.md), [translation](features/TRANSLATION.md), [speak-desi-write-English](features/TRANSCRIBE_TRANSLATE.md), [structure-thoughts](features/STRUCTURE_THOUGHTS.md), [10 ideas](features/IDEAS.md) |
-| [features/implementation/](features/implementation/) | **How the built features actually work** (0.6 wave, 2026-07-10) — LLM engine, dictionary, per-app modes, translate ×2, structure, tones, testing |
+| [features/implementation/](features/implementation/) | **How the built features actually work** — LLM engine, dictionary, per-app modes, translate ×2, structure, tones, [model routing](features/implementation/MODEL_ROUTING.md), testing |
 | [problems/](problems/) | The problems that decide the product — [P1 Hinglish accuracy](problems/P1_HINGLISH_ACCURACY.md), [P2 OOD words](problems/P2_OOD_WORDS.md), [P3 freshness/data](problems/P3_MODEL_FRESHNESS.md), [P4 personalization](problems/P4_PERSONALIZATION.md), [10 more](problems/ADDITIONAL_PROBLEMS.md) |
 | [platforms/](platforms/) | Platform expansion — [Windows](platforms/WINDOWS.md) (easiest, first) → [Android](platforms/ANDROID.md) (the India must-have; voice-IME) → [iOS](platforms/IOS.md) (hardest; app-hop) — flows, min specs, and the one-shot Claude build prompts |
 | [cloud/](cloud/) | Opt-in cloud transcription — [strategy](cloud/README.md), [the endpoint explained + API design](cloud/ARCHITECTURE.md), [infra phases & scaling](cloud/INFRA_AND_SCALING.md), [unit economics](cloud/COSTS.md), [serving stack: what's overkill when](cloud/SERVING_STACK.md) |

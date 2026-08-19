@@ -16,7 +16,8 @@ skip this even for "small" edits.
 | `web/**` (browser demo) | [web/README.md](web/README.md) — and note the parity rule below |
 | Prompts, number handling, LLM behavior | [docs/features/implementation/LLM_ENGINE.md](docs/features/implementation/LLM_ENGINE.md) — model matrix + why rules beat bigger models |
 | `scripts/**`, `.github/workflows/**` | [docs/CICD.md](docs/CICD.md) |
-| Models, ASR quality | [docs/MODEL_RESEARCH.md](docs/MODEL_RESEARCH.md) + [spike/README.md](spike/README.md) |
+| Models, ASR quality, engine choice | [docs/MODEL_RESEARCH.md](docs/MODEL_RESEARCH.md) + [docs/features/implementation/MODEL_ROUTING.md](docs/features/implementation/MODEL_ROUTING.md) |
+| Anything about speed/latency | [docs/PERFORMANCE.md](docs/PERFORMANCE.md) + [docs/PERF_RCA_2026-08.md](docs/PERF_RCA_2026-08.md) — measure, don't assume RTF |
 | Deploy targets, servers, domain | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
 | Anything user-facing (flows, menus, UI) | [docs/features/implementation/USER_WALKTHROUGH.md](docs/features/implementation/USER_WALKTHROUGH.md) + [docs/features/PERSONAS.md](docs/features/PERSONAS.md) |
 
@@ -30,7 +31,8 @@ why the same bug never bites twice.
    `export SWIFTPM_CUSTOM_LIBS_DIR=$HOME/.swiftpm-fixed-libs` first
    (CLT 6.3.3 manifest bug — BUILD_LOG FM#17). Builds fail confusingly without it.
 2. **`./scripts/preflight.sh` before every push.** Green preflight = green CI;
-   it runs the exact same steps (build · 95 tests · app↔web parity · web tests).
+   it runs build · 119 tests · app↔web parity · web tests · **latency gate**
+   (the last one is local-only — CI has no models).
 3. **Parity pairs change together:** `HindiNumbers.swift ↔ web/hindi_numbers.py`
    and `PromptTemplates.swift ↔ web/prompts.py` are deliberate ports.
    `scripts/check_parity.sh` fails the build if they drift. Same for
@@ -54,7 +56,8 @@ why the same bug never bites twice.
 ```bash
 export SWIFTPM_CUSTOM_LIBS_DIR=$HOME/.swiftpm-fixed-libs   # always, first
 (cd app && swift build)                # compile
-app/.build/debug/desi-tests            # 95 assertions, exit 0 = green
+app/.build/debug/desi-tests            # 119 assertions, exit 0 = green
+./scripts/latency_gate.sh              # short-dictation latency per language
 ./scripts/preflight.sh                 # the full pre-push gate
 ./scripts/build_app.sh                 # rebuild the .app bundle (v in this file)
 ./web/run_demo.sh                      # web demo → http://localhost:8080

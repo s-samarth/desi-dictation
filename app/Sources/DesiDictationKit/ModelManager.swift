@@ -7,8 +7,17 @@ public struct ModelDescriptor: Identifiable, Equatable {
     public let name: String
     public let path: String
     public let sizeMB: Int
+
+    public init(name: String, path: String, sizeMB: Int) {
+        self.name = name
+        self.path = path
+        self.sizeMB = sizeMB
+    }
     /// True for Hinglish fine-tunes (detected by filename convention).
     public var isHinglish: Bool { name.contains("hinglish") }
+    /// True for Parakeet TDT files — a different runtime (EngineRouter) and
+    /// English-only for us, so it must never be offered for हिन्दी/Hinglish.
+    public var isParakeet: Bool { name.contains("parakeet") }
 }
 
 /// Stock multilingual GGML models downloadable straight from Hugging Face
@@ -48,7 +57,11 @@ public final class ModelManager: ObservableObject {
               url: URL(string: "\(hinglishRepoBase)/ggml-hinglish-apex-q5_0.bin")!,
               approxMB: 547, pro: true, recommended: true, category: "Hinglish",
               sha256: "9d877151b15cec1feb9110cfbc0a3162cf377bcc0ab1935174226f461cf60f13"),
-        .init(id: "large-v3-turbo-q5_0", label: "Whisper Large v3 Turbo — English",
+        .init(id: "parakeet-tdt-0.6b-v3-q4_k", label: "Parakeet — fastest English",
+              url: URL(string: "https://huggingface.co/ggml-org/parakeet-GGUF/resolve/main/ggml-parakeet-tdt-0.6b-v3-q4_k.bin")!,
+              approxMB: 416, pro: true, recommended: true, category: "English",
+              sha256: "8b205b8b39c6535e153de6fb11c51db46125d45c4f16ba496fe41a0fe71b885e"),
+        .init(id: "large-v3-turbo-q5_0", label: "Whisper Large v3 Turbo — English (fallback)",
               url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin")!,
               approxMB: 574, pro: true, recommended: true, category: "English",
               sha256: "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2"),
@@ -62,22 +75,48 @@ public final class ModelManager: ObservableObject {
               sha256: "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"),
     ]
 
-    /// Onboarding: catalog entry that serves a language mode.
+    /// Onboarding: catalog entry that serves a language mode. Looked up by id,
+    /// never by index — a new catalog entry must not silently re-point these.
     public static func catalogEntry(for mode: LanguageMode) -> DownloadableModel {
         switch mode {
-        case .hinglish, .anyToEnglish: return catalog[0]   // Apex handles the mix best
-        case .english: return catalog[1]
-        case .hindi: return catalog[2]
+        case .hinglish, .anyToEnglish: return entry("hinglish-apex-q5_0")
+        case .english: return entry("parakeet-tdt-0.6b-v3-q4_k")
+        case .hindi: return entry("vaani-hindi-q5_0")
         }
     }
 
-    public static var vadEntry: DownloadableModel { catalog[3] }
+    public static var vadEntry: DownloadableModel { entry("silero-vad") }
+
+    private static func entry(_ id: String) -> DownloadableModel {
+        guard let found = catalog.first(where: { $0.id == id }) else {
+            preconditionFailure("catalog is missing \(id)")
+        }
+        return found
+    }
 
     private init() { refresh() }
 
     public func isInstalled(_ model: DownloadableModel) -> Bool {
         FileManager.default.fileExists(
             atPath: AppPaths.modelsDirectory.appendingPathComponent("ggml-\(model.id).bin").path)
+    }
+
+    /// Installed models that actually serve this language, best first. The
+    /// model pickers show only these: being asked to pick "English" and then
+    /// hunt for a model that speaks English is the app doing its job badly
+    /// (v0.6.1 feedback). Score 0 = wrong script or wrong language → hidden.
+    public func candidates(for mode: LanguageMode) -> [ModelDescriptor] {
+        installed
+            .map { ($0, Self.score($0, for: mode)) }
+            .filter { $0.1 > 0 }
+            .sorted { $0.1 > $1.1 }
+            .map(\.0)
+    }
+
+    /// What "Auto" resolves to right now — shown inline in the picker so the
+    /// default is never a mystery.
+    public func autoChoice(for mode: LanguageMode) -> ModelDescriptor? {
+        candidates(for: mode).first
     }
 
     /// Picks the best installed model for a mode. Empty `pinnedPath` = Auto.
@@ -94,9 +133,14 @@ public final class ModelManager: ObservableObject {
             .max { $0.1 < $1.1 }?.0
     }
 
-    private static func score(_ model: ModelDescriptor, for mode: LanguageMode) -> Int {
+    /// Public so the test runner can pin the routing rules directly (which
+    /// model serves which language) instead of inferring them from resolve().
+    public static func score(_ model: ModelDescriptor, for mode: LanguageMode) -> Int {
         let name = model.name.lowercased()
         var score = 0
+        // Parakeet covers English + 24 European languages — no Hindi, and it
+        // cannot emit Devanagari or Roman-Hinglish. English mode only.
+        if model.isParakeet, mode != .english { return 0 }
         switch mode {
         // anyToEnglish transcribes the same mixed speech as Hinglish mode
         // (TRANSCRIBE_TRANSLATE.md §4: Apex handles the mix best); the English
@@ -109,7 +153,11 @@ public final class ModelManager: ObservableObject {
             else if name.contains("small") { score = 30 }
             else if name.contains("base") { score = 20 }
         case .english:
-            if name.contains("turbo") { score = 100 }
+            // Parakeet wins on measurement, not on novelty: 4.3 % vs turbo's
+            // 4.5 % nWER on Indian-accented English (Svarah, 20 clips) at 5x
+            // the speed — MODEL_RESEARCH.md §E, ParakeetEngine.swift.
+            if name.contains("parakeet") { score = 120 }
+            else if name.contains("turbo") { score = 100 }
             else if name.contains("hinglish-apex") { score = 80 }   // great Indian English
             else if name.contains("small") { score = 60 }
             else if name.contains("hinglish-prime") { score = 55 }

@@ -9,7 +9,7 @@ of the same flow: [CONTRIBUTING.md](CONTRIBUTING.md). Hosting the web demo:
                  you edit code
                       │
             ./scripts/preflight.sh          ← run before EVERY push
-      (build · 95 tests · app↔web parity · web tests)
+      (build · 119 tests · app↔web parity · web tests)
                       │  git push
                       ▼
    GitHub Actions: ci.yml  (mirrors preflight exactly)
@@ -76,3 +76,12 @@ Workflows target `runs-on: macos-26` because the manifest needs Swift ≥ 6.2.
 Verified live 2026-07-14: the first ci.yml run completed green on GitHub's
 runners (app ✓ · web ✓ · deploy-web correctly skipped while dormant).
 Everything the workflows execute is byte-identical to the local preflight.
+
+
+## Latency gate (added 2026-08-19)
+
+`preflight.sh` step 5 runs `scripts/latency_gate.sh`: a short clip per language
+through `desi-cli` with the model resident, against a per-language
+release→paste budget (docs/PERFORMANCE.md). It **skips silently in CI** — the
+runner has neither the models nor the eval clips — so it is a local gate by
+design. The RCA that motivated it: docs/PERF_RCA_2026-08.md.

@@ -97,7 +97,13 @@ public final class SettingsStore: ObservableObject {
     @Published public var hotkey: HotkeyChoice { didSet { d.set(hotkey.rawValue, forKey: "hotkey") } }
     @Published public var activationMode: ActivationMode { didSet { d.set(activationMode.rawValue, forKey: "activationMode") } }
     @Published public var languageMode: LanguageMode { didSet { d.set(languageMode.rawValue, forKey: "languageMode") } }
-    @Published public var modelPath: String { didSet { d.set(modelPath, forKey: "modelPath") } }
+    /// Per-language model pin, keyed by `LanguageMode.modelKey` ("" = Auto).
+    /// Picking a language must never mean hunting for a matching model
+    /// (v0.6.1 feedback) — each language remembers its own default, and the
+    /// pickers only ever offer models that serve that language.
+    @Published public var modelPaths: [String: String] {
+        didSet { d.set(modelPaths, forKey: "modelPaths") }
+    }
     @Published public var soundsEnabled: Bool { didSet { d.set(soundsEnabled, forKey: "soundsEnabled") } }
     @Published public var copyInsteadOfPaste: Bool { didSet { d.set(copyInsteadOfPaste, forKey: "copyInsteadOfPaste") } }
     @Published public var replacementRules: String { didSet { d.set(replacementRules, forKey: "replacementRules") } }
@@ -107,6 +113,10 @@ public final class SettingsStore: ObservableObject {
     @Published public var licenseKey: String { didSet { d.set(licenseKey, forKey: "licenseKey") } }
     @Published public var historyEnabled: Bool { didSet { d.set(historyEnabled, forKey: "historyEnabled") } }
     @Published public var vadEnabled: Bool { didSet { d.set(vadEnabled, forKey: "vadEnabled") } }
+    /// Metal flash attention — ~11 % faster encode. On by default since 0.6.1
+    /// (FM#12 retest); the switch exists so a future upstream NaN regression is
+    /// one toggle away from being diagnosed, not a rebuild.
+    @Published public var flashAttention: Bool { didSet { d.set(flashAttention, forKey: "flashAttention") } }
     @Published public var micWarm: Bool { didSet { d.set(micWarm, forKey: "micWarm") } }
     @Published public var onboarded: Bool { didSet { d.set(onboarded, forKey: "onboarded") } }
     @Published public var launchAtLogin: Bool { didSet { d.set(launchAtLogin, forKey: "launchAtLogin") } }
@@ -119,6 +129,19 @@ public final class SettingsStore: ObservableObject {
     @Published public var toneMode: ToneMode { didSet { d.set(toneMode.rawValue, forKey: "toneMode") } }
     /// Per-app language memory (IDEAS #4) — on by default, learns silently.
     @Published public var perAppModes: Bool { didSet { d.set(perAppModes, forKey: "perAppModes") } }
+
+    /// The model pinned for a language ("" = Auto — pick the best installed).
+    public func modelPath(for mode: LanguageMode) -> String {
+        modelPaths[mode.modelKey] ?? ""
+    }
+
+    /// Pins a model as the default for a language (path "" restores Auto).
+    public func setModelPath(_ path: String, for mode: LanguageMode) {
+        var updated = modelPaths
+        if path.isEmpty { updated.removeValue(forKey: mode.modelKey) }
+        else { updated[mode.modelKey] = path }
+        modelPaths = updated
+    }
 
     public static let defaultCleanupPrompt = """
     Clean up this dictated text: fix punctuation and obvious errors. \
@@ -133,7 +156,16 @@ public final class SettingsStore: ObservableObject {
         hotkey = HotkeyChoice(rawValue: d.string(forKey: "hotkey") ?? "") ?? .rightOption
         activationMode = ActivationMode(rawValue: d.string(forKey: "activationMode") ?? "") ?? .pushToTalk
         languageMode = LanguageMode(rawValue: d.string(forKey: "languageMode") ?? "") ?? .hinglish
-        modelPath = d.string(forKey: "modelPath") ?? ""
+        // Migration (0.6.0 → 0.6.1): one global pin becomes one pin per
+        // language. The old pin can only have been meant for the language the
+        // user was last dictating in, so it lands there and nowhere else.
+        if let stored = d.dictionary(forKey: "modelPaths") as? [String: String] {
+            modelPaths = stored
+        } else {
+            let legacy = d.string(forKey: "modelPath") ?? ""
+            let mode = LanguageMode(rawValue: d.string(forKey: "languageMode") ?? "") ?? .hinglish
+            modelPaths = legacy.isEmpty ? [:] : [mode.modelKey: legacy]
+        }
         soundsEnabled = d.object(forKey: "soundsEnabled") as? Bool ?? true
         copyInsteadOfPaste = d.object(forKey: "copyInsteadOfPaste") as? Bool ?? false
         replacementRules = d.string(forKey: "replacementRules") ?? ""
@@ -143,6 +175,7 @@ public final class SettingsStore: ObservableObject {
         licenseKey = d.string(forKey: "licenseKey") ?? ""
         historyEnabled = d.object(forKey: "historyEnabled") as? Bool ?? true
         vadEnabled = d.object(forKey: "vadEnabled") as? Bool ?? true
+        flashAttention = d.object(forKey: "flashAttention") as? Bool ?? true
         micWarm = d.object(forKey: "micWarm") as? Bool ?? true
         onboarded = d.object(forKey: "onboarded") as? Bool ?? false
         launchAtLogin = d.object(forKey: "launchAtLogin") as? Bool ?? true

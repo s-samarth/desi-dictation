@@ -115,3 +115,24 @@ right-click services refuse politely. Dictation itself is untouched either way.
 Apex ASR 570 MB (already had) + Ollama app + gemma3:4b 3.3 GB ≈ **~4 GB disk,
 ~3.5 GB RAM while the AI model is warm**. On 8 GB Macs: qwen3:1.7b ≈ 1.4 GB.
 Skip AI entirely → 0 extra.
+
+
+## Picking a language (v0.6.1)
+
+Menu bar → **Language** → English / Hinglish / हिन्दी. That is the whole
+decision — the model for that language loads itself, and the **Model** picker
+under it only lists models that can actually produce that language's script.
+"Auto" names what it picked, e.g. *Auto (parakeet-tdt-0.6b-v3-q4_k)*.
+
+Want a specific file for one language and a different one for another?
+**Settings → Models → Default model per language**. Each language remembers its
+own choice; switching language switches model silently.
+
+**English is now much faster.** English mode runs NVIDIA's Parakeet model
+instead of Whisper — about **0.2 s** for a short dictation on an M3 Air (it was
+~1.9 s), with equal-or-better accuracy on Indian-accented English. Download it
+from **Models** (416 MB) or take it during onboarding.
+
+**How fast was that?** The Dictation screen shows the last dictation's real
+cost — *"Last: 4.2s speech · 0.31s to paste · 1 call"*. If dictation ever feels
+slow, that line is what to quote in a bug report.

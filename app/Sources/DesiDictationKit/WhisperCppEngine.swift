@@ -26,10 +26,14 @@ public final class WhisperCppEngine: TranscriptionEngine {
         unload()
         var params = whisper_context_default_params()
         params.use_gpu = true            // Metal (JIT-compiled shaders; no Xcode needed)
-        // flash_attn OFF: known source of NaN logits with quantized models on
-        // Metal for some audio (v0.3 regression: "always returns NaN"). The
-        // speed win is minor at our model sizes; correctness wins.
-        params.flash_attn = false
+        // flash_attn was OFF since v0.3 (FM#12: NaN logits with quantized models
+        // on Metal). Re-tested 2026-08-19 on the current whisper.cpp, which now
+        // defaults it ON: 18 clips across apex/turbo/vaani q5_0 produced zero
+        // NaN and zero empty decodes, text identical on 17/18 (one single-token
+        // difference), for ~11 % less encode time. Kept behind a switch because
+        // this is exactly the kind of thing that regresses upstream — Options →
+        // "Flash attention" turns it off for bisecting.
+        params.flash_attn = SettingsStore.shared.flashAttention
         guard let newCtx = whisper_init_from_file_with_params(modelPath, params) else {
             throw EngineError.modelLoadFailed(modelPath)
         }

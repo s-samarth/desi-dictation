@@ -63,6 +63,13 @@ LLM feature internals: [features/implementation/](features/implementation/README
 
 ## 3. Key decisions & trade-offs
 
+### Two engines behind one protocol (v0.6.1)
+`EngineRouter` picks the runtime from the model **file**: Parakeet TDT
+(`libparakeet`, English) or whisper.cpp (Hinglish, हिन्दी, everything else), and
+keeps exactly one model resident. Parakeet encodes only the audio it was given,
+which is why English dictation is ~9× faster per call than the whisper path it
+replaced (MODEL_RESEARCH.md §E, features/implementation/MODEL_ROUTING.md).
+
 ### whisper.cpp static libs, not WhisperKit (v1)
 - whisper.cpp conversion of a HF fine-tune is a one-script, low-risk path;
   WhisperKit CoreML conversion is a longer pipeline with op-coverage risk.
@@ -74,11 +81,12 @@ LLM feature internals: [features/implementation/](features/implementation/README
   Mitigation: the model is **preloaded when dictation is enabled** and kept
   resident, so users never feel it per-dictation.
 
-### Record-then-transcribe, no streaming (v1)
-At 39× realtime, even a 60 s dictation transcribes in ~1.5 s after key-release.
-Streaming/chunked pre-transcription adds state-management complexity (whisper
-context reuse, chunk-boundary word merging) for marginal perceived gain at these
-speeds. Revisit only if users dictate multi-minute monologues (genesis/plan.md P3.1).
+### Record-then-transcribe; chunk only long sessions (v0.4, corrected v0.6.1)
+Whisper's cost is **per call, not per second** — it encodes a padded 30 s window
+every time — so chunking a short dictation buys nothing and costs a second full
+call (BUILD_LOG FM#20). Dictations under 30 s of speech are therefore one call;
+longer ones cut every ≥25 s while the user keeps talking. Streaming *partial
+text* into the overlay remains deferred (PERFORMANCE.md).
 
 ### Pasteboard-swap insertion
 1. Save current clipboard string → 2. set transcript → 3. synthesize ⌘V via
@@ -121,7 +129,7 @@ so the app is fully offline after activation. Pre-launch builds use
 
 | Metric | Value |
 |---|---|
-| Transcription speed (hinglish-swift, 72 M) | **39× realtime** |
+| Transcription speed (hinglish-swift, 72 M) | **39× realtime** — a *throughput* number; short-dictation latency is what users feel, see PERFORMANCE.md |
 | Post-release latency, 15 s utterance | **~0.4 s** |
 | Model load (one-time, incl. Metal JIT) | 7.7 s |
 | App bundle size | 2.6 MB (+ model files) |

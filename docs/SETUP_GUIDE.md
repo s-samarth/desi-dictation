@@ -56,14 +56,16 @@ All models are **free** during the beta:
 |---|---|---|
 | ⭐ **Hinglish Apex** | Hinglish — "kal meeting hai, deck ready rakhna" | 547 MB |
 | Hinglish Swift | Hinglish on older/8GB Macs (faster, lighter) | 141 MB |
-| ⭐ **Whisper Large v3 Turbo** | English and/or शुद्ध हिन्दी (Devanagari) | 574 MB |
-| Whisper Base | light English/Hindi fallback | 148 MB |
+| ⭐ **Parakeet** | English — the fastest and most accurate English option | 416 MB |
+| Whisper Large v3 Turbo | English fallback / older Macs | 574 MB |
+| ⭐ **Vaani Hindi** | शुद्ध हिन्दी (Devanagari) | 1.06 GB |
 | ⭐ **Silero VAD** | everyone — massively better pauses & long dictations | 1 MB |
 
 Downloads are SHA256-verified — a corrupted or tampered file is refused automatically.
 
-Leave **Model: Auto** — the app picks the best installed model for whichever
-language mode you're in.
+Leave **Model: Auto** — each language remembers its own model, and the app
+loads the right one when you switch languages. To pin a specific file per
+language: **Settings → Models → Default model per language**.
 
 ## 4. Dictate
 

@@ -36,6 +36,13 @@ def mode_for(model_name: str, suite: str) -> str:
     return {"hindi": "hindi", "english": "english", "hinglish": "hindi"}[suite]
 
 
+def serves(model_name: str, suite: str) -> bool:
+    """Parakeet is English-only for us (no Devanagari, no Roman-Hinglish), so
+    scoring it on the Hindi/Hinglish suites would just log noise.
+    Mirrors ModelManager.score()."""
+    return "parakeet" not in model_name or suite == "english"
+
+
 def installed_models() -> list[Path]:
     return sorted(p for p in MODELS_DIR.glob("ggml-*.bin")
                   if "silero" not in p.name)
@@ -57,6 +64,8 @@ def run_batch(model: Path, suite_dir: Path, mode: str) -> dict[str, dict]:
 
 
 def evaluate(model: Path, suite: str) -> dict | None:
+    if not serves(model.name, suite):
+        return None
     suite_dir = DATA_DIR / suite
     manifest_file = suite_dir / "manifest.jsonl"
     if not manifest_file.exists():

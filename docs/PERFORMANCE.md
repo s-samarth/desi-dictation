@@ -12,64 +12,97 @@ keypress ──► mic capture ──► release ──► encode+decode ──�
    (warm mic)                             (model-dependent)
 ```
 
-## Measured (M3, release build, 23 s Hinglish clip)
+## Measured
+
+**Realtime-factor is the wrong headline number** and cost us a slow release:
+whisper encodes a padded 30 s window per call, so RTF looks great on a long clip
+while every short dictation pays a fixed ~1.5 s (M3) / ~3 s (M1 Air). Latency is
+now measured directly and gated (`scripts/latency_gate.sh`).
+
+**Per call, model resident, short clip (M3 Air, 2026-08-19):**
+
+| Language | Model | Per call |
+|---|---|---|
+| English | **Parakeet TDT 0.6B v3 q4_k** (416 MB) | **0.21 s** |
+| Hinglish | Apex q5_0 (574 MB) | 1.47 s |
+| हिन्दी | Vaani q5_0 (1.06 GB) | 3.55 s ← slowest path we ship |
+| (English, previous default) | large-v3-turbo q5_0 | 1.94 s |
+
+**Throughput, for reference (M3, 23 s Hinglish clip):**
 
 | Configuration | Speed | Notes |
 |---|---|---|
-| Apex q5_0, VAD on | **13–15× realtime** | shipping default |
+| Apex q5_0, VAD on | **13–15× realtime** | shipping default for Hinglish |
 | Apex q5_0, VAD off | 14× realtime | VAD costs ~nothing, kills silence hallucination |
 | Apex **q8_0** | 10× realtime | **slower than q5_0 on Metal** — bench before assuming bigger-quant-is-faster; q8 deleted |
 | Swift (72 M) | 30–40× realtime | free-tier / low-power option |
-| Model cold load | ~8 s once | Metal shader JIT; model kept resident |
+| Model cold load | 0.15–0.76 s (by size) | model kept resident; first-ever load also pays Metal shader JIT |
 
-## Applied optimizations (v0.4)
+## Applied optimizations (v0.4 → v0.6.1)
 
 1. **Warm mic + 0.3 s pre-roll ring** — mic runs while dictation is enabled;
    keypress starts a session instantly and *includes the 0.3 s before it*.
    Fixes "first words lost" (mic spin-up is 200–500 ms) and most short-utterance
    misses. Off-switch in Options ("Instant mic") for privacy-conscious users.
    Self-heals on audio-device changes (AVAudioEngineConfigurationChange → rebuild).
-2. **Chunked incremental transcription** — every ~12 s of speech (cut at quiet
-   moments, forced at 20 s) is transcribed in the background *while you keep
-   talking*; on release only the tail is pending. Perceived latency for long
-   dictations: ~length-independent ≈1–2 s. (`no_context=true` makes chunks
-   independent, so joining is safe.) This is the same class of trick that makes
-   competitors feel "instant".
+2. **Chunked incremental transcription, above 30 s only** (thresholds corrected
+   2026-08 — PERF_RCA_2026-08.md RC2). Long dictations cut at quiet moments
+   every ≥25 s (forced at 35 s) and transcribe in the background while you keep
+   talking. Below 30 s of speech nothing is chunked: a chunk call costs a full
+   padded window, so the old 12 s cut charged ordinary dictations for extra
+   full-price calls and made the tail queue behind a chunk still decoding.
+   (`no_context=true` makes chunks independent, so joining is safe.)
 3. **Silero VAD** — trims silence pre-decode (quality + speed on pause-heavy audio).
 4. **`no_context = true`** — stops cross-window error cascades in long form.
 5. **Model residency + preload** — load once per enable/mode-switch, never per
-   dictation.
+   dictation. Preload also fires when a **per-app rule** changes the language,
+   so a model swap never lands inside the transcribing phase.
 6. **Greedy decoding** — beam search buys little for dictation, costs 2–3×.
 7. **q5_0 quantization** — benched, not assumed (see table).
 8. **Serial engine queue** — no locks, no races, chunk jobs naturally ordered.
+9. **Parakeet TDT for English** (v0.6.1) — a second engine, chosen by model file
+   (`EngineRouter`). No 30 s padding: 0.21 s vs 1.94 s per call at
+   equal-or-better accuracy on Indian-accented English (MODEL_RESEARCH.md §E).
+10. **Flash attention ON** (v0.6.1) — FM#12's NaN issue did not reproduce on 18
+    clips across apex/turbo/vaani q5_0; ~11 % less encode time. Kill switch in
+    Options for bisecting a future upstream regression.
+11. **Per-dictation timings** (v0.6.1) — `DictationTimings` records speech
+    seconds, engine calls, engine time and release→paste, shows the last one in
+    the Dictation pane, and logs it at `.notice` so `log show` can reconstruct a
+    complaint after the fact.
 
 ## Deferred — documented so they're one decision away (ranked by value)
 
 1. **CoreML/ANE encoder** (~3× encoder speedup, better battery — the single
-   biggest remaining lever; it's how MacWhisper feels fast on turbo).
+   biggest remaining lever). Now matters most for **हिन्दी and Hinglish**:
+   English left the whisper path entirely, and Vaani at 3.55 s/call is the
+   slowest thing we ship.
    Blockers: needs `WHISPER_COREML=ON` rebuild + generating the CoreML encoder
    (`models/generate-coreml-model.sh`, Python coremltools) + `.mlmodelc`
    compilation which normally needs Xcode — workaround: compile at first run
    in-app via `MLModel.compileModel(at:)`. Effort: ~1–2 days. Do before v1.0.
-2. **Parakeet V3 for English mode** — 2026's best local English model (~6.3 %
-   WER, ~10× Whisper speed, silence-proof). whisper.cpp in our build already
-   ships Parakeet support (`parakeet-quantize` exists). Needs: GGML Parakeet
-   weights + a runner path in `WhisperCppEngine` (API differs slightly).
-   Also answers "English quality still meh" — turbo is the stock ceiling.
-3. **flash_attn retest** — disabled due to NaN with quantized models on Metal
-   (FM #12). Upstream fixes land regularly; retest on each whisper.cpp bump
-   (worth ~20–30 % decode speed).
-4. **whisper.cpp version pin + scheduled bumps** — currently `--depth 1` HEAD
+2. **A lighter हिन्दी model** — Vaani is a 1.06 GB large-v3 and now the worst
+   latency we ship. Either an ANE encoder (above) or a distilled/quantized Hindi
+   fine-tune; Parakeet cannot help (no Hindi, no Devanagari).
+3. **whisper.cpp version pin + scheduled bumps** — currently `--depth 1` HEAD
    at clone time; pin a commit, bump deliberately with the regression suite.
-5. **Streaming partial text in the overlay** — cosmetic "words appear live";
+   Now doubly relevant: Parakeet support lives in that same tree.
+4. **Streaming partial text in the overlay** — cosmetic "words appear live";
    real work, do after PMF.
-6. **Distil/turbo-class Hinglish fine-tune** — would need training our own
+5. **Distil/turbo-class Hinglish fine-tune** — would need training our own
    model on Hinglish data (Oriserve's Apex is large-v3-turbo-class already);
    revisit if Apex latency is the top complaint after ANE.
 
 ## Regression guard
 
-Any engine/model change must re-run:
+`./scripts/preflight.sh` step 5 runs `scripts/latency_gate.sh`: a **short** clip
+per language, through the app's own engine path, with the model resident —
+release→paste must stay inside the per-language budget (English 0.75 s,
+Hinglish 2.0 s, हिन्दी 4.0 s on an M3 Air; halve the machine, roughly double the
+number). Budgets get tightened as the engine improves and are never loosened to
+turn a red gate green.
+
+Throughput still matters for long dictations, so also re-run:
 ```bash
 app/.build/release/desi-cli models/ggml-hinglish-apex-q5_0.bin spike/audio/test-long.wav hinglish --repeat
 ```

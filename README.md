@@ -10,7 +10,9 @@ Built as a MacWhisper-class product tuned for Indian code-mixed speech, powered 
 models (Apache 2.0) on [whisper.cpp](https://github.com/ggml-org/whisper.cpp).
 
 **Verified on this machine:** Hindi speech → `"Meeting hai please presentation
-taiyaar rakhana. Bahut zaroori kaam hai time par aana."` at **39× realtime** (M3).
+taiyaar rakhana. Bahut zaroori kaam hai time par aana."` — Hinglish lands in
+~1.5 s, English in ~0.2 s (M3 Air, short dictation, model resident; the numbers
+users feel are in [docs/PERFORMANCE.md](docs/PERFORMANCE.md)).
 
 ## Quickstart
 
@@ -71,7 +73,7 @@ pasteboard-swap ⌘V insertion → non-activating overlay for state. SwiftUI
 
 ## Status
 
-**v0.5.1 — free beta.** Feature-complete for the dictation wedge: first-launch
+**v0.6.1 — free beta.** Feature-complete for the dictation wedge: first-launch
 onboarding, 4 curated models (Apex/Turbo/Vaani + VAD) with per-mode auto-selection,
 VAD pause handling, chunked transcription while you speak, 24h local history,
 replacement dictionary, in-app feedback, launch-at-login. Grab the DMG from

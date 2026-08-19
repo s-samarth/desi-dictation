@@ -12,10 +12,11 @@ What exists, how well it works, and where it's going. Update this every release.
 | Toggle mode (tap start/stop) | ✅ shipped | live-switchable |
 | Esc to cancel | ✅ shipped | |
 | Hinglish (Roman) output | ✅ shipped | Apex model — the differentiator |
-| English / हिन्दी modes | ✅ shipped | Large-v3-Turbo |
-| Auto model-per-language | ✅ shipped | manual pin optional |
+| English / हिन्दी modes | ✅ shipped | **English runs on Parakeet TDT** (0.21 s/call, 4.3 % nWER on Indian English — [research §E](MODEL_RESEARCH.md)); हिन्दी on Vaani |
+| **Default model per language** | ✅ built 2026-08-19 | pick a language, the right model loads itself; pickers hide models that can't serve it ([impl](features/implementation/MODEL_ROUTING.md)) |
 | In-app model downloads + ⭐ recommendations | ✅ shipped | models not bundled (size) |
 | Silence/pause robustness (VAD) | ✅ shipped | Silero VAD, 1 MB add-on |
+| **Per-dictation timings** | ✅ built 2026-08-19 | "Last: 1.2 s speech · 0.30 s to paste · 1 call" in the Dictation pane + system log ([RCA](PERF_RCA_2026-08.md)) |
 | Long-dictation quality | ✅ fixed v0.3 | `no_context` + VAD |
 | Error recovery without relaunch | ✅ fixed v0.2.1 | all errors transient |
 | Transcript always recoverable | ✅ shipped | clipboard + 24 h history + Copy Last |
