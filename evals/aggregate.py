@@ -30,11 +30,14 @@ def main() -> None:
         commit = data["meta"].get("git_commit", "?")
         label = f"{stamp} ({commit})"
         stamps.append(label)
+        metrics = data["meta"].get("metrics", 1)
         for r in data["results"]:
             # Tiers aren't comparable with each other (different clips), nor
-            # with pre-2026-09 reports (a different, US-English suite — FM#24).
+            # with pre-2026-09 reports (a different, US-English suite — FM#24),
+            # nor across metric versions (v2 re-normalized crWER/nWER — FM#25).
             tier = r.get("tier", "legacy")
-            grid[(r["suite"], f"{r['model']} [{tier}]")][label] = (r["crwer"], r["rtf"])
+            key = (r["suite"], f"{r['model']} [{tier}, metrics v{metrics}]")
+            grid[key][label] = (r["crwer"], r["rtf"])
 
     lines = ["# Eval trends — crWER (lower is better), RTF in parens", ""]
     header = "| suite | model | " + " | ".join(stamps) + " |"

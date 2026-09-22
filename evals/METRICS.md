@@ -63,11 +63,26 @@ decide "extend VARIANTS map" vs "consider fine-tuning" (FINETUNING.md Part 3).
 
 ## 3. nWER — normalized WER
 
-**What:** WER after lowercasing both texts and stripping punctuation.
+**What:** WER after lowercasing both texts, stripping punctuation, and writing
+numbers one way (`evals/numbers_en.py`): spoken and written forms of the same
+number are equal — `Rs. 400` = `rupees four hundred`, `15,000` = `fifteen
+thousand`, `1999` = `nineteen ninety nine`, `2nd` = `second`, `70s` =
+`seventies`, and an account number read digit by digit (`six eight four
+four…`, `double nine`) = the digits. Lakh/crore scales and Indian grouping
+(`4,00,000`) follow the app's own number handling.
 
 **Why:** dictation users don't care about `Kal,` vs `kal` — normalization
 removes exactly the noise class that inflated turbo's English WER to 24.6%.
-This is standard practice (Whisper's own paper evaluates with a normalizer).
+This is standard practice (Whisper's own paper evaluates with a normalizer,
+numbers included). Before numbers were normalized, ref `transfer Rs. 400 to my
+6844663153262` vs hyp `transfer rupees four hundred to my six eight four four…`
+cost 16 errors for a perfect transcript; formatting was ~38 % of all word
+errors in the english clips that contain digits.
+
+**Deliberate edges:** 3+ single digits in a row join (`two three` stays `2 3`,
+`one two three` = `123`); `eighteen`/`nineteen`/`twenty` + 10–99 reads as a
+year (`eleven thirty` stays a time). Hindi number words (`unnis sau nabbe`) are
+not converted.
 
 **What it still can't fix:** cross-script comparison (`प्लीज` vs `please`) and
 Hinglish spelling variance (`kyaa` vs `kya`). For those we need…
@@ -78,12 +93,24 @@ Hinglish spelling variance (`kyaa` vs `kya`). For those we need…
 
 **What:** both reference and hypothesis are mapped into ONE canonical Roman
 form, then WER is computed there. The mapping (evals/metrics.py):
-1. Any Devanagari → Roman via ITRANS transliteration (`प्लीज` → `pleej`-ish
-   deterministic form)
-2. lowercase, strip punctuation
-3. collapse long vowels: `kyaa`→`kya`, `jaldii`→`jaldi`
-4. apply the known-variants map (`nahin`→`nahi`, `mein`→`me`, …) — the same
-   map the app's own normalization uses
+1. Devanagari → Roman **the way Hinglish is written** (`evals/devanagari.py`):
+   the inherent vowel is dropped where Hindi drops it (एक → `ek`, वजह →
+   `vajah`, निकलने → `nikalne`, समझता → `samajhta`; ना/ता keep their written
+   ā), nasal marks become `n`/`m` before a consonant (पाँच → `panch`, संभव →
+   `sambhav`) and vanish word-finally (में → `me`, हैं → `hai`), ज्ञ → `gy`,
+   ज़ → `z`, ड़ → `d`
+2. nWER's normalization (case, punctuation, numbers)
+3. drop the y-glide (`liye` = लिए), `chh` → `ch`, collapse long vowels
+   (`kyaa`→`kya`, `jaldii`→`jaldi`)
+4. drop word-final nasalization on the Roman side too (`yahan`, `hun`,
+   `logon`, `hamein`), then the known-variants map (`nahin`→`nahi`, `mein`→`me`,
+   …) — the same map the app's own normalization uses
+
+Until 2026-09-23 step 1 was ITRANS, which spells what is *written*: में →
+`mem`, वजह → `vajaha`, एक → `eka`, हालाँकि → `hala nki`. Every correct Roman
+word of that kind scored as an error — hinglish crWER roughly **halved** when
+it was replaced (evals/README.md has the before/after). Numbers from before
+then (metrics v1) are not comparable with later ones.
 
 **Worked example (the case every other metric fails):**
 ```
@@ -99,9 +126,14 @@ the Indic ASR literature; Sarvam's public argument that plain WER is unfit for
 Indic evaluation is the same point.
 
 **Its honest limitations (know them):**
-- ITRANS transliteration is deterministic but crude; rare words can collapse
-  to different forms on each side → small residual false errors. crWER ~2–4%
-  is effectively "perfect."
+- Romanization is rule-based: compounds (घोषणापत्र) and loanwords written in
+  Devanagari (फिल्म → `philm` vs `film`) still differ, as do `w`/`v`
+  (`wala`/वाला) and `j`/`z` — merging those would also merge English
+  `west`/`vest`. Spellings that keep a medial vowel Hindi drops (Apex's
+  `niklane`, `dekhane` for निकलने, देखने) stay errors on purpose: forgiving
+  them would also forgive मिलना vs मिलाना (meet vs mix — different words).
+- Word-final nasalization is ignored on both sides, so है = हैं and
+  करे = करें (as VARIANTS already had hain = hai). nWER still separates them.
 - The VARIANTS map is curated by us; an unmapped variant still counts as an
   error. (That's fine — the map is versioned with the product, and growing it
   improves the app AND the metric together.)

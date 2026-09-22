@@ -100,8 +100,8 @@ spike/README.md and drop them into `evals/data/personal/` with a
 |---|---|---|
 | **WER** | verbatim word errors | punishes valid Hinglish spellings (nahi/nahin), punctuation, script choice |
 | **CER** | character errors | fairer for Devanagari conjuncts; still script-bound |
-| **nWER** | WER after case/punct normalization | removes formatting noise only |
-| **crWER** ⭐ | both sides mapped to one **collapsed Roman** form: Devanagari→ITRANS, long vowels collapsed (kyaa=kya), known variant map (nahin=nahi) | **primary metric** — the only fair way to score a Roman-Hinglish hypothesis against a Devanagari reference, and robust to Hinglish orthography variance |
+| **nWER** | WER after case/punct normalization + numbers written one way (`Rs. 400` = "rupees four hundred") | removes formatting noise only |
+| **crWER** ⭐ | both sides mapped to one **collapsed Roman** form: Devanagari romanized as Hinglish is written (schwa deletion, nasals), long vowels collapsed (kyaa=kya), known variant map (nahin=nahi) | **primary metric** — the only fair way to score a Roman-Hinglish hypothesis against a Devanagari reference, and robust to Hinglish orthography variance |
 | RTF | × realtime speed | — |
 
 crWER is our implementation of "script-unified WER" (what Indic ASR literature
@@ -110,13 +110,30 @@ the same argument). Judgment calls (vowel collapse, variant map) are in
 `metrics.py` — extend `spike/normalize.py`'s VARIANTS as new spellings appear.
 Future: LLM-judged semantic accuracy (heavier; post-launch).
 
-**crWER overstates errors (known, 2026-09-22) — compare models with it, don't
-quote it as accuracy.** ITRANS keeps the inherent vowel and the nasal mark, so
-a correct Roman hypothesis still misses: में→`mem` vs "mein"→`me`, वजह→`vajaha`
-vs "vajah", एक→`eka` vs "ek". Apex's near-perfect "Television reports mein plant
-se niklane vaala white smoke dikhaaya gaya hai" scores 17 %. Fixing it (schwa
-deletion, anusvara handling in `collapse_roman`) is the next metrics change; it
-will shift every hindi/hinglish number, so re-baseline when it lands.
+**Metrics v2 (2026-09-23) — earlier crWER/nWER numbers are not comparable.**
+crWER used to romanize Devanagari with ITRANS, which spells what is *written*:
+में→`mem` vs "mein"→`me`, वजह→`vajaha` vs "vajah", एक→`eka` vs "ek" — so a
+correct Roman hypothesis still scored as wrong (FM#25). `devanagari.py` now
+spells it the way it is said (Hindi schwa deletion, nasals by position), and
+`numbers_en.py` gives nWER one written form per number. Same transcripts,
+scored both ways (desi-cli runs of 2026-09-23 on commit e90a7be):
+
+| suite × model | tier | nWER v1 → v2 | crWER v1 → v2 |
+|---|---|---|---|
+| hinglish × apex | quick (23) | 87.1 % → 86.8 % | **58.8 % → 29.0 %** |
+| hindi × vaani | quick (23) | 26.7 % → 26.7 % | 26.3 % → 24.0 % |
+| english × parakeet | quick (55) | 15.1 % → 14.9 % | 15.1 % → 14.9 % |
+| english × parakeet | full (278) | **15.1 % → 14.3 %** | 15.0 % → 14.2 % |
+
+On the english full tier, number formatting was 55 of the 144 word errors in
+clips containing digits (996 → 941 errors overall); what's left there is
+mishearing. Apex's "…reports mein plant se niklane vaala…" now scores 1 error
+in 11 (its own "niklane" spelling of निकलने), not 17 %. Hindi moves because
+final nasalization is now ignored on both sides (है = हैं), as VARIANTS already
+did for hain = hai — nWER still separates them. What the rules deliberately
+don't forgive, and why, is in METRICS.md §3–4; `uv run test_metrics.py` checks
+the examples. Reports carry `meta.metrics` and `aggregate.py` keeps v1 and v2
+in separate rows.
 
 ## Report format
 

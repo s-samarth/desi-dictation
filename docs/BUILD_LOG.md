@@ -545,3 +545,28 @@ pyarrow read over HfFileSystem pulled 2.25 GB to read four text columns —
 suite's core (80 clips across 19 native languages + long stretches).
 **Lesson:** a silent fallback in a *measurement* pipeline is a mislabelled
 result. Record provenance per sample, and fail loudly instead of substituting.
+
+### Failure mode #25 — crWER scored correct Roman Hinglish as wrong
+
+**Symptom:** Apex's near-perfect "Television reports mein plant se niklane
+vaala white smoke dikhaaya gaya hai" scored 17 % crWER; the hinglish suite sat
+at ~59 % crWER while the transcripts read fine. English nWER counted
+"rupees four hundred" vs "Rs. 400" as three errors, and a 13-digit account
+number read digit by digit as thirteen.
+**Cause:** crWER romanized Devanagari with ITRANS, which spells what is
+*written* — the inherent vowel and the nasal mark: में → `mem`, वजह →
+`vajaha`, एक → `eka`, हालाँकि → `hala nki` (the chandrabindu became `.N` and the
+punctuation strip split the word). Hinglish writers spell what is *said*. By
+the time ITRANS output is a string, an inherent 'a' can't be told from a
+written ā, so it can't be fixed afterwards. nWER had no number handling.
+**Fix:** `evals/devanagari.py` romanizes from the akshara structure — Hindi
+schwa deletion (final + medial, right to left), homorganic/dropped nasals,
+Hinglish letter choices; `evals/numbers_en.py` writes numbers one way on both
+sides. Checks in `evals/test_metrics.py`. Same Apex/Vaani/Parakeet
+transcripts re-scored: hinglish crWER 58.8 → ~29 %, english nWER 15.1 → 14.3 %
+(evals/README.md). Reports now record `meta.metrics` (v2) and `aggregate.py`
+keeps versions in separate rows.
+**Lesson:** a normalizer for a *spoken* metric must model pronunciation, not
+orthography — and check a metric against a hand-verified "this is correct"
+pair before trusting its numbers. Keep rules that forgive spelling from also
+forgiving different words (मिलना vs मिलाना is why medial vowels aren't ignored).

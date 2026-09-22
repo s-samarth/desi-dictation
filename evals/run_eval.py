@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import report
+from metrics import VERSION as METRICS_VERSION
 
 ROOT = Path(__file__).parent.parent
 DATA_DIR = Path(__file__).parent / "data"
@@ -174,7 +175,8 @@ def main() -> None:
 
     meta = {"timestamp": datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S"),
             "git_commit": git_commit(), "machine": platform.machine(),
-            "tier": args.tier, "engine": "desi-cli (EngineRouter)"}
+            "tier": args.tier, "engine": "desi-cli (EngineRouter)",
+            "metrics": METRICS_VERSION}
     print(f"\nReport: {report.write(rows, meta, REPORTS_DIR)}")
 
 
