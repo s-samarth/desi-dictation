@@ -97,6 +97,11 @@ being reloaded — check nothing else is deleting/touching the model file.
   produce Roman Hinglish no matter the mode.
 - Spelling variants annoying you (`nahin` vs `nahi`)? Settings → Text →
   Replacements — one `find=replace` per line.
+- **हिन्दी comes out as English, or nothing, in one app only?** A per-app rule
+  is overriding your language: the overlay badge says e.g. "English · Claude
+  rule" in orange. Remove it in Settings → General (per-app modes), or via menu
+  → For <App> → Follow global setting. English mode runs Parakeet, which cannot
+  write Devanagari at all.
 
 ## 6. Transcripts cut off / miss the first word
 

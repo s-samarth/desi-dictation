@@ -29,6 +29,9 @@ public final class DictationController: ObservableObject {
     @Published public private(set) var lastTranscript: String = ""
     /// Stage timings for the last dictation (PERF_RCA_2026-08.md).
     @Published public private(set) var lastTimings: DictationTimings?
+    /// Language of the session in progress — the overlay shows it, so a
+    /// per-app rule overriding the global language is visible.
+    @Published public private(set) var sessionLanguage: SessionLanguage?
 
     /// Engine-call accounting for the session in progress. Touched on the
     /// workQueue and on main between sessions — never concurrently.
@@ -110,13 +113,14 @@ public final class DictationController: ObservableObject {
     /// Language for the NEXT dictation: a per-app rule for the app the user is
     /// in wins over the global setting (IDEAS #4 — zero mode-switches a day).
     /// With AI features switched off, LLM modes degrade to plain Hinglish.
-    private func effectiveMode() -> LanguageMode {
-        var mode = settings.languageMode
-        if settings.perAppModes, let ruled = AppModeStore.shared.modeForCurrentTarget() {
-            mode = ruled
-        }
-        if mode.needsLLM, !settings.aiFeaturesEnabled { return .hinglish }
-        return mode
+    private func effectiveMode() -> LanguageMode { effectiveLanguage().mode }
+
+    private func effectiveLanguage() -> SessionLanguage {
+        let store = AppModeStore.shared
+        let rule = settings.perAppModes ? store.modeForCurrentTarget() : nil
+        return SessionLanguage.resolve(
+            global: settings.languageMode, rule: rule,
+            ruleApp: store.currentTarget?.appName, aiEnabled: settings.aiFeaturesEnabled)
     }
 
     /// Mode captured at session start — per-app rules must not flip mid-session
@@ -319,7 +323,8 @@ public final class DictationController: ObservableObject {
         default: return
         }
         errorResetTask?.cancel()
-        let mode = effectiveMode()
+        let language = effectiveLanguage()
+        let mode = language.mode
         guard let modelPath = resolvedModelPath(for: mode) else {
             transientError("No model for this mode — open Models to download one")
             return
@@ -330,6 +335,7 @@ public final class DictationController: ObservableObject {
             if settings.micWarm, !wasWarm { try? audio.warmUp() }
             try audio.beginSession()
             sessionMode = mode
+            sessionLanguage = language
             phase = .recording
             if wasWarm { Sounds.start.play() }   // cold path: onFirstAudio plays it
             startChunkTicker(modelPath: modelPath, mode: mode)

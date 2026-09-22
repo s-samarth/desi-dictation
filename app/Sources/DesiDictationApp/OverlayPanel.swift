@@ -39,7 +39,7 @@ final class OverlayCoordinator {
 
     private func makePanel() -> NSPanel {
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 260, height: 48),
+            contentRect: NSRect(x: 0, y: 0, width: OverlayView.width, height: 48),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered, defer: false)
         panel.level = .statusBar
@@ -83,6 +83,7 @@ struct OverlayView: View {
                 // recording won't paste (it opens the review window instead).
                 Text(controller.thinkingSessionArmed ? "🧠 Thinking — take your time" : "Listening")
                     .font(.system(size: 13, weight: .semibold))
+                languageBadge
                 Text("esc to cancel")
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
@@ -90,6 +91,7 @@ struct OverlayView: View {
                 ProgressView().controlSize(.small)
                 Text("Transcribing")
                     .font(.system(size: 13, weight: .semibold))
+                languageBadge
             case .translating:
                 // Second pipeline stage shown honestly (TRANSCRIBE_TRANSLATE.md
                 // §3.4): the extra wait is a visible step, not a mystery.
@@ -117,6 +119,35 @@ struct OverlayView: View {
                 .fill(.ultraThinMaterial)
                 .overlay(Capsule().strokeBorder(.white.opacity(0.12), lineWidth: 0.5))
         )
-        .frame(width: 260, height: 48)
+        .fixedSize()   // capsule hugs its content; the clear panel is wider
+        .frame(width: Self.width, height: 48)
+    }
+
+    /// Room for the longest row: "Listening · English · WhatsApp rule · esc…".
+    static let width: CGFloat = 420
+
+    /// Which language this dictation is in. Orange + the app's name when a
+    /// per-app rule overrode the global language, so the switch is never silent.
+    @ViewBuilder private var languageBadge: some View {
+        if let language = controller.sessionLanguage {
+            let text = language.ruleApp.map { "\(Self.shortName(language.mode)) · \($0) rule" }
+                ?? Self.shortName(language.mode)
+            Text(text)
+                .font(.system(size: 11, weight: .medium))
+                .lineLimit(1)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(language.ruleApp == nil
+                    ? Color.secondary.opacity(0.18) : Color.orange.opacity(0.35)))
+        }
+    }
+
+    private static func shortName(_ mode: LanguageMode) -> String {
+        switch mode {
+        case .english: return "English"
+        case .hinglish: return "Hinglish"
+        case .hindi: return "हिन्दी"
+        case .anyToEnglish: return "→ English"
+        }
     }
 }

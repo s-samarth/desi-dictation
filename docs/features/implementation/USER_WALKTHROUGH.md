@@ -53,8 +53,12 @@ Desi Dictation, re-add, relaunch.
 - **Flow:** in WhatsApp: For WhatsApp → Hinglish. In Mail: For Mail →
   English — from any language. Dictation now switches by target app.
 - **Why:** kills the 5×/day manual language toggle.
-- **Friction:** the auto-switch is silent — the overlay doesn't say which
-  language a rule picked; review lives in Settings → General.
+- **Seeing it (v0.6.2):** the overlay shows the language beside "Listening" /
+  "Transcribing". When a rule overrides your global language the badge turns
+  orange and names the app, e.g. **"English · Claude rule"**. Before this the
+  switch was silent: a forgotten Claude → English rule made हिन्दी dictation
+  in Claude come out as English or nothing, with no hint why.
+- **Friction:** review and removal still live in Settings → General.
 
 ## 3 · "English — from any language ✨" — the flagship (needs AI setup)
 

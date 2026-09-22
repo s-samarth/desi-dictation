@@ -79,4 +79,20 @@ func runModelRoutingTests() {
     T.expect(hindi.every >= 8 * 16000, "हिन्दी chunks still worth their call")
     T.expect(DictationController.chunkThresholds(for: .hinglish).floor
              == DictationController.chunkFloorSamples, "other modes keep the 30 s floor")
+
+    T.begin("Session language — per-app rules are never silent")
+    let viaRule = SessionLanguage.resolve(global: .hindi, rule: .english,
+                                          ruleApp: "Claude", aiEnabled: false)
+    T.equal(viaRule, SessionLanguage(mode: .english, ruleApp: "Claude"),
+            "a rule that overrides names its app")
+    T.equal(SessionLanguage.resolve(global: .hindi, rule: nil, ruleApp: "Claude",
+                                    aiEnabled: false).ruleApp, nil,
+            "no rule → global, no app named")
+    T.equal(SessionLanguage.resolve(global: .hindi, rule: .hindi, ruleApp: "Notes",
+                                    aiEnabled: false).ruleApp, nil,
+            "a rule agreeing with global isn't flagged")
+    T.equal(SessionLanguage.resolve(global: .hindi, rule: .anyToEnglish, ruleApp: "Mail",
+                                    aiEnabled: false),
+            SessionLanguage(mode: .hinglish, ruleApp: "Mail"),
+            "AI mode without AI falls back to Hinglish, still flagged")
 }

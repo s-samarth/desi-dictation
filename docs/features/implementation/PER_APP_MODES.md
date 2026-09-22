@@ -29,7 +29,13 @@ otherwise                                        → settings.languageMode
 ```
 
 Called at `startRecording`; the result is stored in `sessionMode` so a rule
-can't flip mid-session if the user switches apps while speaking. `sessionMode`
+can't flip mid-session if the user switches apps while speaking. The pure core
+is `SessionLanguage.resolve` (tested in `ModelRoutingTests`), which also
+reports *which app's rule* chose the language, only when the rule differs from
+the global setting. The controller publishes it as `sessionLanguage`, and the
+overlay shows it as a badge, orange + "· <App> rule" when overridden (v0.6.2).
+A silent override had made a forgotten Claude → English rule look like broken
+हिन्दी transcription (Parakeet cannot emit Devanagari). `sessionMode`
 drives the chunk ticker, the final transcription, model resolution, and the
 history entry. Model preload (`modelChanged`/`preloadModelIfNeeded`) also uses
 `effectiveMode()` so the *next* dictation's model is the warm one.

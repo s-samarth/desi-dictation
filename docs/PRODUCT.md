@@ -23,7 +23,7 @@ What exists, how well it works, and where it's going. Update this every release.
 | Transcript always recoverable | ✅ shipped | clipboard + 24 h history + Copy Last |
 | Replacement dictionary | ✅ shipped | user-enforced Hinglish spellings |
 | **Personal dictionary ("always write it as…")** | ✅ built 2026-07-10 | word-boundary + casing-aware; add from History right-click ([impl](features/implementation/PERSONAL_DICTIONARY.md)) |
-| **Per-app language modes** | ✅ built 2026-07-10 | WhatsApp→Hinglish, Mail→English, zero switching ([impl](features/implementation/PER_APP_MODES.md)) |
+| **Per-app language modes** | ✅ built 2026-07-10 | WhatsApp→Hinglish, Mail→English, zero switching; the overlay names the rule when one overrides (v0.6.2) ([impl](features/implementation/PER_APP_MODES.md)) |
 | **"English — from any language ✨" mode** | ✅ built 2026-07-10 | speak Hinglish → paste polished English; falls back to raw words ([impl](features/implementation/SPEAK_DESI_WRITE_ENGLISH.md)) |
 | **Translate on Demand (edit → translate)** | ✅ built 2026-07-10 | last-dictation window, → English / हिन्दी ([impl](features/implementation/TRANSLATE_ON_DEMAND.md)) |
 | **Structure my thoughts (beta)** | ✅ built 2026-07-10 | ramble → Notes/Actions/Email/Outline review window ([impl](features/implementation/STRUCTURE_THOUGHTS_IMPL.md)) |
