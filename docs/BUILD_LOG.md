@@ -518,3 +518,27 @@ to the newest installed macOS 26 SDK. No-op with Xcode (CI) or an explicit
 `SDKROOT`. The deployment target is unchanged (macOS 14), so the app still runs
 on macOS 14 → 27. **Lesson:** a CLT update can change the default SDK under
 you — probe by compiling, don't sniff files.
+
+### Failure mode #24 — the "Indian English" eval suite was US English
+
+**Symptom:** found 2026-09-22 while benchmarking Parakeet Redux: the `english`
+suite's first clip is a FLEURS sentence read by a US speaker. Four docs, two
+code comments and the English engine decision all cited "Svarah, Indian-accented
+English".
+**Cause:** Svarah is gated; the HF account was never on its access list (the
+cache only ever held its README; data files return 403). `download_data.py`
+caught the error, printed a one-line fallback notice, and wrote **FLEURS
+en_us** into `data/english/` — the manifest carried no source, so nothing
+downstream could tell. The same account is also not approved for Lahaja,
+IndicVoices or Kathbath.
+**Fix:** the eval set was rebuilt from open sources with real Indian voices
+(SD-QA ind_n/ind_s, SVQ, NPTEL, EdAcc Indian English, IndicVoices re-cut —
+evals/README.md). Every clip records its `source` (and speaker, region, length
+bucket) in the manifest; reports break results down by source, so a fallback is
+visible in every table, and a failing source aborts loudly (exit 1) instead of
+being substituted. Docs corrected in place. While rebuilding: MUCS 2021
+Hinglish was rejected (segment audio misaligned with transcripts), and a naive
+pyarrow read over HfFileSystem pulled 2.25 GB to read four text columns —
+`hf_parquet.py` reads exact byte ranges instead.
+**Lesson:** a silent fallback in a *measurement* pipeline is a mislabelled
+result. Record provenance per sample, and fail loudly instead of substituting.

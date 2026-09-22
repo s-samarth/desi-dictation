@@ -31,7 +31,10 @@ def main() -> None:
         label = f"{stamp} ({commit})"
         stamps.append(label)
         for r in data["results"]:
-            grid[(r["suite"], r["model"])][label] = (r["crwer"], r["rtf"])
+            # Tiers aren't comparable with each other (different clips), nor
+            # with pre-2026-09 reports (a different, US-English suite — FM#24).
+            tier = r.get("tier", "legacy")
+            grid[(r["suite"], f"{r['model']} [{tier}]")][label] = (r["crwer"], r["rtf"])
 
     lines = ["# Eval trends — crWER (lower is better), RTF in parens", ""]
     header = "| suite | model | " + " | ".join(stamps) + " |"
