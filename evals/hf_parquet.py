@@ -23,15 +23,21 @@ import numpy as np
 import pyarrow.parquet as pq
 import requests
 import soundfile as sf
+from huggingface_hub import get_token
 
 HF = "https://huggingface.co"
 _local = threading.local()
 
 
 def _session() -> requests.Session:
-    """One session per thread — requests.Session isn't thread-safe."""
+    """One session per thread — requests.Session isn't thread-safe. Carries
+    your `hf auth login` token (needed for gated sets like Svarah); requests
+    strips it on the redirect to the CDN, so it only ever goes to HF."""
     if not hasattr(_local, "session"):
         _local.session = requests.Session()
+        token = get_token()
+        if token:
+            _local.session.headers["Authorization"] = f"Bearer {token}"
     return _local.session
 
 

@@ -14,7 +14,7 @@ with one command.
 ```bash
 cd evals
 uv sync
-uv run download_data.py                # build all suites (~10 min once, ~155 MB kept)
+uv run download_data.py                # build all suites (~12 min once, ~180 MB kept)
 uv run run_eval.py                     # QUICK tier, shipping model per suite (~6 min)
 uv run run_eval.py --tier full         # every clip — before shipping a model change
 uv run run_eval.py --all-models        # compare every installed model
@@ -33,15 +33,15 @@ Measured / fitted on an M3 Air, model resident (the estimator in
 | Run | Runs | M3 Air | M1 Air (est.) |
 |---|---|---|---|
 | **quick, shipping models** (default) | 3 | **5.8 min** (measured) | ~11 min |
-| quick, all models | 9 | ~19 min | ~34 min |
+| quick, all models | 9 | ~20 min | ~36 min |
 | full, shipping models | 3 | ~31 min | ~55 min |
-| full, all models | 9 | ~90 min | ~2.7 h |
+| full, all models | 9 | ~96 min | ~2.9 h |
 
 Almost all of it is Vaani (हिन्दी): it costs ~1.1 s per second of audio and
 is content-dependent (one 18.6 s clip took 55 s, a similar-length one 7 s).
 Parakeet does the whole english full tier in about a minute.
 
-Disk: `data/` is **~155 MB** (455 clips, ~84 min of 16 kHz mono WAV) vs 49 MB
+Disk: `data/` is **~180 MB** (527 clips, ~97 min of 16 kHz mono WAV) vs 49 MB
 before. Building it streams only the Parquet row groups holding the chosen
 clips (~1.5 GB transferred once, nothing cached — `hf_parquet.py`).
 
@@ -54,7 +54,7 @@ source and by length bucket. Buckets: **xs** <2.5 s · **s** <6 s · **m** <15 s
 
 | Suite | Clips (quick) | Sources | Speakers / regions |
 |---|---|---|---|
-| `english` | 226 (45) | SD-QA — the *same* questions read by North- and South-Indian speakers, + US control · Google SVQ en_in — short voice queries, clean + background chatter · NPTEL — Indian professors, technical English · EdAcc Indian English — unscripted conversation, plus 15–35 s and 45–110 s single-speaker stretches · FLEURS en_us — the old suite, kept as a control | ~60 named (NPTEL gives breadth: ~one lecturer per clip) |
+| `english` | 298 (59) | **Svarah** — Indian English from speakers of 19 native languages (Nepali, Kannada, Urdu, Tamil, Bodo, Kashmiri…), 65 districts, plus 15–35 s / 45–90 s stretches of one recording · SD-QA — the *same* questions read by North- and South-Indian speakers, + US control · Google SVQ en_in — short voice queries, clean + background chatter · NPTEL — Indian professors, technical English · EdAcc Indian English — unscripted conversation, plus 15–35 s and 45–110 s single-speaker stretches · FLEURS en_us — the old suite, kept as a control | ~130 named, 45 regions (Svarah gives native-language breadth, NPTEL ~one lecturer per clip) |
 | `hindi` | 117 (23) | FLEURS hi_in (read) · SVQ hi_in (short queries, clean + chatter) · IndicVoices spontaneous Hindi (conversation + extempore, 0.4 s "haan" to 90 s) | 59 speakers, 27 districts (UP, MP, Bihar, Rajasthan) |
 | `hinglish` | 112 (23) | CS-FLEURS hin-eng (read) · IndicVoices code-mixed turns (≥15 % English words) + 15–35 s / 45–90 s code-mixed stretches | 71 speakers, 30 districts |
 
@@ -75,11 +75,12 @@ EdAcc's `IGNORE_TIME_SEGMENT_IN_SCORING` turns. Long clips are one speaker's
 consecutive segments joined with 0.4 s pauses — the shape of a real dictation.
 
 **Not used, and why:**
-- **ai4bharat Svarah / Lahaja / IndicVoices / Kathbath** — gated; our HF
-  account isn't approved (403). Until mid-2026-09 the `english` suite silently
-  fell back to FLEURS **US** English while docs called it Svarah (BUILD_LOG
-  FM#24). If access is granted, Svarah (117 speakers, 65 districts) and Lahaja
-  are the first additions.
+- **ai4bharat Lahaja / IndicVoices / Kathbath** — gated; our HF account isn't
+  approved for them (403). Svarah was approved 2026-09-23 and is now in; before
+  that the `english` suite silently fell back to FLEURS **US** English while docs
+  called it Svarah (BUILD_LOG FM#24). Lahaja (Hindi, speakers of many native
+  languages) is the next addition if approved. Gated sets need `hf auth login`;
+  `hf_parquet.py` sends that token only to huggingface.co.
 - **MUCS 2021 Hinglish** — segment audio is misaligned with its transcripts
   and English terms are written in Devanagari.
 

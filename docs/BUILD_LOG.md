@@ -540,5 +540,7 @@ being substituted. Docs corrected in place. While rebuilding: MUCS 2021
 Hinglish was rejected (segment audio misaligned with transcripts), and a naive
 pyarrow read over HfFileSystem pulled 2.25 GB to read four text columns —
 `hf_parquet.py` reads exact byte ranges instead.
+**Follow-up (2026-09-23):** Svarah access approved; it is now the english
+suite's core (60 clips across 19 native languages + long stretches).
 **Lesson:** a silent fallback in a *measurement* pipeline is a mislabelled
 result. Record provenance per sample, and fail loudly instead of substituting.

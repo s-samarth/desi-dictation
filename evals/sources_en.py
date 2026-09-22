@@ -1,6 +1,7 @@
 """English suite sources — Indian-accented first, across the whole length range.
 
 English is what most users dictate, so this suite is the largest:
+  svarah / _mid / _long    Indian English, 19 native languages (sources_svarah)
   sdqa_ind_n / sdqa_ind_s  the SAME questions read by North- and South-Indian
                            speakers (+ a US control) — a clean accent A/B
   svq_en_in                short voice queries, clean + background chatter
@@ -18,6 +19,7 @@ from hf_parquet import decode, list_files
 from sampling import est_seconds, spelled_numbers, spread
 from sources_common import (clip, fleurs, load_units, pick_files, speaker_runs,
                             stitched, svq)
+from sources_svarah import svarah
 
 LONG_MIN_S, LONG_MAX_S = 45.0, 90.0
 
@@ -86,4 +88,4 @@ def fleurs_en(rng: random.Random) -> list[dict]:
     return fleurs("en_us", 20, "fleurs_en_us")
 
 
-SOURCES = [sdqa, svq_en, nptel, edacc, fleurs_en]
+SOURCES = [svarah, sdqa, svq_en, nptel, edacc, fleurs_en]
