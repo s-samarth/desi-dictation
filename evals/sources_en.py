@@ -5,10 +5,14 @@ English is what most users dictate, so this suite is the largest:
   sdqa_ind_n / sdqa_ind_s  the SAME questions read by North- and South-Indian
                            speakers (+ a US control) — a clean accent A/B
   svq_en_in                short voice queries, clean + background chatter
-  nptel                    Indian professors, technical lecture English
   edacc_in                 Indian-English conversation, natural short→long turns
   edacc_in_mid / _long     15–35 s and 45–90 s single-speaker dictations
   fleurs_en_us             US read speech — the pre-2026-09 suite, as a control
+
+Rejected: NPTEL lectures (skbose/indian-english-nptel-test) — segment audio
+runs past its transcript ("a third attitude" + "if there is if it is some
+expression" unscripted) and math is transcribed lossily ("c two" -> "c"): it
+scored the dataset's segmentation, not the model (33 % nWER on 8 clips).
 """
 
 from __future__ import annotations
@@ -44,22 +48,6 @@ def svq_en(rng: random.Random) -> list[dict]:
     return svq("en_in", 20, rng)
 
 
-def nptel(rng: random.Random, n: int = 40) -> list[dict]:
-    """NPTEL lecture segments — the speaker-breadth source (~one lecturer per
-    clip). Refs are lower-case/no-punct (fine for nWER); rows that spell
-    numbers out are skipped (see sampling.spelled_numbers)."""
-    repo = "skbose/indian-english-nptel-test"
-    files = pick_files(repo, "data", "test", 4, rng)
-    keep = lambda r: (len(str(r["transcription_normalised"]).split()) >= 3
-                      and not spelled_numbers(r["transcription_normalised"]))
-    rows = load_units(repo, files, ["speaker_name", "transcription_normalised"], keep,
-                      lambda r: r["speaker_name"], 6, ["audio"], rng)
-    secs = lambda r: est_seconds(r, "transcription_normalised")
-    return [clip(decode(r["audio"]), r["transcription_normalised"], "nptel",
-                 r["speaker_name"], "India")
-            for r in spread(rows, n, lambda r: r["speaker_name"], rng, seconds=secs)]
-
-
 def edacc(rng: random.Random, n: int = 40, n_mid: int = 8, n_long: int = 8) -> list[dict]:
     """EdAcc (Edinburgh accents corpus), its 5 Indian-English speakers, test +
     validation: unscripted conversation — hesitations, fast speech, real turn
@@ -88,4 +76,4 @@ def fleurs_en(rng: random.Random) -> list[dict]:
     return fleurs("en_us", 20, "fleurs_en_us")
 
 
-SOURCES = [svarah, sdqa, svq_en, nptel, edacc, fleurs_en]
+SOURCES = [svarah, sdqa, svq_en, edacc, fleurs_en]

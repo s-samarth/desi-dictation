@@ -40,8 +40,8 @@ SUITES = {
 # Clips per source in the quick tier (stratified by length bucket). The
 # quick tier is what you run routinely; the full tier before a model change.
 QUICK = {
-    "svarah": 12, "svarah_mid": 1, "svarah_long": 1,
-    "sdqa_ind_n": 5, "sdqa_ind_s": 5, "sdqa_usa": 3, "svq_en_in": 8, "nptel": 8,
+    "svarah": 16, "svarah_mid": 1, "svarah_long": 1,
+    "sdqa_ind_n": 5, "sdqa_ind_s": 5, "sdqa_usa": 3, "svq_en_in": 8,
     "edacc_in": 8, "edacc_in_mid": 2, "edacc_in_long": 2, "fleurs_en_us": 4,
     "fleurs_hi": 6, "svq_hi_in": 6, "ivh_hi": 10, "ivh_hi_long": 1,
     "csfleurs_hin_eng": 6, "ivh_mix": 14, "ivh_mix_mid": 2, "ivh_mix_long": 1,

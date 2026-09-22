@@ -47,7 +47,7 @@ why the same bug never bites twice.
    sends data must be opt-in and justified against [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md).
 7. **Files ≤ 200 lines** — split proactively. Check for existing utilities
    before writing new ones.
-8. **Don't run the full evals** (~31 min shipping models, ~96 min all models,
+8. **Don't run the full evals** (~31 min shipping models, ~95 min all models,
    M3). The **quick tier** (`cd evals && uv run run_eval.py`, ~6 min) and single
    clips are fine. `desi-tests` + `check_parity.sh` are the gate.
 9. **Ask before adding dependencies**, and explain why.

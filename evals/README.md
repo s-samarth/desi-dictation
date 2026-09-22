@@ -35,13 +35,13 @@ Measured / fitted on an M3 Air, model resident (the estimator in
 | **quick, shipping models** (default) | 3 | **5.8 min** (measured) | ~11 min |
 | quick, all models | 9 | ~20 min | ~36 min |
 | full, shipping models | 3 | ~31 min | ~55 min |
-| full, all models | 9 | ~96 min | ~2.9 h |
+| full, all models | 9 | ~95 min | ~2.9 h |
 
 Almost all of it is Vaani (हिन्दी): it costs ~1.1 s per second of audio and
 is content-dependent (one 18.6 s clip took 55 s, a similar-length one 7 s).
 Parakeet does the whole english full tier in about a minute.
 
-Disk: `data/` is **~180 MB** (527 clips, ~97 min of 16 kHz mono WAV) vs 49 MB
+Disk: `data/` is **~177 MB** (507 clips, ~96 min of 16 kHz mono WAV) vs 49 MB
 before. Building it streams only the Parquet row groups holding the chosen
 clips (~1.5 GB transferred once, nothing cached — `hf_parquet.py`).
 
@@ -54,13 +54,12 @@ source and by length bucket. Buckets: **xs** <2.5 s · **s** <6 s · **m** <15 s
 
 | Suite | Clips (quick) | Sources | Speakers / regions |
 |---|---|---|---|
-| `english` | 298 (59) | **Svarah** — Indian English from speakers of 19 native languages (Nepali, Kannada, Urdu, Tamil, Bodo, Kashmiri…), 65 districts, plus 15–35 s / 45–90 s stretches of one recording · SD-QA — the *same* questions read by North- and South-Indian speakers, + US control · Google SVQ en_in — short voice queries, clean + background chatter · NPTEL — Indian professors, technical English · EdAcc Indian English — unscripted conversation, plus 15–35 s and 45–110 s single-speaker stretches · FLEURS en_us — the old suite, kept as a control | ~130 named, 45 regions (Svarah gives native-language breadth, NPTEL ~one lecturer per clip) |
+| `english` | 278 (55) | **Svarah** — Indian English from speakers of 19 native languages (Nepali, Kannada, Urdu, Tamil, Bodo, Kashmiri…), 65 districts, plus 15–35 s / 45–90 s stretches of one recording · SD-QA — the *same* questions read by North- and South-Indian speakers, + US control · Google SVQ en_in — short voice queries, clean + background chatter · EdAcc Indian English — unscripted conversation, plus 15–35 s and 45–110 s single-speaker stretches · FLEURS en_us — the old suite, kept as a control | 111 named, 54 regions (Svarah gives the native-language breadth) |
 | `hindi` | 117 (23) | FLEURS hi_in (read) · SVQ hi_in (short queries, clean + chatter) · IndicVoices spontaneous Hindi (conversation + extempore, 0.4 s "haan" to 90 s) | 59 speakers, 27 districts (UP, MP, Bihar, Rajasthan) |
 | `hinglish` | 112 (23) | CS-FLEURS hin-eng (read) · IndicVoices code-mixed turns (≥15 % English words) + 15–35 s / 45–90 s code-mixed stretches | 71 speakers, 30 districts |
 
 Sources and their datasets: [WillHeld/SD-QA](https://huggingface.co/datasets/WillHeld/SD-QA) ·
 [google/svq](https://huggingface.co/datasets/google/svq) ·
-[skbose/indian-english-nptel-test](https://huggingface.co/datasets/skbose/indian-english-nptel-test) ·
 [edinburghcstr/edacc](https://huggingface.co/datasets/edinburghcstr/edacc) ·
 [google/fleurs](https://huggingface.co/datasets/google/fleurs) ·
 [byan/cs-fleurs](https://huggingface.co/datasets/byan/cs-fleurs) ·
@@ -83,6 +82,9 @@ consecutive segments joined with 0.4 s pauses — the shape of a real dictation.
   `hf_parquet.py` sends that token only to huggingface.co.
 - **MUCS 2021 Hinglish** — segment audio is misaligned with its transcripts
   and English terms are written in Devanagari.
+- **NPTEL lectures** — segment audio runs past its transcript and math is
+  transcribed lossily ("c two" written "c"); it scored the reference, not the
+  model (33 % nWER, nearly all reference error).
 
 **Known limits:** `desi-cli --batch` transcribes each file whole, so xl clips
 test the engine's own long-form path, not the app's 25–35 s chunker. The 20

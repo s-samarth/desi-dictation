@@ -29,14 +29,14 @@ _NAME = re.compile(r"(\d+)_(f\d+)_chunk_(\d+)")
 MAX_UNITS = 16                      # row groups (~18 MB each) we allow ourselves
 
 
-def svarah(rng: random.Random, n: int = 60, n_mid: int = 6, n_long: int = 6) -> list[dict]:
+def svarah(rng: random.Random, n: int = 80, n_mid: int = 6, n_long: int = 6) -> list[dict]:
     rows = [r for r in scan(REPO, list_files(REPO, "data"), META)
             if r["text"] and not spelled_numbers(r["text"])]
     for r in rows:
         ident, rec, chunk = _NAME.match(r["audio_filepath"]["path"]).groups()
         r["rec"], r["chunk"] = f"{ident}_{rec}", int(chunk)
     l1 = lambda r: r["primary_language"]
-    units = set(choose_rowgroups(rows, 6, l1, rng))
+    units = set(choose_rowgroups(rows, 8, l1, rng))
     longs = _runs(rows, 45.0, 90.0, n_long, units, rng)
     mids = _runs(rows, 15.0, 35.0, n_mid, units, rng,
                  skip={r["rec"] for p in longs for r in p})

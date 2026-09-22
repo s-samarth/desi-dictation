@@ -532,15 +532,16 @@ en_us** into `data/english/` — the manifest carried no source, so nothing
 downstream could tell. The same account is also not approved for Lahaja,
 IndicVoices or Kathbath.
 **Fix:** the eval set was rebuilt from open sources with real Indian voices
-(SD-QA ind_n/ind_s, SVQ, NPTEL, EdAcc Indian English, IndicVoices re-cut —
+(SD-QA ind_n/ind_s, SVQ, EdAcc Indian English, IndicVoices re-cut —
 evals/README.md). Every clip records its `source` (and speaker, region, length
 bucket) in the manifest; reports break results down by source, so a fallback is
 visible in every table, and a failing source aborts loudly (exit 1) instead of
 being substituted. Docs corrected in place. While rebuilding: MUCS 2021
-Hinglish was rejected (segment audio misaligned with transcripts), and a naive
+Hinglish and NPTEL were rejected (segment audio misaligned with transcripts —
+check a few ref/hyp pairs before trusting any new source), and a naive
 pyarrow read over HfFileSystem pulled 2.25 GB to read four text columns —
 `hf_parquet.py` reads exact byte ranges instead.
 **Follow-up (2026-09-23):** Svarah access approved; it is now the english
-suite's core (60 clips across 19 native languages + long stretches).
+suite's core (80 clips across 19 native languages + long stretches).
 **Lesson:** a silent fallback in a *measurement* pipeline is a mislabelled
 result. Record provenance per sample, and fail loudly instead of substituting.
