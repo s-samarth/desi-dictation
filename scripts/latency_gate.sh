@@ -12,6 +12,10 @@
 # M3 Air; halve the machine and roughly double the number. Tighten them as the
 # engine improves — never loosen one to make a red gate green.
 #
+# The clip comes from the suite's manifest, never "first file in clips/": the
+# suites get rebuilt, and english 0000.wav became a 46 s Svarah stretch that
+# failed the English budget with the engine unchanged (BUILD_LOG FM#29).
+#
 # Usage: ./scripts/latency_gate.sh [slack_multiplier]   (default 1.0)
 # Skips (exit 0) when models or clips are absent — CI has neither.
 set -euo pipefail
@@ -37,15 +41,33 @@ CASES=(
   "hindi:ggml-vaani-hindi-q5_0.bin:hindi:4.0"
 )
 
+# A short dictation: the manifest's "s" bucket (2.5–6 s, evals/sampling.py)
+# clip closest to TARGET_S, ties broken by file name. Chosen by length, not by
+# position, so a re-ordered or rebuilt manifest still times the same length.
+TARGET_S=4.0
+pick_clip() {  # suite dir → "<path>\t<seconds>", or nothing
+  python3 - "$1" "$TARGET_S" <<'PY' 2>/dev/null || true
+import json, os, sys
+suite, target = sys.argv[1], float(sys.argv[2])
+rows = [json.loads(l) for l in open(os.path.join(suite, "manifest.jsonl")) if l.strip()]
+short = [r for r in rows if r.get("bucket") == "s"
+         and os.path.isfile(os.path.join(suite, "clips", r["file"]))]
+if short:
+    r = min(short, key=lambda r: (abs(r["seconds"] - target), r["file"]))
+    print(f'{os.path.join(suite, "clips", r["file"])}\t{r["seconds"]:.2f}')
+PY
+}
+
 fail=0
 for case in "${CASES[@]}"; do
   IFS=: read -r mode model suite base <<< "$case"
   budget="$(awk "BEGIN{printf \"%.2f\", $base * $SLACK}")"
-  clip="$(ls "$ROOT/evals/data/$suite/clips/"*.wav 2>/dev/null | head -1 || true)"
-  if [ ! -f "$MODELS/$model" ] || [ -z "$clip" ]; then
-    printf "   %-9s skip (model or clip missing)\n" "$mode"
+  IFS=$'\t' read -r clip dur <<< "$(pick_clip "$ROOT/evals/data/$suite")" || true
+  if [ ! -f "$MODELS/$model" ] || [ -z "${clip:-}" ]; then
+    printf "   %-9s skip (model or short clip missing)\n" "$mode"
     continue
   fi
+  printf "   %-9s clip %s/%s (%ss)\n" "$mode" "$suite" "$(basename "$clip")" "$dur"
   # Third run: model resident, page cache warm — the state a real dictation
   # finds the app in.
   secs="$("$CLI" "$MODELS/$model" "$clip" "$mode" --repeat 2>/dev/null \

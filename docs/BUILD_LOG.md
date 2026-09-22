@@ -648,3 +648,23 @@ must be a plist literal: `-vadEnabled NO` arrives as the *string* "NO",
 `as? Bool` returns nil, and SettingsStore falls back to its default (on).
 **Lesson:** a debug flag must never write persistent state, and a measurement
 tool must print the settings it actually ran with.
+
+### Failure mode #29 — the latency gate timed whatever clip sorted first
+
+**Symptom:** 2026-09-23, `preflight.sh` step 5 went red on English — Parakeet
+at ~0.92–0.96 s against the 0.75 s budget — with the engine unchanged (HEAD and
+a newer build timed identically on the same clip).
+**Cause:** `latency_gate.sh` picked each language's clip with
+`ls clips/*.wav | head -1`. The english suite rebuild around Svarah
+(d1f5c87 / e90a7be) made `0000.wav` a 46 s long-form stretch, so the gate that
+exists to time a *short* dictation was timing an `xl` one. Hindi/Hinglish
+`0000.wav` had drifted to 9–10 s (`m` bucket) too; they only passed because
+whisper pads to a 30 s window either way.
+**Fix:** the gate now reads `evals/data/<suite>/manifest.jsonl` and times the
+`s`-bucket (2.5–6 s) clip closest to 4 s, ties by file name, and prints which
+clip and its length. Budgets untouched. On the M3: English 0.09 s (4.00 s clip),
+Hinglish 1.39 s (4.10 s), हिन्दी 2.07 s (4.20 s) — all green.
+**Lesson:** a benchmark's input is part of the benchmark. Select it by the
+property the gate is about (length), not by position in a directory that other
+work is free to rebuild — and print what was measured, so a drifted input shows
+up in the log instead of as a phantom regression.

@@ -118,7 +118,8 @@ Macs the app runs on.
 ## Latency gate (added 2026-08-19)
 
 `preflight.sh` step 5 runs `scripts/latency_gate.sh`: a short clip per language
-through `desi-cli` with the model resident, against a per-language
+(the manifest's `s`-bucket clip closest to 4 s — BUILD_LOG FM#29) through
+`desi-cli` with the model resident, against a per-language
 release→paste budget (docs/PERFORMANCE.md). It **skips silently in CI** — the
 runner has neither the models nor the eval clips — so it is a local gate by
 design. The RCA that motivated it: docs/PERF_RCA_2026-08.md.

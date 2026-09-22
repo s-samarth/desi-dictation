@@ -143,6 +143,12 @@ Hinglish 2.0 s, हिन्दी 4.0 s on an M3 Air; halve the machine, roughl
 number). Budgets get tightened as the engine improves and are never loosened to
 turn a red gate green.
 
+The clip is picked from `evals/data/<suite>/manifest.jsonl`: the `s`-bucket
+(2.5–6 s) clip closest to 4 s, ties broken by file name, and the gate prints
+which clip and its length. Never "first file in `clips/`" — a suite rebuild made
+that a 46 s clip and a phantom English regression (BUILD_LOG FM#29). Measured
+2026-09-23 on the M3: English 0.09 s, Hinglish 1.39 s, हिन्दी 2.07 s.
+
 Throughput still matters for long dictations, so also re-run:
 ```bash
 app/.build/release/desi-cli models/ggml-hinglish-apex-q5_0.bin spike/audio/test-long.wav hinglish --repeat
