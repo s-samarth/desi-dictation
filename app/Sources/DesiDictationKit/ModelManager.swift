@@ -154,7 +154,8 @@ public final class ModelManager: ObservableObject {
             else if name.contains("base") { score = 20 }
         case .english:
             // Parakeet wins on measurement, not on novelty: 4.3 % vs turbo's
-            // 4.5 % nWER on Indian-accented English (Svarah, 20 clips) at 5x
+            // 4.5 % nWER on the eval english suite (20 clips; FLEURS US English, not
+            // Svarah as once written — FM#24) at 5x
             // the speed — MODEL_RESEARCH.md §E, ParakeetEngine.swift.
             if name.contains("parakeet") { score = 120 }
             else if name.contains("turbo") { score = 100 }

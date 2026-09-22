@@ -143,7 +143,7 @@ own choice; switching language switches model silently.
 
 **English is now much faster.** English mode runs NVIDIA's Parakeet model
 instead of Whisper — about **0.2 s** for a short dictation on an M3 Air (it was
-~1.9 s), with equal-or-better accuracy on Indian-accented English. Download it
+~1.9 s), with equal-or-better accuracy in our English tests. Download it
 from **Models** (416 MB) or take it during onboarding.
 
 **How fast was that?** The Dictation screen shows the last dictation's real

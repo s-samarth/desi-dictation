@@ -64,7 +64,8 @@ now measured directly and gated (`scripts/latency_gate.sh`).
 8. **Serial engine queue** — no locks, no races, chunk jobs naturally ordered.
 9. **Parakeet TDT for English** (v0.6.1) — a second engine, chosen by model file
    (`EngineRouter`). No 30 s padding: 0.21 s vs 1.94 s per call at
-   equal-or-better accuracy on Indian-accented English (MODEL_RESEARCH.md §E).
+   equal-or-better accuracy on the English eval suite (MODEL_RESEARCH.md §E —
+   that suite was US English, not Indian-accented as first written; FM#24).
 10. **Flash attention ON** (v0.6.1) — FM#12's NaN issue did not reproduce on 18
     clips across apex/turbo/vaani q5_0; ~11 % less encode time. Kill switch in
     Options for bisecting a future upstream regression.

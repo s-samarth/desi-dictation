@@ -147,7 +147,7 @@ Every ranked fix from the table above, in order:
 
 | # | Change | Measured result |
 |---|---|---|
-| 1 | **Parakeet TDT 0.6B v3 (q4_k) for English**, second engine behind `EngineRouter` | 1.94 s → **0.21 s** per call, nWER 4.5 % → **4.3 %** on Indian-accented English, 574 MB → 416 MB ([research §E](MODEL_RESEARCH.md)) |
+| 1 | **Parakeet TDT 0.6B v3 (q4_k) for English**, second engine behind `EngineRouter` | 1.94 s → **0.21 s** per call, nWER 4.5 % → **4.3 %** on the English eval suite (FLEURS US English — originally mislabelled Svarah, FM#24), 574 MB → 416 MB ([research §E](MODEL_RESEARCH.md)) |
 | 2 | **No chunking below 30 s of speech**; chunks ≥25 s (forced 35 s); a failed tail can no longer discard chunks already transcribed | ordinary dictations now cost exactly one engine call |
 | 3 | **`DictationTimings`** — speech seconds, engine calls, engine time, release→paste; shown in the Dictation pane, logged at `.notice` | complaints are now reconstructible from `log show` |
 | 4 | **Flash attention on** (FM#12 retested: 18 clips, 0 NaN) | ~11 % less encode time, kill switch in Options |

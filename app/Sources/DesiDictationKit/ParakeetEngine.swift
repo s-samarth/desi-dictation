@@ -7,8 +7,8 @@ let parakeetLog = Logger(subsystem: "com.desi.dictation", category: "parakeet")
 /// NVIDIA Parakeet TDT (FastConformer) via whisper.cpp's `libparakeet` — the
 /// English-mode engine since v0.6.1.
 ///
-/// Why a second engine at all (measured, 20 Svarah Indian-accented English
-/// clips, M3 Air — docs/MODEL_RESEARCH.md §E):
+/// Why a second engine at all (measured, 20 english-suite clips — FLEURS US
+/// English, not Svarah as once written (FM#24) — M3 Air, MODEL_RESEARCH.md §E):
 ///
 /// | engine | nWER | per call | size |
 /// |---|---|---|---|

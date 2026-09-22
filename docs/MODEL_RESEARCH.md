@@ -50,8 +50,17 @@ Nothing whisper-shaped fixes that. Distil-Whisper v3.5 doesn't either — it kee
 large-v3's encoder **frozen** and only trims decoder layers, and the encoder is
 our bottleneck. A different **architecture** was needed, not a smaller whisper.
 
-**Measured** — 20 clips of `ai4bharat/Svarah` (Indian-accented English, 117
-speakers), through the shipping engine path on an M3 Air, nWER (normalized):
+**Measured** — 20 clips of the eval `english` suite, through the shipping
+engine path on an M3 Air, nWER (normalized):
+
+> **Correction (2026-09-22):** this table was labelled "Svarah (Indian-accented
+> English)". It was not. Svarah is gated and our HF account was never granted
+> access (403); `download_data.py` silently fell back to **FLEURS en_us** — US
+> read speech. So these are *US-English* numbers. The Parakeet decision still
+> holds on speed, but its Indian-English accuracy was never actually measured —
+> the rebuilt eval set (evals/README.md) now carries real Indian-English sources
+> and records each clip's source so a fallback can't be mislabelled again
+> (BUILD_LOG FM#24).
 
 | Engine | nWER | per call | size | note |
 |---|---|---|---|---|
@@ -63,8 +72,9 @@ speakers), through the shipping engine path on an M3 Air, nWER (normalized):
 | Hinglish Apex q5_0 | 12.5 % | 1.93 s | 574 MB | good Indian English ≠ good English |
 
 With the model resident (the real app state) Parakeet answers a 10 s clip in
-**0.21 s** vs turbo's ~1.9 s. Accuracy is equal-or-better *on Indian-accented
-English specifically*, which is the only English that matters for us.
+**0.21 s** vs turbo's ~1.9 s, with equal-or-better accuracy on the (US-English,
+see correction) suite. Indian-accented English is what matters for us — re-verify
+on the rebuilt suite before any English engine change.
 
 **Why it's fast:** FastConformer-TDT encodes the audio it was actually given, so
 short dictations get radically cheaper. The trade-off is that its compute buffer
@@ -89,6 +99,30 @@ per-call cost); whisper small/base (accuracy loss too big); Canary-Qwen 2.5B and
 IBM Granite Speech (top of the Open ASR Leaderboard but far too heavy for a
 menu-bar app on an 8 GB Air); parakeet.cpp as a separate project (unnecessary —
 support is in whisper.cpp itself).
+
+**Parakeet Redux — tested 2026-09-22, rejected.** `moondream/parakeet-redux`
+(Sep 2026) is Parakeet v3 with a ternary (−1/0/+1) encoder: 178 MB instead of
+1.2 GB, claimed "within 0.3 WER on English". Run in isolation (scratch venv,
+nothing in the repo) on the 50-clip `english` suite (FLEURS en_us — see the
+correction above), M3 Air, per clip, model resident:
+
+| | nWER clean | nWER + 5 dB pink noise | median per clip | peak RAM |
+|---|---|---|---|---|
+| **Parakeet v3 q4_k (shipping)** | **4.8 %** | **7.5 %** | **0.21 s** | **0.7 GB** |
+| Redux, CPU | 6.1 % | 10.9 % | 0.21 s | 1.0 GB |
+| Redux, Apple GPU (MPS) | 6.2 % | — | 0.34 s | 2.2 GB |
+
+Worse on 13 clips and better on 4 (clean); worse on 20, better on 7 (noisy).
+That is +27 % relative errors clean and +45 % in noise — the exact condition
+("I spoke less clearly and it fell apart") users already complain about — for
+**zero** speed gain on a Mac (its 113× figure is on 8 server cores). It is also
+unshippable as-is: the runtime is Python + PyTorch (Moondream Photon/`kestrel`),
+no GGUF exists, and `kestrel` reports usage + the machine's **hostname** to
+Moondream every 60 s with no opt-out — a hard violation of our no-telemetry rule.
+A GGUF port is possible (ggml has `TQ1_0`/`TQ2_0` ternary types) but would save
+only ~240 MB on English, while 8 GB-Mac memory pressure comes from the whisper
+models Redux doesn't replace. Revisit only if a GGUF appears **and** it matches
+the shipping model's accuracy on the Indian-English suites.
 
 ## Why so few open Hinglish models? (the bottleneck, as asked)
 
