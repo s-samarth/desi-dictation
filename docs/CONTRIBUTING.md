@@ -10,6 +10,9 @@ itself) and [DEPLOYMENT.md](DEPLOYMENT.md) (getting the web demo hosted).
 # CLT 6.3.3 ships a broken SwiftPM manifest lib (BUILD_LOG.md FM#17).
 # Every swift command fails without this — put it in ~/.zshrc:
 export SWIFTPM_CUSTOM_LIBS_DIR=$HOME/.swiftpm-fixed-libs
+# CLT 27 ships the macOS 27 SDK without SwiftUI's macro plugin (FM#23).
+# preflight/build_app handle it; before a bare `swift build`, run:
+source scripts/sdk_env.sh
 ```
 
 ## 1. Before you edit: read the right doc

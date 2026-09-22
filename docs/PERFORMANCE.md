@@ -44,7 +44,9 @@ now measured directly and gated (`scripts/latency_gate.sh`).
    keypress starts a session instantly and *includes the 0.3 s before it*.
    Fixes "first words lost" (mic spin-up is 200–500 ms) and most short-utterance
    misses. Off-switch in Options ("Instant mic") for privacy-conscious users.
-   Self-heals on audio-device changes (AVAudioEngineConfigurationChange → rebuild).
+   Self-heals on audio-device changes: default-input switch, unplug, or a
+   sample-rate change reopens the mic, mid-session included (v0.6.2).
+   Cold open of the input-only unit measured at ~80 ms (DGM20 USB and built-in).
 2. **Chunked incremental transcription, above 30 s only** (thresholds corrected
    2026-08 — PERF_RCA_2026-08.md RC2). Long dictations cut at quiet moments
    every ≥25 s (forced at 35 s) and transcribe in the background while you keep

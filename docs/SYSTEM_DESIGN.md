@@ -30,7 +30,9 @@ lives in [BUILD_LOG.md](BUILD_LOG.md).
                             ▼           ▼           ▼
                    ┌────────────┐ ┌──────────┐ ┌─────────────┐
                    │AudioCapture│ │ worker Q  │ │OverlayPanel │ (non-activating
-                   │AVAudioEngine│ │(serial)  │ │+ MenuBarExtra│  NSPanel)
+                   │ input-only │ │(serial)  │ │+ MenuBarExtra│  NSPanel)
+                   │AUHAL (mic's│ │          │ │             │
+                   │native rate)│ │          │ │             │
                    │→16kHz mono │ └────┬─────┘ └─────────────┘
                    └────────────┘      ▼
                               ┌────────────────┐
@@ -87,6 +89,17 @@ every time — so chunking a short dictation buys nothing and costs a second ful
 call (BUILD_LOG FM#20). Dictations under 30 s of speech are therefore one call;
 longer ones cut every ≥25 s while the user keeps talking. Streaming *partial
 text* into the overlay remains deferred (PERFORMANCE.md).
+
+### Input-only mic unit, not AVAudioEngine (v0.6.2)
+
+On macOS, AVAudioEngine runs input and output as **one** device, so the mic is
+clocked to the default *speaker*. Measured 2026-09-22: a 48 kHz USB mic arrived
+at 44.1 kHz because output was a Bluetooth Echo Dot, through a conversion macOS
+27 runs without drift correction. Capture now uses `MicrophoneUnit`, a HAL unit
+with output disabled, bound to the default input and opened at the mic's own
+rate and channel count. The only resampling is ours: native → 16 kHz mono,
+stereo downmixed rather than dropping a channel. The speaker can no longer
+touch the words (BUILD_LOG FM#22).
 
 ### Pasteboard-swap insertion
 1. Save current clipboard string → 2. set transcript → 3. synthesize ⌘V via

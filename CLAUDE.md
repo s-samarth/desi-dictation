@@ -30,6 +30,8 @@ why the same bug never bites twice.
 1. **Every `swift` command on this Mac needs**
    `export SWIFTPM_CUSTOM_LIBS_DIR=$HOME/.swiftpm-fixed-libs` first
    (CLT 6.3.3 manifest bug — BUILD_LOG FM#17). Builds fail confusingly without it.
+   A bare `swift build` also needs `source scripts/sdk_env.sh` (CLT 27 has no
+   SwiftUI macro plugin — FM#23); the scripts already source it.
 2. **`./scripts/preflight.sh` before every push.** Green preflight = green CI;
    it runs build · 119 tests · app↔web parity · web tests · **latency gate**
    (the last one is local-only — CI has no models).
@@ -55,6 +57,7 @@ why the same bug never bites twice.
 
 ```bash
 export SWIFTPM_CUSTOM_LIBS_DIR=$HOME/.swiftpm-fixed-libs   # always, first
+source scripts/sdk_env.sh              # CLT 27: picks a SDK that compiles SwiftUI (FM#23)
 (cd app && swift build)                # compile
 app/.build/debug/desi-tests            # 119 assertions, exit 0 = green
 ./scripts/latency_gate.sh              # short-dictation latency per language

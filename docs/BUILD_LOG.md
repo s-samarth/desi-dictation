@@ -469,3 +469,52 @@ empty decodes, text identical on 17/18 (one single-token difference), ~11 % less
 encode time. Flash attention is now **on** with a kill switch in Options.
 **Lesson:** a workaround for an upstream bug is a dated decision, not a
 permanent one — re-test it on every dependency bump.
+
+## 2026-09-22 — "quality degrades over days" RCA (v0.6.2)
+
+Investigated first: the models themselves. 300 transcriptions of 3 clips in one
+long-lived Parakeet process gave identical text and identical speed; both
+engines reset decoder/VAD state every call (`no_context`), and 30 h of the
+running app's timing log showed flat engine cost. The model does not decay.
+
+### Failure mode #22 — the mic was clocked to the speaker
+
+**Symptom:** users (and the author) report dictation quality "feels worse after
+a few days", with no in-app cause.
+**Cause:** AVAudioEngine on macOS drives input + output as one device. With a
+Maono DGM20 (48 kHz, 2 ch) as input and a Bluetooth Echo Dot (44.1 kHz) as
+output, `inputNode` delivered **44.1 kHz** — coreaudiod logged a sample-rate
+converter per session and, on macOS 27, "sample rate conversion no longer
+enables drift correction by default". So the words depended on whichever speaker
+happened to be connected that day. Pinning the device on `inputNode.audioUnit`
+did not help: the hardware side read 48 kHz, the node still vended 44.1 kHz.
+Secondary: a device change during a session was ignored (`rebuildIfWarm`
+skipped when `inSession`) and never retried.
+**Fix:** `MicrophoneUnit` — an AUHAL with output disabled, bound to the default
+input, client format = the device's native rate/channels. Prototype measured
+~80 ms to first audio on both the DGM20 (48 kHz/2ch) and the built-in mic
+(44.1 kHz/1ch). Listeners on default-input / device-alive / nominal-rate reopen
+the mic, mid-session included. Each open logs `mic open: <name> <rate>Hz <ch>ch`
+at `.notice`, so "which mic was it?" is answerable from `log show` afterwards.
+**Lesson:** "the default input" is not a stable thing on a laptop that meets
+docks, webcams, phones and Bluetooth speakers — log which device the words came
+from, or quality complaints are unfalsifiable. **Side note:** the built-in mic
+returns pure silence with the lid closed (clamshell) — expected, not a bug.
+
+### Failure mode #23 — CLT 27 can't compile SwiftUI `@State`
+
+**Symptom:** after Command Line Tools 27.0 installed (2026-09-10), every
+`swift build` fails with `external macro implementation type
+'SwiftUIMacros.StateMacro' could not be found … plugin for module
+'SwiftUIMacros' not found`, on every `@State` in the app target. The Kit and
+CLI targets still compile.
+**Cause:** CLT 27 points `MacOSX.sdk` at the macOS 27 SDK, where SwiftUI's
+`@State` is a macro, but the SwiftUIMacros compiler plugin ships only with
+full Xcode. Searching the SDK's swiftinterface for "SwiftUIMacros" does *not*
+detect it; only compiling does.
+**Fix:** `scripts/sdk_env.sh` (sourced by preflight + build_app) type-checks
+one `@State` line against the default SDK and, if it fails, exports `SDKROOT`
+to the newest installed macOS 26 SDK. No-op with Xcode (CI) or an explicit
+`SDKROOT`. The deployment target is unchanged (macOS 14), so the app still runs
+on macOS 14 → 27. **Lesson:** a CLT update can change the default SDK under
+you — probe by compiling, don't sniff files.

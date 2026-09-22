@@ -88,15 +88,39 @@ being reloaded — check nothing else is deleting/touching the model file.
 
 ## 6. Transcripts cut off / miss the first word
 
-- You started speaking before the start sound. The mic engine spins up on key
-  press (~100–200 ms) — begin speaking after the Tink.
+- You started speaking before the start sound. On a cold start the mic opens
+  on key press (~80 ms measured, v0.6.2) — begin speaking after the Tink. For
+  20 s after a dictation the mic stays warm with a 0.3 s pre-roll, so quick
+  follow-ups never lose their first word.
 - Very short utterances (<0.5 s) are rejected by design (EngineError.emptyAudio).
+
+## 6b. Quality feels worse than it used to / changes from day to day
+
+Before v0.6.2 the mic was clocked to your **speaker** (a Bluetooth speaker or
+a monitor could change what the model heard — BUILD_LOG FM#22). Update first.
+Then check which mic the words actually came from:
+
+```bash
+log show --last 1d --info --predicate 'subsystem == "com.desi.dictation" AND category == "audio"' | grep "mic open"
+```
+
+Each dictation logs e.g. `mic open: DGM20 USB Microphone 48000Hz 2ch`. If the
+name isn't the mic you meant, pick it in System Settings → Sound → Input
+(the app always uses the system's default input). Notes:
+
+- A **Bluetooth headset** as input (AirPods etc.) records at 16–24 kHz
+  "call quality" — noticeably worse for recognition than a USB or built-in mic.
+- The **built-in mic is silent with the lid closed** (clamshell) — macOS
+  mutes it. Use an external mic, or open the lid.
+- Switching the input mid-dictation is fine since v0.6.2: capture continues
+  on the new mic.
 
 ## 7. Build failures (developer)
 
 | Error | Fix |
 |---|---|
 | `Undefined symbols: PackageDescription.Package...` on `swift build` | Your CLT SwiftPM is broken (BUILD_LOG #4). Use the Homebrew toolchain: `brew install swift`, then `DESI_SWIFT=/opt/homebrew/Cellar/swift/<ver>/Swift-*.xctoolchain/usr/bin/swift ./scripts/build_app.sh` |
+| `external macro implementation type 'SwiftUIMacros.StateMacro' could not be found` | CLT 27 ships the macOS 27 SDK but no SwiftUI macro plugin (BUILD_LOG FM#23). The scripts pick a macOS 26 SDK automatically; for a bare `swift build`, run `source scripts/sdk_env.sh` first |
 | `no such module 'CWhisper'` / linker can't find `-lwhisper` | Run `./scripts/setup_whisper.sh` (stages headers into `app/Sources/CWhisper/include` and libs into `app/Libraries`) |
 | `xcodebuild requires Xcode` | Expected — nothing here uses xcodebuild. Scripts only need CLT + cmake + brew swift |
 | cmake `No rule to make target 'quantize'` | Target renamed upstream: `whisper-quantize` (already fixed in setup script) |

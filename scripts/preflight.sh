@@ -12,6 +12,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # CLT 6.3.3 manifest workaround (BUILD_LOG FM#17) — harmless elsewhere.
 [ -d "$HOME/.swiftpm-fixed-libs" ] && export SWIFTPM_CUSTOM_LIBS_DIR="$HOME/.swiftpm-fixed-libs"
 
+# SDK that can compile SwiftUI on this machine (FM#23) — no-op on CI/Xcode.
+source "$ROOT/scripts/sdk_env.sh"
+
 echo "══ 1/5 build"
 (cd "$ROOT/app" && swift build)
 

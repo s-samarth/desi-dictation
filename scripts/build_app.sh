@@ -15,6 +15,9 @@ APP_DIR="$ROOT/app"
 SWIFT="${DESI_SWIFT:-/opt/homebrew/Cellar/swift/6.3.2/Swift-6.3.xctoolchain/usr/bin/swift}"
 [ -x "$SWIFT" ] || SWIFT="swift"   # fall back to PATH (e.g. machines with working Xcode)
 
+# SDK that can compile SwiftUI on this machine (FM#23) — no-op on CI/Xcode.
+source "$ROOT/scripts/sdk_env.sh"
+
 echo "==> Release build ($SWIFT)"
 (cd "$APP_DIR" && "$SWIFT" build -c release)
 
@@ -48,8 +51,8 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
     <key>CFBundleDisplayName</key>       <string>Desi Dictation</string>
     <key>CFBundleIdentifier</key>        <string>com.desi.dictation</string>
     <key>CFBundleExecutable</key>        <string>Desi Dictation</string>
-    <key>CFBundleShortVersionString</key><string>0.6.1</string>
-    <key>CFBundleVersion</key>           <string>2</string>
+    <key>CFBundleShortVersionString</key><string>0.6.2</string>
+    <key>CFBundleVersion</key>           <string>3</string>
     <key>CFBundlePackageType</key>       <string>APPL</string>
     <key>LSMinimumSystemVersion</key>    <string>14.0</string>
     <key>LSUIElement</key>               <true/>

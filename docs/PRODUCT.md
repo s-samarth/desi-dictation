@@ -19,6 +19,7 @@ What exists, how well it works, and where it's going. Update this every release.
 | **Per-dictation timings** | ✅ built 2026-08-19 | "Last: 1.2 s speech · 0.30 s to paste · 1 call" in the Dictation pane + system log ([RCA](PERF_RCA_2026-08.md)) |
 | Long-dictation quality | ✅ fixed v0.3 | `no_context` + VAD |
 | Error recovery without relaunch | ✅ fixed v0.2.1 | all errors transient |
+| **Mic capture independent of speakers** | ✅ fixed v0.6.2 | mic's native rate, reopens on device change mid-dictation, logs which mic ([FM#22](BUILD_LOG.md)) |
 | Transcript always recoverable | ✅ shipped | clipboard + 24 h history + Copy Last |
 | Replacement dictionary | ✅ shipped | user-enforced Hinglish spellings |
 | **Personal dictionary ("always write it as…")** | ✅ built 2026-07-10 | word-boundary + casing-aware; add from History right-click ([impl](features/implementation/PERSONAL_DICTIONARY.md)) |

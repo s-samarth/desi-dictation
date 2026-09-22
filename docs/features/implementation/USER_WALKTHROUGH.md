@@ -22,6 +22,19 @@ permissions survive the swap. If the hotkey ever goes dead after an update:
 System Settings → Privacy → Accessibility + Input Monitoring → remove (−)
 Desi Dictation, re-add, relaunch.
 
+## 0b · Microphone (v0.6.2) — nothing to set up
+
+- **What you pick:** System Settings → Sound → **Input**. The app always
+  records from that device: a USB mic, the built-in mic, or a headset.
+- **What changed:** the speaker you have connected (a Bluetooth speaker, a
+  monitor, AirPods) no longer affects what the model hears. Before v0.6.2 the
+  mic was resampled to the speaker's rate (BUILD_LOG FM#22).
+- **Switching mics mid-dictation:** capture continues on the new mic; before
+  v0.6.2 the rest of that dictation was silent.
+- **Friction:** the built-in mic is silent with the lid closed, and a
+  Bluetooth headset mic is call quality (16–24 kHz). Both are macOS/hardware
+  limits; TROUBLESHOOTING §6b shows how to check which mic was used.
+
 ## 1 · Personal dictionary — zero setup, works today
 
 - **Discovery:** you notice a wrong spelling in a paste; you open menu bar

@@ -19,7 +19,7 @@ of the same flow: [CONTRIBUTING.md](CONTRIBUTING.md). Hosting the web demo:
         ┌─────────────┼──────────────────┐
         ▼             ▼                  ▼
    Mac app (.app)   Web demo          DMG release
-   build_app.sh →   deploy_web.sh →   git tag v0.6.1 →
+   build_app.sh →   deploy_web.sh →   git tag v0.6.2 →
    ditto to         rsync+restart     release.yml →
    /Applications    (auto once        DMG on GitHub
    (dev loop)       server exists)    Releases
@@ -85,8 +85,8 @@ Two paths, both gated by preflight:
 
 | Path | Command | Signing |
 |---|---|---|
-| **From this Mac** (use today) | `./scripts/release.sh v0.6.1` | "Desi Dictation Dev" — stable identity, permission grants survive updates |
-| From a tag push | `git tag v0.6.1 && git push --tags` → `release.yml` | signs only if `MACOS_CERT_P12_BASE64` + `MACOS_CERT_PASSWORD` secrets exist; otherwise ad-hoc, and the release notes say so |
+| **From this Mac** (use today) | `./scripts/release.sh v0.6.2` | "Desi Dictation Dev" — stable identity, permission grants survive updates |
+| From a tag push | `git tag v0.6.2 && git push --tags` → `release.yml` | signs only if `MACOS_CERT_P12_BASE64` + `MACOS_CERT_PASSWORD` secrets exist; otherwise ad-hoc, and the release notes say so |
 
 `release.yml` had a latent bug until 2026-08-19: the signing and notarization
 steps were gated on `env.CERT`/`env.NID` defined in the step's *own* `env:`
@@ -102,6 +102,18 @@ user's permission grants. When that happens the job still builds and verifies
 the tag, and logs a notice saying it skipped the upload.
 
 Setup for CI signing (exporting the .p12 into secrets): docs/LAUNCH.md §0.5.
+
+## SDK auto-pick (added 2026-09-22)
+
+`scripts/sdk_env.sh` is sourced by `preflight.sh` and `build_app.sh`. On a
+Mac with Command Line Tools only (no Xcode), it type-checks one SwiftUI
+`@State` line against the default SDK; if that fails, it exports `SDKROOT` to
+the newest installed macOS 26 SDK. Why: CLT 27 ships the macOS 27 SDK, where
+`@State` is a macro, but not the SwiftUIMacros compiler plugin (BUILD_LOG
+FM#23). It's a no-op when `SDKROOT` is already set or Xcode is the active
+developer dir, so CI (macos-26 runners with Xcode) is untouched. The
+deployment target stays macOS 14, so the SDK choice doesn't change which
+Macs the app runs on.
 
 ## Latency gate (added 2026-08-19)
 

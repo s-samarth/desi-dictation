@@ -36,7 +36,7 @@ must remove (−) and re-add the app in Privacy & Security
 keychain — this is the path to use today):
 
 ```bash
-./scripts/release.sh v0.6.1        # preflight → build → sign → DMG → GitHub Release
+./scripts/release.sh v0.6.2        # preflight → build → sign → DMG → GitHub Release
 ```
 
 It refuses to publish a dirty tree, a tag that disagrees with the bundle
