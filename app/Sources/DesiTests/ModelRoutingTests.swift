@@ -70,4 +70,13 @@ func runModelRoutingTests() {
              "forced cut is the outer bound, not the normal one")
     T.expect(DictationController.tailFloorSamples >= 3200,
              "sub-0.2 s tails are key-release noise, not speech")
+
+    // FM#26: हिन्दी chunks early because the engine splits at 12 s anyway;
+    // a chunk may overshoot `force` by one 1 s ticker step and must still fit.
+    let hindi = DictationController.chunkThresholds(for: .hindi)
+    let cap = WhisperCppEngine.maxCallSamples(for: .hindi) ?? 0
+    T.expect(hindi.force + 16000 <= cap, "हिन्दी chunks never need a second split")
+    T.expect(hindi.every >= 8 * 16000, "हिन्दी chunks still worth their call")
+    T.expect(DictationController.chunkThresholds(for: .hinglish).floor
+             == DictationController.chunkFloorSamples, "other modes keep the 30 s floor")
 }

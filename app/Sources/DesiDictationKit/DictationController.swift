@@ -165,6 +165,16 @@ public final class DictationController: ObservableObject {
         phase = .disabled
     }
 
+    /// Frees the model before the process exits. ggml's Metal backend checks,
+    /// in a static destructor run by exit(), that every GPU buffer was freed —
+    /// a model still resident at Quit made every quit a SIGABRT crash report
+    /// (FM#27). `sync` waits out an in-flight transcription: freeing the
+    /// model under it would crash too.
+    public func shutdown() {
+        disable()
+        workQueue.sync { engine.unload() }
+    }
+
     /// Applies the mic-warm setting change immediately.
     public func micWarmChanged() {
         if !settings.micWarm { audio.coolDown() }
@@ -232,6 +242,21 @@ public final class DictationController: ObservableObject {
     /// Below this the "tail" is key-release noise, not speech.
     public nonisolated static let tailFloorSamples = 5600               // 0.35 s
 
+    /// The (floor, every, force) chunk thresholds for a session in `mode`.
+    /// हिन्दी is the exception (FM#26): the engine splits anything over 12 s
+    /// into separate whisper calls to stay under the decoder's token budget,
+    /// so those calls are paid either way — make them while the user is still
+    /// talking. Force is one ticker second under the cap, so the engine never
+    /// has to split a chunk again.
+    public nonisolated static func chunkThresholds(
+        for mode: LanguageMode
+    ) -> (floor: Int, every: Int, force: Int) {
+        guard let cap = WhisperCppEngine.maxCallSamples(for: mode) else {
+            return (chunkFloorSamples, chunkEverySamples, chunkForceSamples)
+        }
+        return (cap, cap * 2 / 3, cap - 16000)
+    }
+
     /// Accessed only on workQueue (serial) — safe despite nonisolated access.
     private nonisolated(unsafe) var pendingParts: [String] = []
     private var chunkedUpToSample = 0
@@ -242,19 +267,20 @@ public final class DictationController: ObservableObject {
         engineCalls = 0
         engineSeconds = 0
         workQueue.async { [weak self] in self?.pendingParts = [] }
+        let limits = Self.chunkThresholds(for: mode)
         chunkTicker = Task { @MainActor [weak self] in
             while let self, !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 guard case .recording = self.phase else { continue }
                 let total = self.audio.sessionSampleCount
                 // Short dictations never chunk: one call is cheaper than two.
-                guard total >= Self.chunkFloorSamples else { continue }
+                guard total >= limits.floor else { continue }
                 let pending = total - self.chunkedUpToSample
-                guard pending >= Self.chunkEverySamples else { continue }
+                guard pending >= limits.every else { continue }
                 // Cut at a quiet moment, or force so a bad cut is bounded.
                 let tail = self.audio.snapshotSession(fromSample: total - 4000, toSample: total)
                 let quiet = (tail.map(abs).max() ?? 0) < 0.01
-                guard quiet || pending >= Self.chunkForceSamples else { continue }
+                guard quiet || pending >= limits.force else { continue }
                 let chunk = self.audio.snapshotSession(
                     fromSample: self.chunkedUpToSample, toSample: total)
                 self.chunkedUpToSample = total

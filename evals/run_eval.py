@@ -36,11 +36,11 @@ MODELS_DIR = Path.home() / "Library/Application Support/DesiDictation/models"
 SHIPPING = {"english": "parakeet", "hindi": "vaani", "hinglish": "hinglish-apex"}
 
 # Engine seconds per clip ~= a + b * audio seconds, fitted on the quick tier
-# (M3 Air, model resident, 2026-09-22). Vaani is content-dependent — dense
-# speech can run slower than realtime — so it is modelled per audio second.
+# (M3 Air, model resident, 2026-09-22). Vaani costs one call per ≤ 12 s piece
+# since the FM#26 split (it ran slower than realtime before), ~0.5 s per second.
 # Turbo shares Apex's architecture; small/base/swift are rough. M1 Air ~1.8x.
 COST = {"parakeet": (0.05, 0.025), "apex": (1.43, 0.091), "turbo": (1.43, 0.091),
-        "prime": (1.43, 0.091), "vaani": (0.0, 1.1), "small": (0.7, 0.03),
+        "prime": (1.43, 0.091), "vaani": (0.5, 0.5), "small": (0.7, 0.03),
         "swift": (0.4, 0.02), "base": (0.3, 0.01)}
 
 

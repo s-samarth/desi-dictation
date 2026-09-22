@@ -90,6 +90,20 @@ call (BUILD_LOG FM#20). Dictations under 30 s of speech are therefore one call;
 longer ones cut every ≥25 s while the user keeps talking. Streaming *partial
 text* into the overlay remains deferred (PERFORMANCE.md).
 
+**Exception: हिन्दी (v0.6.2, FM#26).** A whisper window decodes at most 220
+tokens, and Devanagari runs ~11–14 tokens per second of speech. A window with
+more than ~16 s of dense Hindi overflows, gets re-decoded at five fallback
+temperatures, and still loses its last words. So `WhisperCppEngine` splits
+हिन्दी audio into ≤ 12 s pieces at quiet moments (`AudioSplitter`), and the
+controller chunks हिन्दी sessions at 8–11 s so those calls run during speech.
+Roman-script modes (~1.3 tokens a word) are unaffected.
+
+### Free native models before exit (v0.6.2, FM#27)
+ggml-metal checks in a static destructor that every GPU buffer is gone, and
+`exit()` runs it without running Swift deinits. So the app unloads in
+`applicationWillTerminate` (`DictationController.shutdown()`) and `desi-cli`
+unloads on every exit path. Otherwise Quit is a SIGABRT.
+
 ### Input-only mic unit, not AVAudioEngine (v0.6.2)
 
 On macOS, AVAudioEngine runs input and output as **one** device, so the mic is

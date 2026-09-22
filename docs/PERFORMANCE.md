@@ -33,12 +33,43 @@ now measured directly and gated (`scripts/latency_gate.sh`).
 | Configuration | Speed | Notes |
 |---|---|---|
 | Apex q5_0, VAD on | **13–15× realtime** | shipping default for Hinglish |
-| Apex q5_0, VAD off | 14× realtime | VAD costs ~nothing, kills silence hallucination |
+| Apex q5_0, VAD off | 14× realtime | VAD costs ~nothing, kills silence hallucination — **suspect: FM#28, both rows may be VAD-off** |
 | Apex **q8_0** | 10× realtime | **slower than q5_0 on Metal** — bench before assuming bigger-quant-is-faster; q8 deleted |
 | Swift (72 M) | 30–40× realtime | free-tier / low-power option |
 | Model cold load | 0.15–0.76 s (by size) | model kept resident; first-ever load also pays Metal shader JIT |
 
-## Applied optimizations (v0.4 → v0.6.1)
+**Caveat (FM#28, found 2026-09-23):** from 2026-07-10 every `desi-cli` run on
+the dev Mac ran with VAD **off** (a persisted `--novad`), so desi-cli numbers
+since then (evals, latency gate, the table above) are VAD-off, and the app is
+VAD-on. Clear it with `defaults delete desi-cli vadEnabled`.
+
+### हिन्दी: the token budget, not the encoder (FM#26, 2026-09-23)
+
+A whisper window decodes at most **220 tokens**, and Devanagari costs
+~11–14 tokens per second of speech (19.5 at the fastest). Past ~16 s of dense
+Hindi in one call, the window overflows, temperature fallback re-decodes it
+5 × 5 times, and the text still loses its end:
+
+Measured 2026-09-23, M3 Air, `desi-cli` single-file runs with VAD on (the
+app's setting), old and new binaries interleaved per clip:
+
+| Clip (quick tier) | Audio | Before | After (12 s pieces) |
+|---|---|---|---|
+| 0023 FLEURS (not split) | 5.8 s | 3.0 s | 2.9 s |
+| 0014 FLEURS (208 tokens, just fitted) | 18.5 s | 5.3 s | 7.9 s (+1 call) |
+| 0076 IndicVoices (207 tokens, just fitted) | 18.2 s | 6.9 s | 10.0 s (+1 call) |
+| 0007 FLEURS (260 tokens) | 18.6 s | **71.2 s, truncated** | **10.4 s**, complete |
+| 0069 IndicVoices long | 64.1 s | **150.8 s** | **35.8 s** |
+
+Quick-tier हिन्दी accuracy (VAD off, like the baseline report): nWER
+26.7 % → 14.6 %, CER 16.4 % → 5.6 %. The price is one extra call on 12–16 s
+dictations that used to just fit (+2.5–3 s through desi-cli). In the app,
+हिन्दी sessions also chunk at 8–11 s while the user is still talking, so after
+release only the last ≤ 12 s is left to decode, not the whole dictation.
+
+Encode was never the problem here: 1.6 s of the 55 s was encoding.
+
+## Applied optimizations (v0.4 → v0.6.2)
 
 1. **Warm mic + 0.3 s pre-roll ring** — mic runs while dictation is enabled;
    keypress starts a session instantly and *includes the 0.3 s before it*.
@@ -54,6 +85,7 @@ now measured directly and gated (`scripts/latency_gate.sh`).
    padded window, so the old 12 s cut charged ordinary dictations for extra
    full-price calls and made the tail queue behind a chunk still decoding.
    (`no_context=true` makes chunks independent, so joining is safe.)
+   Exception: हिन्दी chunks at 8–11 s (#12, FM#26).
 3. **Silero VAD** — trims silence pre-decode (quality + speed on pause-heavy audio).
 4. **`no_context = true`** — stops cross-window error cascades in long form.
 5. **Model residency + preload** — load once per enable/mode-switch, never per
@@ -73,6 +105,11 @@ now measured directly and gated (`scripts/latency_gate.sh`).
     seconds, engine calls, engine time and release→paste, shows the last one in
     the Dictation pane, and logs it at `.notice` so `log show` can reconstruct a
     complaint after the fact.
+12. **हिन्दी token-budget split** (v0.6.2, FM#26) — the engine cuts हिन्दी audio
+    into ≤ 12 s pieces at quiet moments (`AudioSplitter`), so no whisper call
+    overflows 220 tokens and triggers fallback, and the controller chunks
+    हिन्दी sessions at 8–11 s so those calls run while the user is still
+    talking. A window that still reaches the cap logs `decoder budget hit`.
 
 ## Deferred — documented so they're one decision away (ranked by value)
 
@@ -85,7 +122,8 @@ now measured directly and gated (`scripts/latency_gate.sh`).
    compilation which normally needs Xcode — workaround: compile at first run
    in-app via `MLModel.compileModel(at:)`. Effort: ~1–2 days. Do before v1.0.
 2. **A lighter हिन्दी model** — Vaani is a 1.06 GB large-v3 and now the worst
-   latency we ship. Either an ANE encoder (above) or a distilled/quantized Hindi
+   latency we ship; with the FM#26 split, a long हिन्दी dictation costs one
+   Vaani call per 12 s, so per-call cost matters more. Either an ANE encoder (above) or a distilled/quantized Hindi
    fine-tune; Parakeet cannot help (no Hindi, no Devanagari).
 3. **whisper.cpp version pin + scheduled bumps** — currently `--depth 1` HEAD
    at clone time; pin a commit, bump deliberately with the regression suite.

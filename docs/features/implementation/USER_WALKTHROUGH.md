@@ -149,3 +149,9 @@ from **Models** (416 MB) or take it during onboarding.
 **How fast was that?** The Dictation screen shows the last dictation's real
 cost — *"Last: 4.2s speech · 0.31s to paste · 1 call"*. If dictation ever feels
 slow, that line is what to quote in a bug report.
+
+**Long हिन्दी dictations are fixed (v0.6.2).** Before this, a हिन्दी dictation
+longer than ~15 s could take a minute and lose its last few words. It now
+comes back in a few seconds, complete. You'll see one call per ~8–12 s of
+speech in the timings line; that's expected for हिन्दी. Quitting the app also no
+longer triggers a "quit unexpectedly" crash report.

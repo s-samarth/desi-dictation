@@ -9,6 +9,25 @@ import DesiDictationKit
 import Foundation
 
 let args = CommandLine.arguments
+
+/// exit() after freeing the model: ggml's Metal teardown (a static destructor
+/// run by exit()) aborts if GPU buffers are still allocated — every batch run
+/// used to end in SIGABRT, exit 134 (FM#27).
+func finish(_ code: Int32, unloading engine: EngineRouter?) -> Never {
+    engine?.unload()
+    exit(code)
+}
+
+// --novad: VAD off for THIS run only. Goes in the volatile argument domain
+// (highest priority, never saved) before SettingsStore first reads it. The old
+// UserDefaults.set arrived after SettingsStore had loaded — no effect on its
+// own run — and was persisted, so every later desi-cli run, evals and latency
+// gate included, silently ran without VAD (FM#28). Works in any mode.
+if args.contains("--novad") {
+    var argDomain = UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain)
+    argDomain["vadEnabled"] = false
+    UserDefaults.standard.setVolatileDomain(argDomain, forName: UserDefaults.argumentDomain)
+}
 guard args.count >= 3 else {
     print("""
     usage: desi-cli <model.bin> <audio file | --batch dir> [hinglish|english|hindi]
@@ -23,12 +42,12 @@ guard args.count >= 3 else {
 // Usage: desi-cli --e2e <whisper-model.bin> <audio.wav>
 if args[1] == "--e2e", args.count >= 4 {
     let semaphore = DispatchSemaphore(value: 0)
+    // Router, not a bare whisper engine: the CLI must exercise the exact
+    // path the app takes, including Parakeet models (English mode).
+    let engine = EngineRouter()
     Task {
         defer { semaphore.signal() }
         do {
-            // Router, not a bare whisper engine: the CLI must exercise the exact
-    // path the app takes, including Parakeet models (English mode).
-    let engine = EngineRouter()
             try engine.load(modelPath: args[2])
             let samples = try AudioFileLoader.loadSamples(url: URL(fileURLWithPath: args[3]))
             let asr = try engine.transcribe(samples: samples, mode: .anyToEnglish)
@@ -38,7 +57,8 @@ if args[1] == "--e2e", args.count >= 4 {
             print("HEARD (\(String(format: "%.1f", asr.duration))s ASR): \(text)")
             let llm = OllamaLLM(model: SettingsStore.shared.llmModel)
             guard (await llm.status()).isReady else {
-                print("LLM not ready — app would paste the raw words above"); exit(3)
+                print("LLM not ready — app would paste the raw words above")
+                finish(3, unloading: engine)
             }
             let start = Date()
             let english = try await LLMTranslationEngine(llm: llm)
@@ -46,11 +66,11 @@ if args[1] == "--e2e", args.count >= 4 {
             print("PASTED (\(String(format: "%.1f", Date().timeIntervalSince(start)))s LLM): \(english)")
         } catch {
             FileHandle.standardError.write("e2e error: \(error.localizedDescription)\n".data(using: .utf8)!)
-            exit(2)
+            finish(2, unloading: engine)
         }
     }
     semaphore.wait()
-    exit(0)
+    finish(0, unloading: engine)
 }
 
 // Parity hook: print HindiNumbers.normalize(text) — scripts/check_parity.sh
@@ -101,10 +121,10 @@ let mode = LanguageMode(rawValue: args.count > 3 ? args[3] : "hinglish") ?? .hin
 if args[2] == "--batch", args.count >= 4 {
     let dir = URL(fileURLWithPath: args[3])
     let batchMode = LanguageMode(rawValue: args.count > 4 ? args[4] : "hinglish") ?? .hinglish
-    do {
-        // Router, not a bare whisper engine: the CLI must exercise the exact
+    // Router, not a bare whisper engine: the CLI must exercise the exact
     // path the app takes, including Parakeet models (English mode).
     let engine = EngineRouter()
+    do {
         try engine.load(modelPath: modelPath)
         let files = try FileManager.default.contentsOfDirectory(
             at: dir, includingPropertiesForKeys: nil)
@@ -122,29 +142,25 @@ if args[2] == "--batch", args.count >= 4 {
             let data = try JSONSerialization.data(withJSONObject: record)
             print(String(data: data, encoding: .utf8)!)
         }
-        exit(0)
+        finish(0, unloading: engine)
     } catch {
         FileHandle.standardError.write("batch error: \(error.localizedDescription)\n".data(using: .utf8)!)
-        exit(2)
+        finish(2, unloading: engine)
     }
 }
 
 let audioURL = URL(fileURLWithPath: args[2])
+// Router, not a bare whisper engine: the CLI must exercise the exact
+// path the app takes, including Parakeet models (English mode).
+let engine = EngineRouter()
 
 do {
-    // Router, not a bare whisper engine: the CLI must exercise the exact
-    // path the app takes, including Parakeet models (English mode).
-    let engine = EngineRouter()
     let loadStart = Date()
     try engine.load(modelPath: modelPath)
     print("model loaded in \(String(format: "%.2f", Date().timeIntervalSince(loadStart)))s")
 
     let samples = try AudioFileLoader.loadSamples(url: audioURL)
     print("audio: \(String(format: "%.1f", Double(samples.count) / 16000.0))s")
-
-    if CommandLine.arguments.contains("--novad") {
-        UserDefaults.standard.set(false, forKey: "vadEnabled")
-    }
 
     // Repeated transcriptions on ONE loaded context — mirrors real app usage
     // (the app keeps the model resident across dictations).
@@ -157,5 +173,6 @@ do {
     }
 } catch {
     print("error: \(error.localizedDescription)")
-    exit(2)
+    finish(2, unloading: engine)
 }
+finish(0, unloading: engine)

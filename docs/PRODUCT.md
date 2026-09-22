@@ -12,7 +12,7 @@ What exists, how well it works, and where it's going. Update this every release.
 | Toggle mode (tap start/stop) | ✅ shipped | live-switchable |
 | Esc to cancel | ✅ shipped | |
 | Hinglish (Roman) output | ✅ shipped | Apex model — the differentiator |
-| English / हिन्दी modes | ✅ shipped | **English runs on Parakeet TDT** (0.21 s/call, 4.3 % nWER on Indian English — [research §E](MODEL_RESEARCH.md)); हिन्दी on Vaani |
+| English / हिन्दी modes | ✅ shipped | **English runs on Parakeet TDT** (0.21 s/call, 4.3 % nWER on Indian English — [research §E](MODEL_RESEARCH.md)); हिन्दी on Vaani, split into ≤ 12 s calls so long dictations neither stall nor truncate (v0.6.2, [FM#26](BUILD_LOG.md)) |
 | **Default model per language** | ✅ built 2026-08-19 | pick a language, the right model loads itself; pickers hide models that can't serve it ([impl](features/implementation/MODEL_ROUTING.md)) |
 | In-app model downloads + ⭐ recommendations | ✅ shipped | models not bundled (size) |
 | Silence/pause robustness (VAD) | ✅ shipped | Silero VAD, 1 MB add-on |

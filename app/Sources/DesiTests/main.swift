@@ -7,6 +7,7 @@ runDictionaryTests()
 runStoreTests()
 runNumberTests()
 runModelRoutingTests()
+runAudioSplitterTests()
 
 let group = DispatchGroup()
 group.enter()

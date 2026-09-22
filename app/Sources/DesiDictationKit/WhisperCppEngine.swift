@@ -47,7 +47,46 @@ public final class WhisperCppEngine: TranscriptionEngine {
         loadedModelPath = nil
     }
 
+    /// Longest audio one whisper call may cover in `mode` (nil = no limit).
+    ///
+    /// whisper.cpp decodes at most 220 tokens per 30 s window
+    /// (n_text_ctx/2 − 4). Devanagari costs ~5 tokens a word — ~11–14 tokens
+    /// per second of Hindi speech — so a window holding more than ~16 s of
+    /// dense Hindi runs out of tokens without an end-of-text, is flagged a
+    /// "repetition loop", and is re-decoded at 5 more temperatures × 5
+    /// candidates: 18 s of speech took 54 s, and still lost its last words
+    /// (FM#26). 12 s pieces keep even fast speech (~18 tok/s) under the cap.
+    /// Roman-script modes use ~1.3 tokens a word and never get near it.
+    public static func maxCallSamples(for mode: LanguageMode) -> Int? {
+        mode == .hindi ? 12 * 16000 : nil
+    }
+
+    /// Tokens at which a window has certainly hit the decoder cap above.
+    private static let decoderBudgetTokens = 216
+
     public func transcribe(samples: [Float], mode: LanguageMode) throws -> TranscriptionResult {
+        guard ctx != nil else { throw EngineError.modelNotLoaded }
+        let start = Date()
+        let ranges = Self.maxCallSamples(for: mode)
+            .map { AudioSplitter.pieces(of: samples, maxSamples: $0) } ?? [0..<samples.count]
+        var texts: [String] = []
+        for range in ranges {
+            do {
+                texts.append(try transcribeWindow(Array(samples[range]), mode: mode))
+            } catch EngineError.emptyAudio where ranges.count > 1 {
+                continue   // a silent piece of a longer dictation is not an error
+            }
+        }
+        guard !texts.isEmpty else { throw EngineError.emptyAudio }
+        return TranscriptionResult(
+            text: texts.filter { !$0.isEmpty }.joined(separator: " "),
+            duration: Date().timeIntervalSince(start),
+            audioSeconds: Double(samples.count) / 16000.0
+        )
+    }
+
+    /// One whisper_full call. Returns trimmed text ("" for NaN garbage).
+    private func transcribeWindow(_ samples: [Float], mode: LanguageMode) throws -> String {
         guard let ctx else { throw EngineError.modelNotLoaded }
         guard samples.count > 1600 else { throw EngineError.emptyAudio }  // <0.1s
         // Reject silent/corrupt buffers before they reach the model — NaN or
@@ -56,7 +95,6 @@ public final class WhisperCppEngine: TranscriptionEngine {
             throw EngineError.emptyAudio
         }
 
-        let start = Date()
         var params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY)
         params.print_progress = false
         params.print_realtime = false
@@ -100,10 +138,16 @@ public final class WhisperCppEngine: TranscriptionEngine {
         engineLog.info("segments: \(whisper_full_n_segments(ctx), privacy: .public)")
 
         var text = ""
+        var tokens: Int32 = 0
         for i in 0..<whisper_full_n_segments(ctx) {
+            tokens += whisper_full_n_tokens(ctx, i)
             if let seg = whisper_full_get_segment_text(ctx, i) {
                 text += String(cString: seg)
             }
+        }
+        if tokens >= Self.decoderBudgetTokens {
+            // Means the text was truncated and temperature fallback ran (FM#26).
+            engineLog.notice("decoder budget hit: \(tokens, privacy: .public) tokens in \(samples.count / 16000, privacy: .public) s")
         }
         engineLog.info("raw text (\(text.count, privacy: .public) chars): \(String(text.prefix(80)), privacy: .private(mask: .none))")
         // NaN logits decode to literal "nan" tokens — treat as no output
@@ -113,10 +157,6 @@ public final class WhisperCppEngine: TranscriptionEngine {
             .trimmingCharacters(in: .whitespaces).isEmpty && lowered.contains("nan") {
             text = ""
         }
-        return TranscriptionResult(
-            text: text.trimmingCharacters(in: .whitespacesAndNewlines),
-            duration: Date().timeIntervalSince(start),
-            audioSeconds: Double(samples.count) / 16000.0
-        )
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

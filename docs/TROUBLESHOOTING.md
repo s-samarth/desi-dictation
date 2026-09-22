@@ -68,8 +68,20 @@ The Dictation screen shows what the last one actually cost:
   **Parakeet** in Models, then set Language → English → Model → **Auto**.
 - **"2 calls" or more for a short dictation?** That should not happen under
   30 s of speech — file it with the timings line (PERF_RCA_2026-08.md).
+  Exception: हिन्दी uses one call per ~8–12 s of speech (FM#26), so 2–3 calls
+  for a 20–30 s हिन्दी dictation is expected.
+- **Long हिन्दी dictations took a minute and lost their last words** (before
+  v0.6.2): dense Hindi overflowed whisper's per-window token budget (FM#26).
+  Fixed by splitting हिन्दी audio into ≤ 12 s pieces; update the app. If it
+  still happens, `log show --predicate 'subsystem == "com.desi.dictation"'
+  --last 1h | grep "decoder budget"` shows whether a piece overflowed.
 - **First dictation after the Mac woke up** is slower: the model gets paged
   back in. Subsequent ones are not.
+
+## 3c. "Desi Dictation quit unexpectedly" when you quit it
+
+Before v0.6.2, quitting with a model loaded crashed in the GPU library's
+teardown (FM#27). Harmless (it was already quitting) and fixed; update the app.
 
 ## 4. First dictation after enabling is slow
 

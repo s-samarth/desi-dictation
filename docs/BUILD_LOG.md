@@ -570,3 +570,81 @@ keeps versions in separate rows.
 orthography — and check a metric against a hand-verified "this is correct"
 pair before trusting its numbers. Keep rules that forgive spelling from also
 forgiving different words (मिलना vs मिलाना is why medial vowels aren't ignored).
+
+## 2026-09-23 — हिन्दी slower than realtime; desi-cli exit 134
+
+### Failure mode #26 — Devanagari overflows whisper's 220-token window
+
+**Symptom:** found in the 2026-09-22 eval rebuild: Vaani (हिन्दी) was
+content-dependently *slower than realtime* through `desi-cli --batch` (the app's
+EngineRouter path). A 64 s IndicVoices clip took 142 s; an 18.6 s FLEURS clip
+54.7 s, while an 18.2 s IndicVoices clip took 6.8 s. The slow outputs also
+**ended mid-word** ("…होने की बजाय व").
+**Cause:** whisper.cpp decodes at most `n_text_ctx/2 − 4` = **220 tokens per
+30 s window**. Devanagari costs ~4–6 BPE tokens a word (vowel signs are not
+`\p{L}`, so the pre-tokenizer splits words at every matra): **~11–14 tokens
+per second** of Hindi speech, up to 19.5 on the fastest eval speaker. With
+`no_timestamps = true` a window that reaches token 220 without end-of-text is
+flagged a *repetition loop* (`result_len == 0` at `n_max`), so temperature
+fallback re-decodes it at 0.2 … 1.0 with `best_of = 5`. The 18.6 s clip: 5
+fallbacks, 6 600 decoder steps, 53 s of decoding against 1.6 s of encoding —
+and the final answer is still truncated at 220 tokens. The quick-tier data is
+bimodal on exactly that line: reference texts of 207 and 208 tokens decoded in
+5–7 s, 260 tokens took 55 s. Turning timestamps on does not help: Vaani was
+fine-tuned without them (no closing timestamp; 10 fallbacks, duplicated text).
+Turbo in हिन्दी mode took 11 s and returned one garbled sentence. Roman
+Hinglish (~1.3 tokens a word) never comes near the cap: Apex did 92 s of audio
+in 10.4 s.
+**In the app:** dictations up to 30 s were one whisper call and chunks were
+25–35 s, so **any हिन्दी dictation with more than ~16 s of speech** hit this:
+a 50 s+ wait, then text with its last words missing.
+**Fix:** `WhisperCppEngine.maxCallSamples(for: .hindi)` = 12 s. Longer audio is
+cut by `AudioSplitter` into balanced pieces at the quietest 100 ms within
+±1.5 s of each even boundary, one whisper call each, texts joined. 12 s holds
+16.9 tok/s (all but one eval speaker) under the cap; the outlier's clips split
+smaller anyway. The controller chunks हिन्दी sessions at 8–11 s
+(`chunkThresholds(for:)`) so those calls run while the user is still talking. A
+window that still reaches 216 tokens logs `decoder budget hit` at `.notice`.
+Quick-tier हिन्दी: nWER 26.7 % → 14.6 %, CER 16.4 % → 5.6 %; 64 s clip nWER
+51 % → 13 %. Cost: clips that fitted and are now split show spelling
+variance (nukta, है/हैं): conversational ivh_hi nWER 15.3 % → 17.5 %.
+**Lesson:** a whisper window has a token budget, not just a time budget, and
+the budget is script-dependent. Check tokens per second before trusting a
+model for a script, and treat "fallbacks > 0" in whisper's timings as a bug.
+
+### Failure mode #27 — ggml's Metal teardown aborts exit() with a model loaded
+
+**Symptom:** every `desi-cli --batch` ended in SIGABRT (exit 134) after
+printing complete output. The app's crash reports (2026-09-16, 09-22 ×2)
+showed the same stack from `NSApplication terminate:`: **Quit crashed
+whenever a model was resident.**
+**Cause:** ggml-metal keeps its devices in a static vector whose destructor,
+run by `exit()`, asserts `[rsets->data count] == 0`, i.e. that every Metal
+buffer was freed first. `exit()` never runs Swift deinits, so the whisper
+context was still allocated.
+**Fix:** `desi-cli` goes through `finish(code, unloading: engine)` on every
+exit path; the app's `applicationWillTerminate` calls
+`DictationController.shutdown()`, which disables dictation and unloads the
+model on the engine queue (after any in-flight transcription). Batches exit 0
+(Vaani and Parakeet).
+**Lesson:** a C++ library's static destructors run in `exit()`. Release native
+resources explicitly before exiting; don't rely on process teardown.
+
+### Failure mode #28 — `desi-cli --novad` switched VAD off for every later run
+
+**Symptom:** found while chasing FM#26: `defaults read desi-cli` held
+`vadEnabled = 0`, written 2026-07-10.
+**Cause:** `--novad` called `UserDefaults.standard.set(false, …)`, which is
+persisted. It also ran after `SettingsStore` had loaded its values, so it did
+nothing for its own run and switched VAD off for **every desi-cli run since**:
+evals, the latency gate, and the "VAD on vs off" throughput numbers in
+PERFORMANCE.md all ran without VAD, while the app runs with it on.
+**Fix:** `--novad` now writes the volatile argument domain before anything
+reads settings (this run only, never saved). The stale value is on-disk
+user state and must be cleared by hand: `defaults delete desi-cli vadEnabled`.
+Until then, comparisons against earlier reports are like-for-like (all
+VAD-off). To override for one run, pass `-vadEnabled '<true/>'`. The value
+must be a plist literal: `-vadEnabled NO` arrives as the *string* "NO",
+`as? Bool` returns nil, and SettingsStore falls back to its default (on).
+**Lesson:** a debug flag must never write persistent state, and a measurement
+tool must print the settings it actually ran with.

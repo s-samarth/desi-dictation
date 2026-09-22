@@ -74,6 +74,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Unload the model before exit() — a resident model aborts the process
+    /// in ggml's Metal teardown (FM#27).
+    func applicationWillTerminate(_ notification: Notification) {
+        DictationController.shared.shutdown()
+    }
+
     /// Clicking the app in Dock/Spotlight/Finder shows a window — before this,
     /// "opening" the app appeared to do nothing.
     func applicationShouldHandleReopen(_ sender: NSApplication,
