@@ -57,12 +57,12 @@ download() {
     url="$LATEST/DesiDictation.dmg"
   fi
   say "Downloading $url"
-  if ! curl -fL --progress-bar -o "$tmp/DesiDictation.dmg" "$url"; then
+  if ! curl -fL --retry 3 --connect-timeout 20 --progress-bar -o "$tmp/DesiDictation.dmg" "$url"; then
     [ -z "${DESI_DMG_URL:-}" ] || die "Download failed: $url"
     url="$(latest_dmg_via_api)"
     [ -n "$url" ] || die "Couldn't find a DMG in the latest release of $REPO."
     say "Downloading $url"
-    curl -fL --progress-bar -o "$tmp/DesiDictation.dmg" "$url" || die "Download failed."
+    curl -fL --retry 3 --connect-timeout 20 --progress-bar -o "$tmp/DesiDictation.dmg" "$url" || die "Download failed."
   fi
   DMG_URL="$url"
 }
