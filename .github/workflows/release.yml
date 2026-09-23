@@ -95,6 +95,14 @@ jobs:
             --password "${{ secrets.NOTARY_PASSWORD }}"
           xcrun stapler staple app/dist/DesiDictation-*.dmg
 
+      # install.sh pulls releases/latest/download/DesiDictation.dmg and checks
+      # its .sha256 — keep a stable-named copy next to the versioned one.
+      - name: Stable-named DMG + checksums
+        run: |
+          cd app/dist
+          cp DesiDictation-*.dmg DesiDictation.dmg
+          for f in DesiDictation*.dmg; do shasum -a 256 "$f" > "$f.sha256"; done
+
       # Say plainly what the user is downloading: an unsigned/ad-hoc DMG needs a
       # different install dance than a signed one, and guessing wrong wastes
       # their evening (TROUBLESHOOTING.md §1).
@@ -129,7 +137,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') && steps.existing.outputs.count == '0'
         with:
-          files: app/dist/DesiDictation-*.dmg
+          files: |
+            app/dist/DesiDictation*.dmg
+            app/dist/DesiDictation*.dmg.sha256
           generate_release_notes: true
           body: |
             ${{ steps.describe.outputs.note }}

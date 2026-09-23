@@ -72,10 +72,24 @@ Input Monitoring grants carry over between updates.
 Applications and choose Replace. Do **not** uninstall — settings, history,
 dictionary and downloaded models are kept.
 
+**One-line install / update** (no "Open Anyway" step needed):
+\`\`\`bash
+curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/install.sh | bash
+\`\`\`
+
 Install guide: [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)
 EOF
 
-gh release create "$TAG" "$DMG" --title "Desi Dictation $VERSION" \
+# Stable-named copy + checksums: install.sh fetches
+# releases/latest/download/DesiDictation.dmg, so the newest release is always
+# one fixed URL, and it verifies the .sha256 before installing.
+STABLE="$ROOT/app/dist/DesiDictation.dmg"
+cp "$DMG" "$STABLE"
+for f in "$DMG" "$STABLE"; do
+  (cd "$(dirname "$f")" && shasum -a 256 "$(basename "$f")" > "$(basename "$f").sha256")
+done
+
+gh release create "$TAG" "$DMG" "$DMG.sha256" "$STABLE" "$STABLE.sha256" --title "Desi Dictation $VERSION" \
   --notes-file "$NOTES" --generate-notes $DRAFT
 rm -f "$NOTES"
 echo "✅ released $TAG"

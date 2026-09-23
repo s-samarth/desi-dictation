@@ -56,6 +56,14 @@ launched app (learned the hard way; see implementation/USER_WALKTHROUGH.md §0).
    update notes. It refuses a dirty tree or a tag that disagrees with the
    bundle version, so there are no mismatched releases.
 
+Every release carries four assets: the versioned `DesiDictation-x.y.z.dmg`, a
+stable-named copy `DesiDictation.dmg`, and a `.sha256` for each. The stable
+name is what makes `releases/latest/download/DesiDictation.dmg` always the
+newest build — the URL the root [`install.sh`](../install.sh) one-liner
+(`curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/install.sh | bash`) fetches and checksum-verifies. `release.yml` publishes the same four
+when it is the one creating the release. Drafts and pre-releases are never
+"latest", so a `--draft` release is invisible to the installer until published.
+
 The tag push also starts `release.yml`, which rebuilds from clean (fresh
 whisper.cpp libs, preflight gate) as a check on the tag — see **Releases**
 below for why it will not touch the uploaded DMG.

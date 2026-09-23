@@ -14,7 +14,22 @@ taiyaar rakhana. Bahut zaroori kaam hai time par aana."` — Hinglish lands in
 ~1.5 s, English in ~0.2 s (M3 Air, short dictation, model resident; the numbers
 users feel are in [docs/PERFORMANCE.md](docs/PERFORMANCE.md)).
 
-## Quickstart
+## Install (Apple Silicon, macOS 14+)
+
+Paste this into Terminal:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/install.sh | bash
+```
+
+It downloads the **latest release**, checks its SHA-256, installs
+`Desi Dictation.app` into `/Applications` and opens it — no "Apple could not
+verify…" dialog, no Open Anyway step. Run the same command again to update;
+settings, history, dictionary and models are kept. Prefer clicking? Grab
+[the latest DMG](https://github.com/s-samarth/desi-dictation/releases/latest/download/DesiDictation.dmg)
+and follow [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
+
+## Build from source
 
 ```bash
 # 1. One-time setup: build whisper.cpp static libs (needs cmake, git)
@@ -77,8 +92,8 @@ pasteboard-swap ⌘V insertion → non-activating overlay for state. SwiftUI
 onboarding, 5 curated models (Apex/Parakeet/Turbo/Vaani + VAD) with per-language
 defaults,
 VAD pause handling, chunked transcription while you speak, 24h local history,
-replacement dictionary, in-app feedback, launch-at-login. Grab the DMG from
-[Releases](../../releases) and follow [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
+replacement dictionary, in-app feedback, launch-at-login. Install with the one-liner
+above (or the DMG from [Releases](../../releases)) and follow [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
 Roadmap highlights: on-device LLM layer (translate-to-English, structuring),
 own fine-tuned Hinglish model, more Indic languages, Windows/Android.
 

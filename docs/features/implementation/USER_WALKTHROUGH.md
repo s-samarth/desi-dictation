@@ -22,6 +22,23 @@ permissions survive the swap. If the hotkey ever goes dead after an update:
 System Settings → Privacy → Accessibility + Input Monitoring → remove (−)
 Desi Dictation, re-add, relaunch.
 
+## 0a · Installing as a new user (2026-09-23) — one command
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/install.sh | bash
+```
+
+- **What happens:** Apple-Silicon + macOS 14 check → downloads
+  `releases/latest/download/DesiDictation.dmg` → verifies its `.sha256` →
+  quits a running copy → replaces `/Applications/Desi Dictation.app` →
+  opens it. Asks for the admin password only if `/Applications` isn't
+  writable for this user.
+- **Why no Gatekeeper dialog:** curl doesn't set `com.apple.quarantine`, and
+  Gatekeeper only assesses quarantined apps. The DMG route still needs the
+  one-time Open Anyway until the build is notarized (Developer ID, $99/yr).
+- **Updating:** run it again. Grants survive because every release is signed
+  with the same identity and lands at the same path.
+
 ## 0b · Microphone (v0.6.2) — nothing to set up
 
 - **What you pick:** System Settings → Sound → **Input**. The app always

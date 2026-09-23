@@ -34,6 +34,7 @@ What exists, how well it works, and where it's going. Update this every release.
 | App icon | ✅ shipped | generated, tricolor mic |
 | **Web demo (zero-install)** | ✅ built 2026-07-10 | browser mic → transcript + AI chips; share via tunnel ([web/](../web/README.md)) |
 | **Right-click Services translation** | ✅ built 2026-07-10 | select text anywhere → Services → English/हिन्दी |
+| **One-line installer** | ✅ built 2026-09-23 | `curl … install.sh \| bash` → latest release, SHA-256 checked, no Gatekeeper prompt ([SETUP_GUIDE](SETUP_GUIDE.md)) |
 | **CI/CD** | ✅ built 2026-07-10 | preflight = CI gate, tag→DMG release, app↔web parity enforced ([CICD.md](CICD.md)) |
 
 **LLM features need one-time setup** (free Ollama app + a model download from

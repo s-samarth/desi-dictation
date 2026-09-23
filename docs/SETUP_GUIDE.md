@@ -5,6 +5,19 @@
 
 ## 1. Install
 
+**Fastest — one command** (Terminal → paste → Enter):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/install.sh | bash
+```
+
+It fetches the newest release, verifies its checksum, puts the app in
+Applications and opens it. You skip the "Apple could not verify…" dialog
+below entirely: macOS only shows it for files a *browser* downloaded. Run the
+same command any time to update.
+
+**Or by hand:**
+
 1. Download `DesiDictation-x.y.z.dmg` and open it.
 2. Drag **Desi Dictation** into **Applications**.
 3. Open it (Spotlight → "Desi Dictation"). A **mic icon** appears in your menu
@@ -28,7 +41,8 @@ xattr -dr com.apple.quarantine "/Applications/Desi Dictation.app"
 
 ## 1b. Updating later
 
-New version? **Quit the app first** (menu bar → Quit), then drag the new one
+New version? Re-run the install command above — it quits the app, replaces
+it and relaunches. By hand: **quit the app first** (menu bar → Quit), then drag the new one
 into Applications and choose **Replace**.
 
 - **Do not uninstall first** — your settings, history, dictionary and
