@@ -171,6 +171,17 @@ share of the reference's English words the output also writes in Latin script.
   Devanagari ("slo kamyunikeshan chainals" once romanized). crWER partly
   forgives that, so EN-in-Latin is the column that shows it.
 
+**After the empty-output fix (PR #1), same 112 clips:**
+
+| Model | crWER | conversational | read | xs / s / m / l / xl | EN-in-Latin | empty on speech | median |
+|---|---|---|---|---|---|---|---|
+| Apex q5_0 | 20.0 % | 21.1 % | 12.4 % | 36.2 / 22.6 / 15.0 / 14.5 / 26.3 | 83.1 % | 0 | 2.02 s |
+| **Prime q5_0** | **17.3 %** | **20.4 %** | **11.4 %** | 43.1 / **18.8** / **14.8** / **13.8** / **20.5** | **84.7 %** | 0 | 3.23 s |
+
+The fix improved both models, Apex the most (25.3 % → 20.0 %). Prime still
+leads overall and in every length bucket except the shortest (<2.5 s). Clip by
+clip it is better on 36, worse on 21, and tied on 55.
+
 **Decision:** Apex stays the Hinglish Auto default. Prime goes into the catalog
 un-starred ("more accurate on long takes, ~2x slower") so users can pin it. Its
 empty-output rate must reach zero (PR #1 covers the silent drop) before it can
