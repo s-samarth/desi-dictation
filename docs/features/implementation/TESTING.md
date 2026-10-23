@@ -19,6 +19,7 @@ swift run desi-tests          # exit 0 = green; prints ✓/✗ per assertion
 | `StoreTests.swift` | AppModeStore rules+persistence; `anyToEnglish` contract (whisper token, `needsLLM`, **pinned raw values** — they live in UserDefaults/history JSON, renaming = data migration); model routing incl. "Hindi never gets a Hinglish model" regression; HistoryEntry decode of **pre-0.6 JSON** (backward compat) |
 | `EngineTests.swift` | translation chunking invariants (budget respected, zero word loss), `MockLLM`-driven translate incl. failure propagation, structurer capping/overflow/zero-loss, `stripReasoning`, prompt-template sanity (every style forbids invention; faithful tone = nil) |
 | `CombinationTests.swift` | the real pipeline order: legacy rules → dictionary → LLM stage; anyToEnglish failure→raw fallback; tone rides corrected text; structure carries exact raw; per-app rule × anyToEnglish (the Rekha flow) |
+| `WhisperLabelTests.swift` | FM#30: `NaNLabelFilter` bans Apex's `nan` label only as the first token, keeps a real transcript, drops a lone forced token (noise), leaves one-word dictations alone. **Live** (skipped unless Apex and `evals/data/hinglish/clips/0081.wav` are present): 0081 decodes in full, 5 s of noise still pastes nothing |
 
 `MockLLM` makes every pipeline path deterministic — no server needed, and
 failure paths are as testable as success paths.

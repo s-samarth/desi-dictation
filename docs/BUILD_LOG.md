@@ -668,3 +668,42 @@ Hinglish 1.39 s (4.10 s), हिन्दी 2.07 s (4.20 s) — all green.
 property the gate is about (length), not by position in a directory that other
 work is free to rebuild — and print what was measured, so a drifted input shows
 up in the log instead of as a phantom regression.
+
+## 2026-10-24 — Apex returned "" for a clear 15.7 s clip
+
+### Failure mode #30 — Apex's learned "nan" label swallowed real speech
+
+**Symptom:** found in the 2026-10-24 Roman-Hinglish model bake-off: Apex
+returned `""` for `hinglish/0081.wav`, 15.7 s of clear conversational Hinglish
+(IndicVoices code-mixed), on every run, VAD on or off. Vaani transcribed it
+fine. In the app the user dictates and nothing is pasted, with no error.
+**Cause:** with the `en` language token (Hinglish mode), Apex's first and only
+token was **`nan` (id 17622, p = 0.999)**, then end-of-text. It is not a
+numeric NaN: it decodes identically on CPU with flash attention off. It is a
+*learned label*. Almost certainly the fine-tuning data had rows with an
+empty transcript that were written out as pandas' NaN, i.e. the string
+"nan", so the model learned "nan" as its "no transcript" answer. Apex gives it
+for noise and hum too. The engine's old NaN-garbage guard (FM#12, item 4)
+then turned it into `""`. Beam search does not help, and neither do the no-speech,
+logprob or entropy thresholds: Apex's `no_speech_prob` is ~1e-9 even on pure
+noise, so whisper's own no-speech check never fires for this model. With
+`-l hi` the clip decodes fine, but that changes every Hinglish decode.
+**Fix:** `NaNLabelFilter`, a `logits_filter_callback` that bans the `nan`
+token as a window's **first** token only. That is where the label sits;
+mid-transcript `nan` is a legal word piece. Banned, real speech decodes in full
+(0081: "…Ek competition tha drawing competition…", 0 fallbacks), but noise then
+spells the label piece by piece ("n", "na", "ne"). So the filter also records
+whether `nan` was the model's top first-token choice, and if the forced decode
+is a single text token the engine keeps the model's "no transcript" answer.
+One pass, no re-decode. A `nan label overruled` line logs at `.notice`.
+Hinglish quick tier: **crWER 28.6 % → 23.5 %** (0081 was the only clip whose
+text changed; it was the only empty one). Noise and hum still paste nothing,
+with or without VAD.
+**Likely also FM#12:** v0.3's user-reported "nan" dictations were blamed on
+flash attention, but flash attention was ruled out on retest (2026-08-19).
+Live mic audio hitting this label fits the symptoms better.
+**Lesson:** a fine-tuned model can learn its dataset's bugs as vocabulary.
+When a model's output is a single high-confidence token that looks like a
+sentinel ("nan", "None", "null", ""), suspect a training-data artifact before a
+numeric bug, and check by changing the hardware path (CPU, no flash attention):
+a numeric bug moves, a learned label does not.

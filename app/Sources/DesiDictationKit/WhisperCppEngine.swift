@@ -8,6 +8,8 @@ let engineLog = Logger(subsystem: "com.desi.dictation", category: "engine")
 /// through DictationController's single worker queue.
 public final class WhisperCppEngine: TranscriptionEngine {
     private var ctx: OpaquePointer?
+    /// Overrules Apex's "nan" = no-transcript label on real speech (FM#30).
+    private var nanLabel: NaNLabelFilter?
     public private(set) var loadedModelPath: String?
 
     public init() {}
@@ -38,12 +40,14 @@ public final class WhisperCppEngine: TranscriptionEngine {
             throw EngineError.modelLoadFailed(modelPath)
         }
         ctx = newCtx
+        nanLabel = NaNLabelFilter.make(for: newCtx)
         loadedModelPath = modelPath
     }
 
     public func unload() {
         if let ctx { whisper_free(ctx) }
         ctx = nil
+        nanLabel = nil
         loadedModelPath = nil
     }
 
@@ -110,6 +114,11 @@ public final class WhisperCppEngine: TranscriptionEngine {
         // after it — the classic "long dictation gets worse" failure.
         params.no_context = true
 
+        // Apex's learned "no transcript" answer is the single token "nan" —
+        // on clear speech too. Banned as the first token (FM#30); `nanLabel`
+        // is a stored property, so it outlives the call below.
+        nanLabel?.install(in: &params)
+
         // Silero VAD (if installed AND enabled — Settings has a kill-switch so
         // users can bisect quality issues live): trims silences before
         // decoding — silence is exactly where Whisper hallucinates.
@@ -139,8 +148,11 @@ public final class WhisperCppEngine: TranscriptionEngine {
 
         var text = ""
         var tokens: Int32 = 0
+        var textTokens = 0
         for i in 0..<whisper_full_n_segments(ctx) {
             tokens += whisper_full_n_tokens(ctx, i)
+            textTokens += (0..<whisper_full_n_tokens(ctx, i))
+                .filter { whisper_full_get_token_id(ctx, i, $0) < whisper_token_eot(ctx) }.count
             if let seg = whisper_full_get_segment_text(ctx, i) {
                 text += String(cString: seg)
             }
@@ -149,9 +161,15 @@ public final class WhisperCppEngine: TranscriptionEngine {
             // Means the text was truncated and temperature fallback ran (FM#26).
             engineLog.notice("decoder budget hit: \(tokens, privacy: .public) tokens in \(samples.count / 16000, privacy: .public) s")
         }
+        if let nanLabel, nanLabel.overruled {
+            // The model said "no transcript". One forced token is noise, not words.
+            let keep = nanLabel.keeps(textTokens: textTokens)
+            engineLog.notice("nan label overruled: \(textTokens, privacy: .public) text tokens, \(keep ? "kept" : "dropped", privacy: .public)")
+            if !keep { text = "" }
+        }
         engineLog.info("raw text (\(text.count, privacy: .public) chars): \(String(text.prefix(80)), privacy: .private(mask: .none))")
-        // NaN logits decode to literal "nan" tokens — treat as no output
-        // rather than pasting garbage into the user's document.
+        // Backstop: never paste a bare "nan". Since FM#30 the label is banned
+        // as a first token, so this only fires if a model finds another route.
         let lowered = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if lowered == "nan" || lowered.replacingOccurrences(of: "nan", with: "")
             .trimmingCharacters(in: .whitespaces).isEmpty && lowered.contains("nan") {
