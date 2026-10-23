@@ -18,6 +18,7 @@ uv run hf repo create "$REPO" --type model -y 2>/dev/null || true
 FILES=(
   "ggml-hinglish-swift.bin"
   "ggml-hinglish-apex-q5_0.bin"
+  "ggml-hinglish-prime-q5_0.bin"
   "ggml-vaani-hindi-q5_0.bin"
 )
 for name in "${FILES[@]}"; do
