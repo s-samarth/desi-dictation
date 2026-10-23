@@ -104,14 +104,18 @@ ggml-metal checks in a static destructor that every GPU buffer is gone, and
 `applicationWillTerminate` (`DictationController.shutdown()`) and `desi-cli`
 unloads on every exit path. Otherwise Quit is a SIGABRT.
 
-### Overrule Apex's "nan" label on real speech (FM#30)
-Hinglish Apex learned `nan` (a pandas-NaN artifact in its training data) as
-its "no transcript" answer, and gave it for some clear speech as well as for noise.
-`NaNLabelFilter` (a whisper `logits_filter_callback`) bans `nan` as a window's
-first token. If `nan` was the model's top choice and the forced decode is a
-single token, the engine keeps the "no transcript" answer (noise); otherwise
-the full decode stands. One pass, no retry. Apex's `no_speech_prob` is ~1e-9
-even on noise, so whisper's built-in no-speech check can't make that call.
+### Overrule the "nan" label on real speech (FM#30)
+Hinglish Apex (and the evaluated-only Prime) learned `nan`, a pandas-NaN
+artifact in their training data, as their "no transcript" answer. They give it
+for some clear speech as well as for noise. `NaNLabelFilter` (a whisper
+`logits_filter_callback`) bans `nan` as a window's first token, **only when VAD
+is on**: whisper decodes nothing when Silero hears no speech, so a decode means
+speech was vouched for. Without VAD the label stands, because forced decodes on
+noise make Prime invent sentences. Backstop for VAD false positives: if `nan`
+was the top choice and the forced decode is a single token, the
+"no transcript" answer stands. One pass, no retry. These models'
+`no_speech_prob` is ~1e-9 even on noise, so whisper's built-in check can't make
+this call.
 
 ### Input-only mic unit, not AVAudioEngine (v0.6.2)
 

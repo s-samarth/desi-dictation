@@ -691,14 +691,25 @@ noise, so whisper's own no-speech check never fires for this model. With
 **Fix:** `NaNLabelFilter`, a `logits_filter_callback` that bans the `nan`
 token as a window's **first** token only. That is where the label sits;
 mid-transcript `nan` is a legal word piece. Banned, real speech decodes in full
-(0081: "…Ek competition tha drawing competition…", 0 fallbacks), but noise then
-spells the label piece by piece ("n", "na", "ne"). So the filter also records
-whether `nan` was the model's top first-token choice, and if the forced decode
-is a single text token the engine keeps the model's "no transcript" answer.
-One pass, no re-decode. A `nan label overruled` line logs at `.notice`.
-Hinglish quick tier: **crWER 28.6 % → 23.5 %** (0081 was the only clip whose
-text changed; it was the only empty one). Noise and hum still paste nothing,
-with or without VAD.
+(0081: "…Ek competition tha drawing competition…", 0 fallbacks). The filter is
+installed **only when VAD is on**: whisper decodes nothing when Silero hears no
+speech, so a decode means speech was vouched for. Without VAD the label
+stands, because forcing a decode on noise is unsafe. Apex then spells the
+label piece by piece ("n", "na", "ne"), and the evaluated-only **Prime**
+(Oriserve's large-v3 sibling, same label, p 0.74–0.92 on noise) invents whole
+sentences ("The company which runs retail automotive stores…"). As a backstop
+against VAD false positives, the filter records whether `nan` was the top
+first-token choice, and a forced decode of a single text token keeps the
+"no transcript" answer. One pass, no re-decode. A `nan label overruled` line
+logs at `.notice`. Onboarding installs Silero with every language model, so
+the gate covers nearly every user; VAD-off is the debugging kill-switch.
+**Results (quick tier, hinglish, 23 clips):** Apex **crWER 28.6 % → 23.5 %**
+(0081 was its only empty clip and the only text that changed). Prime **23.5 % →
+17.3 %**, empties 2 → 0. All 10 CS-FLEURS clips that Prime returned empty in
+the full tier (0000, 0006, 0009, 0014, 0018, 0026–0029, 0031) now decode, with
+the same `nan` (id 17622) as the cause. Prime's 0000 was empty only with VAD
+on, because the trimmed audio tipped the first token to the label. Noise, loud
+noise and hum still paste nothing on both models, with VAD on or off.
 **Likely also FM#12:** v0.3's user-reported "nan" dictations were blamed on
 flash attention, but flash attention was ruled out on retest (2026-08-19).
 Live mic audio hitting this label fits the symptoms better.

@@ -1,22 +1,23 @@
 import CWhisper
 
-/// Overrules Hinglish Apex's "no transcript" label when the audio has words (FM#30).
+/// Overrules the Oriserve models' "no transcript" label on real speech (FM#30).
 ///
-/// Apex answers some clear speech with exactly one token, "nan" (p ≈ 0.999),
-/// then end-of-text: a fine-tuning artifact, almost certainly training rows
-/// whose empty transcript was written out as pandas' NaN. It is a learned
-/// answer, not a numeric NaN: it decodes the same on CPU with flash attention
-/// off. The engine's "nan" guard turned it into "", so the user dictated 15 s
-/// and nothing was pasted.
+/// Hinglish Apex and Prime answer some clear speech with exactly one token,
+/// "nan" (p 0.8–0.999), then end-of-text: a fine-tuning artifact, almost
+/// certainly training rows whose empty transcript was written out as pandas'
+/// NaN. It is a learned answer, not a numeric NaN: it decodes the same on CPU
+/// with flash attention off. The engine's "nan" guard turned it into "", so
+/// the user dictated 15 s and nothing was pasted.
 ///
 /// The filter bans "nan" as a window's first token (where the label sits;
 /// mid-transcript it can be a legitimate word piece). With the ban, real speech
-/// decodes in full. On noise and hum the model gives the label too. Banned, it
-/// spells one stray piece ("n", "na", "ne"), and whisper's no-speech check
-/// can't catch that (Apex's no-speech probability is ~1e-9 even on noise).
-/// So the filter records whether the label was the model's top choice, and
-/// the engine keeps the "no transcript" answer when the forced decode is a
-/// single token.
+/// decodes in full. The models give the label for noise and hum too, and
+/// banned there, Apex spells a stray piece ("n", "na") while Prime invents
+/// whole sentences. Their no-speech probability is ~1e-9 even on noise, so
+/// whisper's own check can't tell the cases apart. Hence the engine installs
+/// the filter only when VAD is on (Silero vouched for speech). As a backstop
+/// against VAD false positives, it records whether the label was the top
+/// choice, and a forced decode of a single token keeps the "no transcript" answer.
 public final class NaNLabelFilter {
     let token: whisper_token
     /// Length of the logits array (the model's vocabulary).

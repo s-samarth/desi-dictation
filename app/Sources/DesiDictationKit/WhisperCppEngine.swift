@@ -114,11 +114,6 @@ public final class WhisperCppEngine: TranscriptionEngine {
         // after it — the classic "long dictation gets worse" failure.
         params.no_context = true
 
-        // Apex's learned "no transcript" answer is the single token "nan" —
-        // on clear speech too. Banned as the first token (FM#30); `nanLabel`
-        // is a stored property, so it outlives the call below.
-        nanLabel?.install(in: &params)
-
         // Silero VAD (if installed AND enabled — Settings has a kill-switch so
         // users can bisect quality issues live): trims silences before
         // decoding — silence is exactly where Whisper hallucinates.
@@ -130,6 +125,14 @@ public final class WhisperCppEngine: TranscriptionEngine {
             params.vad_params = whisper_vad_default_params()
         }
         defer { free(vadCString) }
+
+        // Apex and Prime answer some clear speech with the single token "nan",
+        // their learned "no transcript" label (FM#30). Overrule it only when
+        // VAD is on: whisper decodes nothing if Silero hears no speech, so a
+        // decode means speech was vouched for. Without VAD, forcing a decode
+        // on noise makes Prime invent whole sentences. `nanLabel` is a stored
+        // property, so it outlives the call below.
+        if params.vad { nanLabel?.install(in: &params) }
 
         // whisper_full keeps a borrowed pointer to language for the call duration.
         let langCString = strdup(mode.whisperLanguage)
