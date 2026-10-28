@@ -192,6 +192,14 @@ instead of Whisper — about **0.2 s** for a short dictation on an M3 Air (it wa
 ~1.9 s), with equal-or-better accuracy in our English tests. Download it
 from **Models** (416 MB) or take it during onboarding.
 
+**Want the most accurate English? Qwen3-ASR (v0.6.3).** It replaced Whisper
+Turbo under **Settings → Models → English** (2.08 GB). On Indian-accented
+English it makes about 11 % fewer errors than Parakeet in quiet rooms and 9 %
+fewer in noise. The cost is speed: about 0.4 s for a short dictation instead
+of 0.1 s. Parakeet stays the default. Pick Qwen in the English model picker
+when accuracy matters more than speed, or make it the English default under
+**Default model per language**.
+
 **How fast was that?** The Dictation screen shows the last dictation's real
 cost — *"Last: 4.2s speech · 0.31s to paste · 1 call"*. If dictation ever feels
 slow, that line is what to quote in a bug report.

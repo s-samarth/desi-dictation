@@ -86,6 +86,16 @@ Verified live 2026-07-14: the first ci.yml run completed green on GitHub's
 runners (app ✓ · web ✓ · deploy-web correctly skipped while dormant).
 Everything the workflows execute is byte-identical to the local preflight.
 
+**Native libs (v0.6.3).** `app/Libraries` holds two committed sets, so
+`ci.yml` needs no vendor setup:
+- whisper.cpp's static libs, from `scripts/setup_whisper.sh`;
+- `libtranscribe-bundle.a`, from `scripts/setup_transcribe.sh`.
+
+The transcribe bundle is transcribe.cpp at pinned commit `5700f12`, pre-linked
+with its own ggml hidden so it can't clash with whisper.cpp's (BUILD_LOG
+FM#34). `release.yml` rebuilds both from source. Re-run the setup script after
+changing transcribe.cpp's pin, and commit the new `.a` and headers.
+
 
 ## Releases (updated 2026-08-19)
 

@@ -26,7 +26,8 @@ now measured directly and gated (`scripts/latency_gate.sh`).
 | English | **Parakeet TDT 0.6B v3 q4_k** (416 MB) | **0.21 s** |
 | Hinglish | Apex q5_0 (574 MB) | 1.47 s |
 | हिन्दी | Vaani q5_0 (1.06 GB) | 3.55 s ← slowest path we ship |
-| (English, previous default) | large-v3-turbo q5_0 | 1.94 s |
+| English, accurate option (v0.6.3) | Qwen3-ASR-1.7B q8_0 (2.08 GB) | 0.33–0.43 s short, 0.53–0.74 s median (2026-10-28) |
+| (English, previous default; left the catalog in v0.6.3) | large-v3-turbo q5_0 | 1.94 s |
 
 **Throughput, for reference (M3, 23 s Hinglish clip):**
 

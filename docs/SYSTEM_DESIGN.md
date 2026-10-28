@@ -65,10 +65,17 @@ LLM feature internals: [features/implementation/](features/implementation/README
 
 ## 3. Key decisions & trade-offs
 
-### Two engines behind one protocol (v0.6.1)
-`EngineRouter` picks the runtime from the model **file**: Parakeet TDT
-(`libparakeet`, English) or whisper.cpp (Hinglish, हिन्दी, everything else), and
-keeps exactly one model resident. Parakeet encodes only the audio it was given,
+### Three engines behind one protocol (v0.6.1, v0.6.3)
+`EngineRouter` picks the runtime from the model **file** and keeps exactly one
+model resident:
+- Parakeet TDT (`libparakeet`): the English default.
+- Qwen3-ASR via transcribe.cpp: the opt-in accurate English model, since
+  v0.6.3.
+- whisper.cpp: Hinglish, हिन्दी and everything else.
+
+transcribe.cpp brings its own, newer ggml. `scripts/setup_transcribe.sh`
+pre-links it into one object with only `transcribe_*` exported, so the two
+ggml copies never meet (BUILD_LOG FM#34). Parakeet encodes only the audio it was given,
 which is why English dictation is ~9× faster per call than the whisper path it
 replaced (MODEL_RESEARCH.md §E, features/implementation/MODEL_ROUTING.md).
 

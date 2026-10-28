@@ -41,7 +41,7 @@ docs are fine to publish.
 | Audio | RAM-only Float buffer, discarded post-transcription; never written to disk, never transmitted |
 | Transcripts | Local: clipboard (by design), `history.json` (24 h, toggleable, clearable) |
 | License state | UserDefaults flags — trivially editable by the user (accepted: client-side gating is honor-system; real enforcement is the Gumroad key check at activation) |
-| Dependencies | whisper.cpp (MIT, pinned by clone; consider pinning a commit hash pre-launch), Oriserve models (Apache 2.0), zero Swift package dependencies |
+| Dependencies | whisper.cpp (MIT, pinned by clone; consider pinning a commit hash pre-launch), transcribe.cpp (MIT, pinned commit `5700f12`; no network code in the library, audited 2026-10-28), Oriserve models (Apache 2.0), Qwen3-ASR weights (Apache 2.0), zero Swift package dependencies |
 
 ## 4. Known accepted risks (documented, low severity)
 

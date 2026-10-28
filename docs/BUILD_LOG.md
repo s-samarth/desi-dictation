@@ -784,3 +784,46 @@ has its own keyboard-focus owner (menus, key thieves), and its log
 `destinations for kCGSEventKeyDown`) names the real recipient. Read it before
 theorising: it turned a "same bug again" report into a one-line diagnosis.
 Other apps' menus still steal the keystroke; we can't observe those.
+
+## 2026-10-28 — Qwen3-ASR replaces Turbo as the accurate English model
+
+### Failure mode #34 — a second ggml in one binary, and an LLM decoder's "errors"
+
+(FM#33 is the English A/B's entry in PR #5.)
+
+**Symptom 1:** transcribe.cpp (the Qwen3-ASR runtime) vendors **ggml 0.26**.
+whisper.cpp's is **0.15.3**. Linking both static archives into one binary
+gives hundreds of duplicate `ggml_*` symbols with *different ABIs*. Even if
+the link succeeded, one library would call the other's ggml.
+**Fix 1:** `scripts/setup_transcribe.sh` pre-links `libtranscribe.a` and its
+four ggml archives into **one relocatable object** (`ld -r` with an
+`-exported_symbols_list` of `_transcribe_*`) and ships it as
+`libtranscribe-bundle.a`. Everything else in it becomes private. Two traps:
+- ggml's lookup tables (`ggml_table_f32_f16`, …) are C tentative definitions.
+  As "common" symbols they **escape the export list** and would merge with
+  whisper.cpp's copies. The new Apple linker has no `-d`, so they are
+  compiled with `-fno-common`.
+- Both ggml-metal copies define an ObjC class `GGMLMetalClass`. It is renamed
+  via `-DGGMLMetalClass=TranscribeGGMLMetalClass`. It turned out to be
+  compiled out with embedded shaders, but the flag keeps it safe if that
+  changes.
+
+The script prints any leaked `ggml_`/`gguf_` global. It must print "none".
+
+**Symptom 2:** with long audio cut into 30 s pieces, `desi-cli --batch` died
+on clip 0218 with "Transcription failed", and the 13 clips after it got no
+output.
+**Cause 2:** a piece's greedy decode started looping. transcribe.cpp stopped
+it and returned `TRANSCRIBE_ERR_OUTPUT_REPETITION`. That status (and
+`OUTPUT_TRUNCATED`) is **result-bearing**: the partial transcript is valid.
+**Fix 2:** `QwenASREngine` keeps the text for those two statuses and logs a
+notice. It throws only for real failures.
+
+**Also measured:** one Qwen call over 45–110 s of noisy audio scored 40 %
+nWER, vs 32 % with ≤ 30 s pieces cut at pauses (`AudioSplitter`).
+Dictation-length clips are unchanged, and match the MLX reference run (9.3
+vs 8.9 % clean, 14.1 vs 15.2 % noisy).
+
+**Lesson:** read the library's status enum before treating every non-OK
+status as fatal. An LLM decoder has "stopped early but here's your text"
+outcomes that a CTC/TDT model never produces.

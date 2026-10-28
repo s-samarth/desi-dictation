@@ -39,7 +39,9 @@ SHIPPING = {"english": "parakeet", "hindi": "vaani", "hinglish": "hinglish-apex"
 # (M3 Air, model resident, 2026-09-22). Vaani costs one call per ≤ 12 s piece
 # since the FM#26 split (it ran slower than realtime before), ~0.5 s per second.
 # Turbo shares Apex's architecture; small/base/swift are rough. M1 Air ~1.8x.
-COST = {"parakeet": (0.05, 0.025), "apex": (1.43, 0.091), "turbo": (1.43, 0.091),
+# Qwen3-ASR q8_0 (transcribe.cpp): fitted on the 2026-10-28 quick tier.
+COST = {"parakeet": (0.05, 0.025), "qwen3-asr": (0.3, 0.06),
+        "apex": (1.43, 0.091), "turbo": (1.43, 0.091),
         "prime": (1.43, 0.091), "vaani": (0.5, 0.5), "small": (0.7, 0.03),
         "swift": (0.4, 0.02), "base": (0.3, 0.01)}
 
@@ -52,9 +54,9 @@ def mode_for(model_name: str, suite: str) -> str:
 
 
 def serves(model_name: str, suite: str) -> bool:
-    """Mirrors ModelManager.score(): Parakeet is English-only; Vaani is a
+    """Mirrors ModelManager.score(): Parakeet and Qwen3-ASR are English-only; Vaani is a
     Hindi fine-tune that scores ~100 % WER on English (July report)."""
-    if "parakeet" in model_name:
+    if "parakeet" in model_name or "qwen3-asr" in model_name:
         return suite == "english"
     return not ("vaani" in model_name and suite == "english")
 

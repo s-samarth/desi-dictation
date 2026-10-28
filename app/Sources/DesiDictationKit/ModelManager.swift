@@ -18,6 +18,8 @@ public struct ModelDescriptor: Identifiable, Equatable {
     /// True for Parakeet TDT files — a different runtime (EngineRouter) and
     /// English-only for us, so it must never be offered for हिन्दी/Hinglish.
     public var isParakeet: Bool { name.contains("parakeet") }
+    /// True for Qwen3-ASR files (transcribe.cpp engine) — English-only here.
+    public var isQwenASR: Bool { name.contains("qwen3-asr") }
 }
 
 /// Stock multilingual GGML models downloadable straight from Hugging Face
@@ -61,10 +63,13 @@ public final class ModelManager: ObservableObject {
               url: URL(string: "https://huggingface.co/ggml-org/parakeet-GGUF/resolve/main/ggml-parakeet-tdt-0.6b-v3-q4_k.bin")!,
               approxMB: 416, pro: true, recommended: true, category: "English",
               sha256: "8b205b8b39c6535e153de6fb11c51db46125d45c4f16ba496fe41a0fe71b885e"),
-        .init(id: "large-v3-turbo-q5_0", label: "Whisper Large v3 Turbo — English (fallback)",
-              url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin")!,
-              approxMB: 574, pro: true, recommended: true, category: "English",
-              sha256: "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2"),
+        // Replaced Whisper large-v3-turbo (v0.6.3): more accurate than Parakeet
+        // on Indian English, clean and noisy, at ~4x its latency — the opt-in
+        // "accuracy over speed" pick (docs/ENGLISH_ASR_AB_2026-10.md).
+        .init(id: "qwen3-asr-1.7b-q8_0", label: "Qwen3-ASR 1.7B — most accurate English (slower)",
+              url: URL(string: "https://huggingface.co/handy-computer/Qwen3-ASR-1.7B-gguf/resolve/0e0a596e3959c3f3f2ab7d443a5b6f0f4a4bba6f/Qwen3-ASR-1.7B-Q8_0.gguf")!,
+              approxMB: 2084, pro: true, recommended: true, category: "English",
+              sha256: "9a0d81792dfea2d5f278b8a63deb3ea6e02139ce42c2301f32ea19c4f77526b7"),
         .init(id: "vaani-hindi-q5_0", label: "Vaani Hindi — शुद्ध हिन्दी (Devanagari)",
               url: URL(string: "\(hinglishRepoBase)/ggml-vaani-hindi-q5_0.bin")!,
               approxMB: 1060, pro: true, recommended: true, category: "हिन्दी",
@@ -141,6 +146,9 @@ public final class ModelManager: ObservableObject {
         // Parakeet covers English + 24 European languages — no Hindi, and it
         // cannot emit Devanagari or Roman-Hinglish. English mode only.
         if model.isParakeet, mode != .english { return 0 }
+        // Qwen3-ASR could transcribe Hindi, but here it is the English
+        // accuracy pick; Hinglish and हिन्दी have their own fine-tunes.
+        if model.isQwenASR, mode != .english { return 0 }
         switch mode {
         // anyToEnglish transcribes the same mixed speech as Hinglish mode
         // (TRANSCRIBE_TRANSLATE.md §4: Apex handles the mix best); the English
@@ -158,6 +166,9 @@ public final class ModelManager: ObservableObject {
             // Svarah as once written — FM#24) at 5x
             // the speed — MODEL_RESEARCH.md §E, ParakeetEngine.swift.
             if name.contains("parakeet") { score = 120 }
+            // Opt-in accuracy pick: below Parakeet so Auto keeps the fast
+            // default, above everything else (ENGLISH_ASR_AB_2026-10.md).
+            else if name.contains("qwen3-asr") { score = 110 }
             else if name.contains("turbo") { score = 100 }
             else if name.contains("hinglish-apex") { score = 80 }   // great Indian English
             else if name.contains("small") { score = 60 }
