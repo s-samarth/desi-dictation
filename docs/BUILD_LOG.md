@@ -919,3 +919,26 @@ window; the stale bundle was trashed and /Applications re-registered.
 **Lesson:** never rename the one entry point users already know; and after
 installing, `mdfind "kMDItemCFBundleIdentifier == 'com.desi.dictation'"`
 should list exactly one app outside build folders.
+
+### Failure mode #37 — smart vocabulary never learned anything in Claude
+
+**Symptom:** with every switch on, dictating "my name is Samar Saraswath"
+into Claude's chat box and fixing it to "Samarth Saraswat" produced no popup,
+no suggestion and no word. Nothing showed why, so it felt like a gimmick.
+**Causes, three stacked:**
+1. Electron apps (Claude, Slack, VS Code…) report **no focused element**
+   (`kAXErrorNoValue`, -25212) until `AXManualAccessibility` is set on the
+   app. Measured through the signed app: -25212 before, a readable
+   `AXTextArea` 1–3 s after. The watcher never started, silently.
+2. A chat box empties on Enter. The watcher judged edits only after a 2 s
+   pause, so a fix sent within 2 s was compared against an empty box.
+3. `EditDiff` treated two neighbouring retyped words (first name + surname)
+   as a rewrite and dropped them.
+**Fix:** `AccessibilityPrimer` sets `AXManualAccessibility` when an app comes
+to the front (only while a feature needs field text); `EditTracker` polls at
+0.3 s and judges the pre-send text; 2→2 runs are paired word by word, and
+proposals need the same first sound. A memory-only **"What it's been doing"**
+list on the Vocabulary page now says what happened after each dictation, or
+why nothing did. `EditTrackerTests` replays the exact case.
+**Lesson:** a feature that can fail silently needs a visible trace. Every
+"nothing happened" path now logs a reason the user can read.

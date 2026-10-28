@@ -7,6 +7,7 @@ extension DictationController {
     /// Key-down: read the screen while the user talks, stop any old watch.
     func beginVocabulary() {
         EditWatcher.shared.stop()
+        AccessibilityPrimer.primeFrontmost()
         VocabularySession.shared.begin(VocabularySession.plan())
     }
 
@@ -45,21 +46,46 @@ extension DictationController {
         guard outcome == .pasted else { return nil }
         let store = AutoVocabularyStore.shared
         // Watch when there's something to learn, or a fix the user may undo.
+        let log = VocabularyActivityLog.shared
+        for fix in fixes { log.add(.fixed, "Fixed \"\(fix.from)\" → \"\(fix.to)\" (\(fix.source.label))") }
         if store.learnFromEdits || !fixes.isEmpty {
             let mode = sessionLanguage?.mode ?? settingsMode
-            EditWatcher.shared.watch(inserted: text) { pairs in
-                let dictionary = PersonalDictionary.shared.entries
-                for pair in pairs {
-                    if let undone = CorrectionLearner.revertedFix(pair, fixes: fixes) {
-                        store.respect(undone)
-                    } else if store.learnFromEdits, let proposal = CorrectionLearner.proposal(
-                        for: pair, mode: mode, dictionary: dictionary, rejected: store.rejected) {
-                        store.propose(proposal)
-                    }
-                }
+            EditWatcher.shared.watch(inserted: text) { event in
+                Self.handle(event, fixes: fixes, mode: mode)
             }
         }
         return DictationNotice.forFixes(fixes)
+    }
+
+    /// Turns what the watcher saw into proposals, undo-respects, and a line
+    /// in the activity log either way, so "nothing happened" has a reason.
+    private static func handle(_ event: EditWatcher.Event, fixes: [WordFix], mode: LanguageMode) {
+        let store = AutoVocabularyStore.shared, log = VocabularyActivityLog.shared
+        switch event {
+        case .unreadable(let app):
+            log.add(.problem, "Couldn't read the text in \(app) after pasting, so edits there can't be learned. Try again in a moment; some apps need a few seconds the first time.")
+        case .watching(let app):
+            if store.learnFromEdits {
+                log.add(.info, "Watching your text in \(app) for 30 s. Fix a misheard word to teach it.")
+            }
+        case .edited(let pairs, let app):
+            if pairs.isEmpty {
+                log.add(.info, "Saw your edit in \(app), but no misheard word was swapped (rewrites and new sentences are skipped).")
+            }
+            let dictionary = PersonalDictionary.shared.entries
+            for pair in pairs {
+                if let undone = CorrectionLearner.revertedFix(pair, fixes: fixes) {
+                    store.respect(undone)
+                    log.add(.learned, "You changed \"\(undone.to)\" back, so it won't make that fix again.")
+                } else if store.learnFromEdits, let proposal = CorrectionLearner.proposal(
+                    for: pair, mode: mode, dictionary: dictionary, rejected: store.rejected) {
+                    store.propose(proposal)
+                    log.add(.suggested, "Suggested: always write \"\(proposal.heard)\" as \"\(proposal.typed)\"")
+                } else {
+                    log.add(.info, "Saw \"\(pair.heard)\" → \"\(pair.typed)\" in \(app). Not a sound-alike, so no suggestion.")
+                }
+            }
+        }
     }
 
     private var settingsMode: LanguageMode { SettingsStore.shared.languageMode }

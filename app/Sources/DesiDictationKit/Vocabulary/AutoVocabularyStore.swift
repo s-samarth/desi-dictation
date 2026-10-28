@@ -75,6 +75,8 @@ public final class AutoVocabularyStore: ObservableObject {
     public func accept(_ suggestion: VocabularySuggestion, into dictionary: PersonalDictionary = .shared) {
         dictionary.add(heard: suggestion.heard, written: suggestion.written)
         remove(suggestion)
+        let line = "Learned: \"\(suggestion.heard)\" is now always written \"\(suggestion.written)\""
+        Task { @MainActor in VocabularyActivityLog.shared.add(.learned, line) }
     }
 
     /// "Not now": the second dismissal of the same pair rejects it for good.

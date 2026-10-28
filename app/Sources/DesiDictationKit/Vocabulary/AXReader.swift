@@ -1,3 +1,4 @@
+import AppKit
 import ApplicationServices
 import Foundation
 
@@ -69,6 +70,11 @@ enum AXReader {
         guard !isSecure(element), let value = string(element, kAXValueAttribute),
               value.utf16.count <= maxLength else { return nil }
         return value
+    }
+
+    /// "Claude", "Slack": for the activity log only.
+    static func appName(_ element: AXUIElement) -> String {
+        NSRunningApplication(processIdentifier: pid(element))?.localizedName ?? "this app"
     }
 
     static func pid(_ element: AXUIElement) -> pid_t {

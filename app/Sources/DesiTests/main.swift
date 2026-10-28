@@ -12,6 +12,7 @@ runWhisperLabelTests()
 runPasteTests()
 runVocabularyCorrectorTests()
 runVocabularyLearningTests()
+runEditTrackerTests()
 
 let group = DispatchGroup()
 group.enter()

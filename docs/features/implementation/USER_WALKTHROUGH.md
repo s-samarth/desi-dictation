@@ -145,10 +145,19 @@ menu items and right-click services are hidden (§3–§8).
   wins for that dictation.
 - **Never touched:** everyday words (the, there, hai, kya), anything inside
   an email or URL, हिन्दी mode.
-- **Friction:** Chrome and Electron apps (Slack) expose page text only when
-  their accessibility mode is on, so screen names there come from the field
-  and window title. The edit watch needs a field that exposes its text to
-  Accessibility; most native apps and Safari do.
+- **Seeing it work (2026-10-28):** Vocabulary → **What it's been doing**
+  lists, per dictation, what it watched, the swaps it saw, what it suggested
+  or learned, and why it skipped something ("not a sound-alike", "couldn't
+  read the text in …"). Memory only. Learned words land in **Your words**.
+- **Electron apps (Claude, Slack, VS Code, Notion):** they hide their text
+  fields until asked, so before 2026-10-28 nothing was ever learned there.
+  The app now switches their accessibility on when they come to the front
+  (it costs those apps a little memory). The very first dictation in a
+  freshly opened Electron app can still miss; the activity list says so.
+  Chrome and other browsers aren't switched on yet.
+- **Chat boxes:** fix the word and press Enter right away and it still
+  learns: it reads the box every 0.3 s and judges the last text before the
+  box emptied.
 
 ## 2 · Per-app language — one click per app, then invisible
 
