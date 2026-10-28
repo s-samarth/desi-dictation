@@ -78,7 +78,10 @@ public enum VocabularyCorrector {
             // be real Hindi, so the same rule applies to all of them.
             let realWord = hinglish || lexicon.isRealWord(lower)
             return best(for: lower, maxDistance: maxSoundDistance, minSpelling: minSpelling) {
-                !realWord || $0.source.isOnScreen
+                // Hindi inflects at the end (milenga/milenge): a Hinglish fix
+                // must keep the last letter, or it's a grammar change.
+                (!realWord || $0.source.isOnScreen)
+                    && (!hinglish || $0.text.lowercased().last == lower.last)
             }
         }
 
