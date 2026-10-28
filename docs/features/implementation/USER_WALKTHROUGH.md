@@ -219,6 +219,14 @@ instead of Whisper — about **0.2 s** for a short dictation on an M3 Air (it wa
 ~1.9 s), with equal-or-better accuracy in our English tests. Download it
 from **Models** (416 MB) or take it during onboarding.
 
+**Long Hinglish takes? Try Prime.** **Models → Downloads** now lists *Hinglish
+Prime* (about 1 GB) next to Apex. It makes about 30 % fewer mistakes on long,
+conversational Hinglish (a joke, a voice-note-style rant) but takes roughly
+twice as long, ~3.5 s instead of ~2 s. Apex stays the default. To use Prime,
+download it, then pick it under **Settings → Models → Default model per
+language → Hinglish**. For one-word replies ("haan", "theek hai"), Apex is
+still better.
+
 **How fast was that?** The Dictation screen shows the last dictation's real
 cost — *"Last: 4.2s speech · 0.31s to paste · 1 call"*. If dictation ever feels
 slow, that line is what to quote in a bug report.

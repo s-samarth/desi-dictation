@@ -12,6 +12,10 @@ the API giants are closed, and the thinness is **structural** (data + orthograph
 |---|---|
 | **Oriserve Hindi2Hinglish Apex/Prime/Swift** (Apache 2.0) | **Still the only serious open family for pure-Roman output.** We ship it. ~1,000 h conversational Indian audio, #1 on Speech-to-Text Arena preference. |
 
+Re-checked 2026-10 (§F): still nothing outside Oriserve writes pure Roman, and
+inside the family **Prime** beats Apex on long, conversational takes at ~1.8x
+the time. It ships as an opt-in download; Apex stays the default.
+
 Nothing found — on HF, in Indian lab releases, or LinkedIn-era announcements —
 that beats Apex *for this exact output format*. That's not because it's
 unbeatable; see "bottleneck" below.
@@ -123,6 +127,80 @@ A GGUF port is possible (ggml has `TQ1_0`/`TQ2_0` ternary types) but would save
 only ~240 MB on English, while 8 GB-Mac memory pressure comes from the whisper
 models Redux doesn't replace. Revisit only if a GGUF appears **and** it matches
 the shipping model's accuracy on the Indian-English suites.
+
+### F. Hinglish mode — the 2026-10 bake-off (Apex stays default; Prime offered)
+
+**The requirement, stated by the user:** every word in Roman script, the way
+Indians type on WhatsApp ("kal meeting hai, deck ready rakhna"). Transcribed or
+transliterated, **never translated**, never Devanagari. That rules a model out
+on output format before accuracy is looked at.
+
+**Re-search (2026-10-24), what's new since July:**
+- **Trelis Tara** (2026-07-21, whisper-large-v3, Apache 2.0) is the strongest new
+  open model: CS-FLEURS hi-en 8.4 % WER, close to Sarvam Saaras-v3 and
+  ElevenLabs Scribe-v2 on its own card. But it writes Hindi in Devanagari
+  (`<|mixedcode|>` keeps only English in Latin) and its vocab is 51,904, so
+  whisper.cpp can't load it (FM#16). **Out on format.**
+- Qwen3-ASR fine-tunes (Srota `moorlee/qwen3-asr-0.6b-hinglish`, Orato):
+  Devanagari or mixed script, and an MLX-only runtime. **Out.**
+- Turbo LoRA prototypes (DKube, Deepro713): Devanagari Hindi, single domain,
+  30.6 % WER on their own test set. **Out.**
+- Roman-native: still only Oriserve **Apex / Prime / Swift**, plus 74M
+  community whisper-base/tiny-hinglish (36.6 % WER on CoSHE). Speechmark, an
+  on-device Mac notetaker, also ships Oriserve (Prime via WhisperKit).
+- Closed: Sarvam Saaras v3/v4 has a `translit` mode. API only, so not for us.
+
+**Measured.** Full `hinglish` suite (112 clips, 24.6 min), `desi-cli --batch` on
+the M3 Air, commit f3d6828 (before the empty-output fix in PR #1). EN-in-Latin =
+share of the reference's English words the output also writes in Latin script.
+
+| Model | crWER | conversational | read | xl (>35 s) | EN-in-Latin | Roman | empty on speech | median |
+|---|---|---|---|---|---|---|---|---|
+| **Apex q5_0** (turbo arch, 4 dec. layers) | 25.3 % | 26.0 % | 12.4 % | 37.5 % | 79.4 % | 100 % | 1 | 1.98 s |
+| **Prime q5_0** (large-v3, 32 dec. layers) | **22.4 %** | **20.6 %** | 29.8 % | **20.5 %** | 77.8 % | 100 % | **10** | 3.51 s |
+| Vaani q5_0, हिन्दी mode | 27.7 % | 30.3 % | 30.9 % | — | 0 % | 0 % | 0 | 4.49 s |
+| turbo q5_0, हिन्दी mode (quick tier, 23 clips) | 42.5 % | 54.7 % | 17.4 % | — | 20 % | 7 % | — | 1.69 s |
+
+- **On the 101 clips where both answered, Prime is 17.4 % vs Apex's 24.7 %**,
+  about 30 % fewer errors. It also wins on long takes, where Apex drops or
+  repeats text. All of Prime's 10 empty outputs are CS-FLEURS read clips, and
+  they make its read-speech number look worse than it is (10.7 % vs 11.9 % on
+  the clips it answered).
+- Prime is **worse on very short utterances** (<2.5 s): 46.6 % vs 36.2 %.
+- Vaani hears conversational Hindi well, but it writes English words in
+  Devanagari ("slo kamyunikeshan chainals" once romanized). crWER partly
+  forgives that, so EN-in-Latin is the column that shows it.
+
+**After the empty-output fix (PR #1), same 112 clips:**
+
+| Model | crWER | conversational | read | xs / s / m / l / xl | EN-in-Latin | empty on speech | median |
+|---|---|---|---|---|---|---|---|
+| Apex q5_0 | 20.0 % | 21.1 % | 12.4 % | 36.2 / 22.6 / 15.0 / 14.5 / 26.3 | 83.1 % | 0 | 2.02 s |
+| **Prime q5_0** | **17.3 %** | **20.4 %** | **11.4 %** | 43.1 / **18.8** / **14.8** / **13.8** / **20.5** | **84.7 %** | 0 | 3.23 s |
+
+The fix improved both models, Apex the most (25.3 % → 20.0 %). Prime still
+leads overall and in every length bucket except the shortest (<2.5 s). Clip by
+clip it is better on 36, worse on 21, and tied on 55.
+
+**Decision:** Apex stays the Hinglish Auto default. Prime goes into the catalog
+un-starred ("more accurate on long takes, ~2x slower") so users can pin it. Its
+empty-output rate must reach zero (PR #1 covers the silent drop) before it can
+be starred or made the default. Re-run this table with the fixed engine first.
+
+**Lessons:** the 23-clip quick tier *flipped* the ranking (Vaani 24.2 % beat
+Apex 28.6 % there and lost on all 112 clips), so decide model changes on the
+full suite. Prime's HF weights are fp32 (6.2 GB download, 1.08 GB as q5_0).
+**English scout, 2026-10-28 → [ENGLISH_ASR_SCOUT_2026-10.md](ENGLISH_ASR_SCOUT_2026-10.md).**
+Parakeet v3 is at the frontier for its speed class. On our Indian-English quick
+tier it beats turbo (14.9 % vs 16.4 % nWER, 0.14 s vs 1.44 s), and the
+leaderboard's Indian-accent set agrees. Worth an A/B: Parakeet **v2** (same
+engine, ~6 % better there), and Qwen3-ASR-1.7B or Cohere Transcribe as an
+opt-in "Accurate English" model (~15 % better, but ~2B parameters).
+**Measured the same day → [ENGLISH_ASR_AB_2026-10.md](ENGLISH_ASR_AB_2026-10.md):**
+v3 stays the default. On the full 278-clip tier, Qwen3-ASR-1.7B is the only
+model significantly better than v3 (−11 % clean, −9 % noisy), so it should
+replace Turbo as "Accurate English". Cohere only wins on clean short clips.
+v2 lost.
 
 ## Why so few open Hinglish models? (the bottleneck, as asked)
 

@@ -53,6 +53,16 @@ func runModelRoutingTests() {
     T.expect(ModelManager.score(parakeet, for: .english)
              > ModelManager.score(apex, for: .english),
              "English Auto prefers Parakeet over a Hinglish fine-tune")
+    // Prime is offered (more accurate on long takes, ~2x slower — MODEL_RESEARCH
+    // §F) but Auto keeps Apex until a pin says otherwise.
+    let prime = ModelDescriptor(name: "ggml-hinglish-prime-q5_0", path: "/m/prime", sizeMB: 1031)
+    T.expect(ModelManager.score(apex, for: .hinglish) > ModelManager.score(prime, for: .hinglish),
+             "Hinglish Auto prefers Apex over Prime")
+    T.expect(ModelManager.score(prime, for: .hinglish) > 0, "Prime serves Hinglish")
+    T.equal(ModelManager.score(prime, for: .hindi), 0, "Prime hidden for हिन्दी (Roman only)")
+    let primeEntry = ModelManager.catalog.first { $0.id == "hinglish-prime-q5_0" }
+    T.expect(primeEntry?.category == "Hinglish" && primeEntry?.recommended == false,
+             "Prime listed under Hinglish, un-starred")
 
     T.begin("Engine routing by model file")
     T.expect(ParakeetEngine.handles(modelPath: englishPin), "parakeet file → Parakeet engine")
