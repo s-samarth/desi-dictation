@@ -959,3 +959,32 @@ list says "asks again after N more fixes" or "you turned this down". Old
 rejected.
 **Lesson:** "don't ask so often" is not "never ask". A soft no should decay,
 and a filtered-out case needs its own log line, not the nearest one.
+
+### Failure mode #39 — `Package.swift` never saw the llama archive
+
+**Symptom:** after `scripts/setup_llama.sh` produced
+`app/Libraries/libllama-bundle.a`, `swift build` still compiled without
+`DESI_LLAMA`: `desi-cli --fit` said "llama runtime in this build: false".
+Touching `Package.swift` didn't help.
+**Cause:** the manifest decided with `FileManager.fileExists`. SwiftPM caches
+a manifest's evaluation keyed by its contents, so the first answer ("no
+archive") was reused forever. A probe package confirmed it: deleting the file
+after one evaluation didn't change the result.
+**Fix:** the archive is committed like the whisper and transcribe archives,
+and `Package.swift` links it and defines `DESI_LLAMA` unconditionally.
+**Lesson:** a manifest is not a script that runs every build. Don't branch
+on the file system in `Package.swift`; commit the artifact or use an
+explicit flag.
+
+### Failure mode #40 — llama's Metal teardown aborted `desi-cli --fit`
+
+**Symptom:** the first `--fit` run printed the whole report, then died in
+`ggml_metal_device_free` with `GGML_ASSERT([rsets->data count] == 0)`.
+**Cause:** FM#27 again, in the llama bundle's own ggml copy. `runFitEval`
+called `exit(0)` while its scorer, a local, still held Metal buffers, and the
+app's `shutdown()` didn't release the context checker.
+**Fix:** `--fit` runs in a function that returns its exit code, so the
+scorer is freed before `exit`. `DictationController.shutdown()` calls
+`ContextChecker.shared.reset()` after the engine queue drains.
+**Lesson:** every ggml copy in the process has the same exit rule. A new
+native model needs its own line in `shutdown()`.

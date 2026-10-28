@@ -143,7 +143,7 @@ menu items and right-click services are hidden (§3–§8).
   Vocabulary → **Waiting for you**. "Add" puts the pair in your Personal dictionary.
   **Not now** only snoozes it: make the same fix a few more times and it
   asks again. Only **Never** stops it for good.
-- **When it fits (English):** Vocabulary → **When it fits** → Get (~400 MB).
+- **When it fits (English):** Vocabulary → **When it fits** → Get (397 MB).
   From then on the popup has a third button, **Only when it fits**, and each
   English word in Your words has an *Always / When it fits* picker. Set
   *cloud → Claude* to When it fits: "I asked cloud to fix this" becomes

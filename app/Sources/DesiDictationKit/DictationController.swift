@@ -188,7 +188,7 @@ public final class DictationController: ObservableObject {
     public func shutdown() {
         disable()
         workQueue.sync { engine.unload() }
-        // llama's Metal teardown asserts the same way (FM#27, FM#39).
+        // llama's Metal teardown asserts the same way (FM#27, FM#40).
         ContextChecker.shared.reset()
     }
 

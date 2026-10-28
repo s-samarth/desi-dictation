@@ -9,7 +9,7 @@ import Foundation
 /// CONTEXT_FIT.md says how to read it; the Mac handoff says what to run.
 func runFitEval(_ rest: [String]) -> Never {
     // The scorer must be freed before exit(): llama's Metal teardown asserts
-    // every GPU buffer is gone (FM#27, FM#39). Returning from fitEval frees it.
+    // every GPU buffer is gone (FM#27, FM#40). Returning from fitEval frees it.
     exit(fitEval(rest))
 }
 

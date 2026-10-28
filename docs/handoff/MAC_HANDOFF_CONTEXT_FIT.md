@@ -5,6 +5,21 @@
 Linux: **no Swift toolchain, Hugging Face blocked**. Delete this file once
 every box below is ticked.
 
+## Mac run, 2026-10-28 (M3): where it stands
+
+| Step | Result |
+|---|---|
+| 1 Baseline build, tests, parity | ✓ 315 passed, parity in sync |
+| 2 Pin the model | ✓ switched to **Base**: `mradermacher/Qwen3-0.6B-Base-GGUF` @ `b8b11a6d…`, sha256 `1c728e4f…`, 397 MB |
+| 3 `setup_llama.sh` | ✓ unchanged script; "Leaked … none", exports `_desi_lm_load/_free/_score`. The CMake warning about `CMAKE_OBJC_FLAGS` is harmless: with the embedded Metal library `GGMLMetalClass` isn't compiled |
+| 4 Rebuild with llama, tests, preflight | ✓ after FM#39 (manifest cache: now linked unconditionally). 315 passed; preflight green; latency gate en 0.10 s, hinglish 1.85 s, hindi 2.17 s |
+| 5 Eval | ✓ 0 wrong swaps, 92.9 %, median 47 ms (Base, neutral prompt, margin −1.0). Table in CONTEXT_FIT.md "Measured". Exit abort fixed (FM#40) |
+| 6 Live app | ◐ built, installed, launches; Vocabulary shows "When it fits (English) · Get · 397 MB"; quit leaves no crash report. **Not done:** dictating (needs a person at the mic), the Get download itself, the popup's third button, memory with the model loaded, quit with the model loaded |
+| 7 "Not now" fix | ◐ an old `autovocab.json` migrated to version 2 and its two-"Not now" ban was cleared. Snooze backoff in the live popup not checked by hand |
+| 8 Commit + PR | ✓ bundle, pin, fixes, numbers pushed to this branch |
+
+Delete this file once the ◐ rows are checked by hand.
+
 ## What was and wasn't verified in the cloud
 
 | Thing | Status |
@@ -44,7 +59,7 @@ git fetch && git switch claude/pensive-darwin-73oprx && git pull
    ```bash
    M=~/Downloads/Qwen3-0.6B-Q4_K_M.gguf
    app/.build/debug/desi-cli --fit $M evals/context_fit/cases.tsv
-   app/.build/debug/desi-cli --fit $M evals/context_fit/cases.tsv --no-prefix
+   app/.build/debug/desi-cli --fit $M evals/context_fit/cases.tsv --word-list
    # repeat both with the Base model if you have it
    ```
    Targets: **wrong swaps 0** on the 21 keep cases (a wrong swap is worse

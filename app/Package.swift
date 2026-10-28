@@ -12,7 +12,7 @@ import Foundation
 // llama.cpp context checker ("When it fits", CONTEXT_FIT.md): the committed
 // archive from scripts/setup_llama.sh, linked like the others. Not a
 // fileExists check: SwiftPM caches the manifest's result by its contents, so
-// the answer went stale when the archive appeared (BUILD_LOG FM#38).
+// the answer went stale when the archive appeared (BUILD_LOG FM#39).
 // DESI_LLAMA stays so the scorer can be compiled out by deleting both lines.
 let llamaLinkerSettings: [LinkerSetting] = [.linkedLibrary("llama-bundle")]
 let llamaSwiftSettings: [SwiftSetting] = [.define("DESI_LLAMA")]
