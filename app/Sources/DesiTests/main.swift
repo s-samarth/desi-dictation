@@ -10,6 +10,7 @@ runModelRoutingTests()
 runAudioSplitterTests()
 runWhisperLabelTests()
 runPasteTests()
+runVocabularyCorrectorTests()
 
 let group = DispatchGroup()
 group.enter()
