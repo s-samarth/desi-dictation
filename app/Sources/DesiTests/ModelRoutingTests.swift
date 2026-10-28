@@ -7,7 +7,7 @@ import DesiDictationKit
 /// English?" — and from PERF_RCA_2026-08.md.
 func runModelRoutingTests() {
     T.begin("Per-language model defaults")
-    let hinglishPin = "/models/ggml-hinglish-apex-q5_0.bin"
+    let hinglishPin = "/models/ggml-hinglish-prime-q5_0.bin"
     let englishPin = "/models/ggml-parakeet-tdt-0.6b-v3-q4_k.bin"
     let settings = SettingsStore.shared
     let saved = settings.modelPaths
@@ -33,14 +33,15 @@ func runModelRoutingTests() {
     T.equal(ModelManager.catalogEntry(for: .english).id, "parakeet-tdt-0.6b-v3-q4_k",
             "English onboards to Parakeet (4.3 % nWER, 5x faster — MODEL_RESEARCH §E)")
     T.equal(ModelManager.catalogEntry(for: .hindi).id, "vaani-hindi-q5_0", "हिन्दी → Vaani")
-    T.equal(ModelManager.catalogEntry(for: .hinglish).id, "hinglish-apex-q5_0", "Hinglish → Apex")
+    T.equal(ModelManager.catalogEntry(for: .hinglish).id, "hinglish-prime-q5_0", "Hinglish → Prime")
+    T.expect(!ModelManager.catalog.contains { $0.id.contains("apex") }, "Apex is no longer offered")
     T.equal(ModelManager.vadEntry.id, "silero-vad", "VAD entry resolves")
 
     T.begin("Language-scoped candidates")
     let parakeet = ModelDescriptor(
         name: "parakeet-tdt-0.6b-v3-q4_k", path: englishPin, sizeMB: 416)
     let apex = ModelDescriptor(
-        name: "hinglish-apex-q5_0", path: hinglishPin, sizeMB: 547)
+        name: "hinglish-apex-q5_0", path: "/models/ggml-hinglish-apex-q5_0.bin", sizeMB: 547)
     T.expect(parakeet.isParakeet, "parakeet detected by filename")
     T.expect(!apex.isParakeet && apex.isHinglish, "apex is a Hinglish whisper model")
     // Parakeet speaks English + 24 European languages — no Hindi, and it can
@@ -53,16 +54,17 @@ func runModelRoutingTests() {
     T.expect(ModelManager.score(parakeet, for: .english)
              > ModelManager.score(apex, for: .english),
              "English Auto prefers Parakeet over a Hinglish fine-tune")
-    // Prime is offered (more accurate on long takes, ~2x slower — MODEL_RESEARCH
-    // §F) but Auto keeps Apex until a pin says otherwise.
+    // Prime replaced Apex (more accurate on long takes — MODEL_RESEARCH §F); an
+    // Apex file already on disk still serves Hinglish, below Prime.
     let prime = ModelDescriptor(name: "ggml-hinglish-prime-q5_0", path: "/m/prime", sizeMB: 1031)
-    T.expect(ModelManager.score(apex, for: .hinglish) > ModelManager.score(prime, for: .hinglish),
-             "Hinglish Auto prefers Apex over Prime")
+    T.expect(ModelManager.score(prime, for: .hinglish) > ModelManager.score(apex, for: .hinglish),
+             "Hinglish Auto prefers Prime over a leftover Apex")
+    T.expect(ModelManager.score(apex, for: .hinglish) > 0, "a leftover Apex still works")
     T.expect(ModelManager.score(prime, for: .hinglish) > 0, "Prime serves Hinglish")
     T.equal(ModelManager.score(prime, for: .hindi), 0, "Prime hidden for हिन्दी (Roman only)")
     let primeEntry = ModelManager.catalog.first { $0.id == "hinglish-prime-q5_0" }
-    T.expect(primeEntry?.category == "Hinglish" && primeEntry?.recommended == false,
-             "Prime listed under Hinglish, un-starred")
+    T.expect(primeEntry?.category == "Hinglish" && primeEntry?.recommended == true,
+             "Prime listed under Hinglish, starred")
 
     T.begin("Qwen3-ASR — the opt-in accurate English model (replaced turbo)")
     let qwenPin = "/models/ggml-qwen3-asr-1.7b-q8_0.bin"

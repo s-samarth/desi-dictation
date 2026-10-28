@@ -30,7 +30,7 @@ public enum LanguageMode: String, CaseIterable, Codable, Sendable {
     /// Guidance shown in UI: which model family suits this mode.
     public var modelHint: String {
         switch self {
-        case .hinglish: return "Use a Hinglish model (hinglish-swift / prime / apex)"
+        case .hinglish: return "Use a Hinglish model (Hinglish Prime)"
         case .english: return "Any model works; Hinglish models handle Indian accents best"
         case .hindi: return "Use a stock multilingual model (base / small / large-v3-turbo)"
         case .anyToEnglish: return "Transcribes with the Hinglish model, then writes polished English (AI model required)"

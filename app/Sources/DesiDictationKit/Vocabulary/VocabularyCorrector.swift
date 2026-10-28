@@ -1,7 +1,7 @@
 import Foundation
 
 /// Post-transcription correction against this dictation's vocabulary — the
-/// path for models that can't be biased (Parakeet, Hinglish Apex), and the
+/// path for models that can't be biased (Parakeet, Hinglish Prime), and the
 /// safety net after Qwen3-ASR's hotwords (AUTO_VOCABULARY.md §2c).
 ///
 /// The standard recipe from the named-entity-correction literature: phonetic

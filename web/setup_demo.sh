@@ -20,9 +20,9 @@ uv pip install --quiet fastapi "uvicorn[standard]" httpx python-multipart
 echo "    ok: $WEB/.venv"
 
 echo "==> 3/4 Models"
-[ -f "$MODELS/ggml-hinglish-apex-q5_0.bin" ] \
-  && echo "    ok: Apex (English + Hinglish)" \
-  || echo "    MISSING: $MODELS/ggml-hinglish-apex-q5_0.bin — download via the Mac app's Models tab"
+[ -f "$MODELS/ggml-hinglish-prime-q5_0.bin" ] \
+  && echo "    ok: Prime (English + Hinglish)" \
+  || echo "    MISSING: $MODELS/ggml-hinglish-prime-q5_0.bin — download via the Mac app's Models tab"
 [ -f "$MODELS/ggml-vaani-hindi-q5_0.bin" ] \
   && echo "    ok: Vaani (हिन्दी)" \
   || echo "    note: Vaani missing — the हिन्दी pill will be disabled (demo still works)"

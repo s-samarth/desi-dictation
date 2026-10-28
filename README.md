@@ -6,7 +6,7 @@ Roman-script Hinglish lands in whatever app you're typing in. No cloud, no
 subscription, runs on a MacBook Air.
 
 Built as a MacWhisper-class product tuned for Indian code-mixed speech, powered by
-[Oriserve's Whisper-Hindi2Hinglish](https://huggingface.co/Oriserve/Whisper-Hindi2Hinglish-Apex)
+[Oriserve's Whisper-Hindi2Hinglish](https://huggingface.co/Oriserve/Whisper-Hindi2Hinglish-Prime)
 models (Apache 2.0) on [whisper.cpp](https://github.com/ggml-org/whisper.cpp).
 
 **Verified on this machine:** Hindi speech → `"Meeting hai please presentation
@@ -89,7 +89,7 @@ pasteboard-swap ⌘V insertion → non-activating overlay for state. SwiftUI
 ## Status
 
 **v0.6.2 — free beta.** Feature-complete for the dictation wedge: first-launch
-onboarding, 5 curated models (Apex/Parakeet/Qwen3-ASR/Vaani + VAD) with per-language
+onboarding, 5 curated models (Prime/Parakeet/Qwen3-ASR/Vaani + VAD) with per-language
 defaults,
 VAD pause handling, chunked transcription while you speak, 24h local history,
 replacement dictionary, in-app feedback, launch-at-login. Install with the one-liner

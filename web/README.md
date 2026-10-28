@@ -11,7 +11,7 @@ model files on disk and the vendored whisper.cpp.
 ```
 browser mic (MediaRecorder, webm/opus or mp4)
    └► FastAPI :8080  (server.py — static site + gateway, rate-limited)
-        ├► ffmpeg → 16 kHz wav → whisper-server :8081 (Apex — English/Hinglish)
+        ├► ffmpeg → 16 kHz wav → whisper-server :8081 (Prime — English/Hinglish)
         │                        whisper-server :8082 (Vaani — हिन्दी, optional)
         └► Ollama :11434 (gemma3:4b — same prompts + Hindi-number prepass
                           as the app, ported in prompts.py / hindi_numbers.py)

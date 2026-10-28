@@ -51,7 +51,7 @@ open "/Applications/Desi Dictation.app"
 
 1. Menu bar mic → **Enable Dictation** (first enable preloads the model; ~8 s
    one-time — the icon settles once ready).
-2. Model defaults to **Auto** per language — Hinglish→Apex, English→Parakeet,
+2. Model defaults to **Auto** per language — Hinglish→Prime, English→Parakeet,
    हिन्दी→Vaani. Each language remembers **its own** default: change the Model
    picker while English is selected and only English is affected
    (Settings → Models → *Default model per language*). The picker only lists

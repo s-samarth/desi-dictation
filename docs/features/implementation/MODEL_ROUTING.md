@@ -44,10 +44,12 @@ ours.**
   gets its English from the LLM stage, so a separate default would be a second
   thing to keep in sync.
 - Quantized variants beat f16/f32 (`+5`), so a q5_0 file wins ties.
-- **Hinglish: Apex (100) > Prime (90) > Swift (50).** Prime is the more
-  accurate model on long, conversational takes but ~1.8x slower, and it still
-  dropped some clips in the 2026-10 bake-off (MODEL_RESEARCH.md §F). So it's
-  an opt-in catalog download that a user pins; Auto doesn't pick it over Apex.
+- **Hinglish: Prime (100) > Apex (90) > Swift (50).** Prime is the more
+  accurate model on long, conversational takes (MODEL_RESEARCH.md §F) and
+  became the default and onboarding download on 2026-10-28. It costs 1.82 s
+  vs Apex's 1.42 s on the latency gate's short clip, inside the 2.0 s budget.
+  Apex left the catalog. An Apex file already on disk still serves Hinglish
+  if pinned, ranked below Prime.
 
 Ordering inside a language is a plain integer score, all in one `switch` — if a
 model should be preferred, that is the only place to say so.

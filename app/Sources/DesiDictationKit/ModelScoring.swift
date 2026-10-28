@@ -14,11 +14,12 @@ extension ModelManager {
         if model.isQwenASR, mode != .english { return 0 }
         switch mode {
         // anyToEnglish transcribes the same mixed speech as Hinglish mode
-        // (TRANSCRIBE_TRANSLATE.md §4: Apex handles the mix best); the English
-        // comes from the translation stage, not the ASR model.
+        // (TRANSCRIBE_TRANSLATE.md §4); the English comes from the translation
+        // stage, not the ASR model. Prime is the default since 2026-10-28;
+        // Apex is no longer offered but a file already on disk still serves.
         case .hinglish, .anyToEnglish:
-            if name.contains("hinglish-apex") { score = 100 }
-            else if name.contains("hinglish-prime") { score = 90 }
+            if name.contains("hinglish-prime") { score = 100 }
+            else if name.contains("hinglish-apex") { score = 90 }
             else if name.contains("hinglish-swift") { score = 50 }
             else if name.contains("turbo") { score = 40 }
             else if name.contains("small") { score = 30 }

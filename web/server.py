@@ -3,7 +3,7 @@
 Architecture (deliberately boring):
   browser mic (MediaRecorder) → POST /api/transcribe (webm/mp4 blob)
     → ffmpeg → 16 kHz mono wav → whisper-server (vendored whisper.cpp,
-      Apex model resident on :8081; Vaani for Devanagari on :8082 if present)
+      Prime model resident on :8081; Vaani for Devanagari on :8082 if present)
   POST /api/refine → local Ollama with the SAME prompts + Hindi-number
     prepass the Mac app ships (ported in prompts.py / hindi_numbers.py).
 
@@ -22,7 +22,7 @@ from fastapi.staticfiles import StaticFiles
 import prompts
 from hindi_numbers import normalize as hindi_numbers
 
-ASR_EN = os.environ.get("DESI_ASR_EN", "http://127.0.0.1:8081")   # Apex
+ASR_EN = os.environ.get("DESI_ASR_EN", "http://127.0.0.1:8081")   # Prime
 ASR_HI = os.environ.get("DESI_ASR_HI", "http://127.0.0.1:8082")   # Vaani
 OLLAMA = os.environ.get("DESI_OLLAMA", "http://127.0.0.1:11434")
 LLM_MODEL = os.environ.get("DESI_LLM", "gemma3:4b")

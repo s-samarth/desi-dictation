@@ -8,7 +8,7 @@ let engineLog = Logger(subsystem: "com.desi.dictation", category: "engine")
 /// through DictationController's single worker queue.
 public final class WhisperCppEngine: TranscriptionEngine {
     private var ctx: OpaquePointer?
-    /// Overrules Apex's "nan" = no-transcript label on real speech (FM#30).
+    /// Overrules the Hinglish fine-tunes' (Prime, Apex) "nan" = no-transcript label on real speech (FM#30).
     private var nanLabel: NaNLabelFilter?
     public private(set) var loadedModelPath: String?
 

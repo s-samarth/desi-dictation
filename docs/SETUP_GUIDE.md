@@ -85,7 +85,7 @@ All models are **free** during the beta:
 
 | Download | When you want | Size |
 |---|---|---|
-| ⭐ **Hinglish Apex** | Hinglish — "kal meeting hai, deck ready rakhna" | 547 MB |
+| ⭐ **Hinglish Prime** | Hinglish — "kal meeting hai, deck ready rakhna" | 1.03 GB |
 | Hinglish Swift | Hinglish on older/8GB Macs (faster, lighter) | 141 MB |
 | ⭐ **Parakeet** | English — the fastest and most accurate English option | 416 MB |
 | Qwen3-ASR 1.7B | English: most accurate, slower (~0.4 s); replaced Turbo in v0.6.3 | 2.08 GB |
