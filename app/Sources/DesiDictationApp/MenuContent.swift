@@ -118,7 +118,7 @@ struct MenuContent: View {
 
         if !controller.lastTranscript.isEmpty {
             Button("Copy Last: \"\(String(controller.lastTranscript.prefix(30)))…\"") {
-                TextInserter.insert(controller.lastTranscript, copyOnly: true)
+                TextInserter.copy(controller.lastTranscript)
             }
         }
 
@@ -128,7 +128,7 @@ struct MenuContent: View {
             }
             ForEach(history.entries.prefix(10)) { entry in
                 Button(String(entry.text.prefix(48))) {
-                    TextInserter.insert(entry.text, copyOnly: true)
+                    TextInserter.copy(entry.text)
                 }
             }
             Divider()
