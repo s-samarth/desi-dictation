@@ -784,6 +784,7 @@ has its own keyboard-focus owner (menus, key thieves), and its log
 `destinations for kCGSEventKeyDown`) names the real recipient. Read it before
 theorising: it turned a "same bug again" report into a one-line diagnosis.
 Other apps' menus still steal the keystroke; we can't observe those.
+
 ## 2026-10-28 — English A/B of Parakeet challengers (docs/ENGLISH_ASR_AB_2026-10.md)
 
 ### Failure mode #33 — two silent traps when A/B-ing NeMo models
