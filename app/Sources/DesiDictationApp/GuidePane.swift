@@ -63,6 +63,10 @@ struct GuidePane: View {
             GuideFeature(
                 number: 8, title: "History",
                 summary: "The last 24 hours of dictations, on this Mac only. Search, copy, or right-click one to add a word, undo an automatic fix, or copy what it heard before any fixes. Turn it off on the History page.")
+
+            GuideFeature(
+                number: 9, title: "Check before pasting",
+                summary: "Dictation → Review before paste. \"Only when unsure\" opens a small panel when a word looks shaky: the speech model wasn't sure of it, or it sounds like one of your words. Tab jumps to it, 1–5 picks a suggestion, or just type. Enter pastes, Esc copies. A word you fix there can be remembered: Always, When it fits, or Just this once. Off by default.")
         }
         .formStyle(.grouped)
         .onAppear { UserDefaults.standard.set(true, forKey: MainNav.guideSeenKey) }
