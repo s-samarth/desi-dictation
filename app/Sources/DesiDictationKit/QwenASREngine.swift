@@ -22,9 +22,15 @@ let qwenLog = Logger(subsystem: "com.desi.dictation", category: "qwen-asr")
 /// An audio-LLM (encoder → Qwen3 decoder), so it is English-only *here* by
 /// choice: the user asked for it as an English model, and Hinglish/हिन्दी have
 /// their own fine-tunes. Runs on Metal; ggml is private to transcribe.cpp.
-public final class QwenASREngine: TranscriptionEngine {
+public final class QwenASREngine: TranscriptionEngine, HotwordBiasing {
     private var session: OpaquePointer?
     public private(set) var loadedModelPath: String?
+    /// This dictation's names and terms, most relevant first (≤ 30, picked by
+    /// HotwordSelector). Qwen3-ASR was trained to use such context; the
+    /// runtime formats it for the model (transcribe_run_params::vocabulary).
+    private var hotwords: [String] = []
+
+    public func setHotwords(_ terms: [String]) { hotwords = terms }
 
     public init() {}
     deinit { unload() }
@@ -86,10 +92,19 @@ public final class QwenASREngine: TranscriptionEngine {
     private func run(_ session: OpaquePointer, _ pcm: [Float], language: String) throws -> String {
         var params = transcribe_run_params()
         transcribe_run_params_init(&params)
+        // The library copies these strings before transcribe_run returns.
+        let terms = hotwords.map { strdup($0) }
+        defer { terms.forEach { free($0) } }
         let status: transcribe_status = language.withCString { lang in
             params.language = lang  // forced: auto-detect can drift on accented English
-            return pcm.withUnsafeBufferPointer { buf in
-                transcribe_run(session, buf.baseAddress, Int32(buf.count), &params)
+            return terms.map { UnsafePointer($0) }.withUnsafeBufferPointer { vocab in
+                if !terms.isEmpty {
+                    params.vocabulary = vocab.baseAddress
+                    params.n_vocabulary = Int32(vocab.count)
+                }
+                return pcm.withUnsafeBufferPointer { buf in
+                    transcribe_run(session, buf.baseAddress, Int32(buf.count), &params)
+                }
             }
         }
         let why = String(cString: transcribe_status_string(Int32(status.rawValue)))

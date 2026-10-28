@@ -26,7 +26,9 @@ ours.**
 | Piece | File |
 |---|---|
 | Per-language pins + migration | `SettingsStore.modelPaths`, `modelPath(for:)`, `setModelPath(_:for:)` |
-| Which models serve which language | `ModelManager.score(_:for:)` → `candidates(for:)`, `autoChoice(for:)` |
+| Which models serve which language | `ModelScoring.swift` (`ModelManager.score(_:for:)`) → `candidates(for:)`, `autoChoice(for:)` |
+| What can be downloaded, onboarding picks | `ModelCatalog.swift` (`catalog`, `catalogEntry(for:)`) |
+| Verified download (SHA256, progress) | `ModelDownloader.swift` |
 | Menu-bar picker (scoped, per language) | `MenuContent.swift` |
 | Settings → Models → "Default model per language" | `DefaultModelSettings.swift` |
 | Main window picker | `DictationPane.swift` |
@@ -42,6 +44,10 @@ ours.**
   gets its English from the LLM stage, so a separate default would be a second
   thing to keep in sync.
 - Quantized variants beat f16/f32 (`+5`), so a q5_0 file wins ties.
+- **Hinglish: Apex (100) > Prime (90) > Swift (50).** Prime is the more
+  accurate model on long, conversational takes but ~1.8x slower, and it still
+  dropped some clips in the 2026-10 bake-off (MODEL_RESEARCH.md §F). So it's
+  an opt-in catalog download that a user pins; Auto doesn't pick it over Apex.
 
 Ordering inside a language is a plain integer score, all in one `switch` — if a
 model should be preferred, that is the only place to say so.

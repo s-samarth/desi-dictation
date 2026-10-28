@@ -11,7 +11,7 @@ What exists, how well it works, and where it's going. Update this every release.
 | Push-to-talk dictation (hold Right ⌥) | ✅ shipped | any app, any text field |
 | Toggle mode (tap start/stop) | ✅ shipped | live-switchable |
 | Esc to cancel | ✅ shipped | |
-| Hinglish (Roman) output | ✅ shipped | Apex model — the differentiator |
+| Hinglish (Roman) output | ✅ shipped | Apex model — the differentiator; **Prime** is an opt-in download for long takes (more accurate, ~2x slower — [research §F](MODEL_RESEARCH.md)) |
 | English / हिन्दी modes | ✅ shipped | **English runs on Parakeet TDT** (0.21 s/call, 4.3 % nWER on Indian English — [research §E](MODEL_RESEARCH.md)); हिन्दी on Vaani, split into ≤ 12 s calls so long dictations neither stall nor truncate (v0.6.2, [FM#26](BUILD_LOG.md)) |
 | **Default model per language** | ✅ built 2026-08-19 | pick a language, the right model loads itself; pickers hide models that can't serve it ([impl](features/implementation/MODEL_ROUTING.md)) |
 | In-app model downloads + ⭐ recommendations | ✅ shipped | models not bundled (size) |
@@ -24,12 +24,13 @@ What exists, how well it works, and where it's going. Update this every release.
 | **Paste after switching apps + no silent failures** | ✅ fixed v0.6.2 | ⌘V lands in the field focused at stop; the overlay says "Didn't catch that" / "Copied — press ⌘V" instead of failing silently ([impl](features/implementation/PASTE_AND_FEEDBACK.md), [FM#31](BUILD_LOG.md)) |
 | Replacement dictionary | ✅ shipped | user-enforced Hinglish spellings |
 | **Personal dictionary ("always write it as…")** | ✅ built 2026-07-10 | word-boundary + casing-aware; add from History right-click ([impl](features/implementation/PERSONAL_DICTIONARY.md)) |
+| **Auto vocabulary (smart vocabulary)** | ✅ built 2026-10-28 | opt-in: retype a word → "Always write X as Y?" popup; undo an auto-fix → never made again; near-miss names fixed from your dictionary + the window you're in (memory only); Hinglish matches your field's spelling; Qwen3-ASR hotword seam ([impl](features/implementation/AUTO_VOCABULARY.md)) |
 | **Per-app language modes** | ✅ built 2026-07-10 | WhatsApp→Hinglish, Mail→English, zero switching; the overlay names the rule when one overrides (v0.6.2) ([impl](features/implementation/PER_APP_MODES.md)) |
 | **"English — from any language ✨" mode** | ✅ built 2026-07-10 | speak Hinglish → paste polished English; falls back to raw words ([impl](features/implementation/SPEAK_DESI_WRITE_ENGLISH.md)) |
 | **Translate on Demand (edit → translate)** | ✅ built 2026-07-10 | last-dictation window, → English / हिन्दी ([impl](features/implementation/TRANSLATE_ON_DEMAND.md)) |
 | **Structure my thoughts (beta)** | ✅ built 2026-07-10 | ramble → Notes/Actions/Email/Outline review window ([impl](features/implementation/STRUCTURE_THOUGHTS_IMPL.md)) |
 | **Tone modes (Faithful/Casual/Professional/Respectful)** | ✅ built 2026-07-10 | Faithful default = zero rewrite ([impl](features/implementation/TONE_MODES.md)) |
-| Main window (sidebar UI) | ✅ shipped | Dictation/History/Models/Text/**AI**/License |
+| Main window (sidebar UI) | ✅ shipped | Dictation/History/Models/Text/**Vocabulary**/**AI**/License |
 | AI cleanup via local Ollama | ✅ shipped (Pro) | off by default, fails safe; now lives in the AI tab |
 | Gumroad licensing | 🔨 code ready | needs product ID at launch |
 | App icon | ✅ shipped | generated, tricolor mic |

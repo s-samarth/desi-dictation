@@ -785,6 +785,57 @@ has its own keyboard-focus owner (menus, key thieves), and its log
 theorising: it turned a "same bug again" report into a one-line diagnosis.
 Other apps' menus still steal the keystroke; we can't observe those.
 
+## 2026-10-24 — Hinglish model bake-off: Prime added as an opt-in download
+
+Full write-up and table: MODEL_RESEARCH.md §F. What to remember:
+- **The quick tier can flip a ranking.** On the 23-clip quick tier, Vaani in
+  हिन्दी mode beat Apex (24.2 % vs 28.6 % crWER). On all 112 clips it lost
+  (27.7 % vs 25.3 %). A model change is decided on the full suite of its own
+  language, which is ~5 min for Apex and ~13 min for Prime on the M3 Air.
+- **crWER doesn't check output script.** It romanizes both sides, so a model
+  that writes English words in Devanagari (Vaani: "स्लो कम्युनिकेशन") is only
+  partly penalized. For Hinglish mode, also check the share of English words
+  written in Latin and the share of Roman letters in the output.
+- **Count empty outputs separately.** Prime returned "" on 10 of 112 clips of
+  clear read speech (Apex on 1, fixed in PR #1). An average error rate hides
+  this, but in the app it means the user speaks and nothing gets inserted.
+- **Prime's HF weights are fp32:** a 6.2 GB download for a 1.08 GB q5_0. It
+  converts cleanly with the vendored `convert-h5-to-ggml.py` (standard 51,866
+  vocab).
+- transformers 4.57+ rejects `forced_decoder_ids` in `generate()`; the model
+  cards that use it need a manual decode loop (only matters for side-by-side
+  runs of HF-only models like Tara).
+## 2026-10-28 — English A/B of Parakeet challengers (docs/ENGLISH_ASR_AB_2026-10.md)
+
+### Failure mode #33 — two silent traps when A/B-ing NeMo models
+
+**Symptom 1:** Parakeet TDT 0.6B **v2**, converted with whisper.cpp's
+`convert-parakeet-to-ggml.py` and quantized with `parakeet-quantize … q4_k`,
+gave **no output on 55 of 55 clips**. `desi-cli` printed only a Metal teardown
+abort at exit (FM#27), which hid the real line:
+`tensor 'decoder.prediction.embed.weight' has wrong size in model file: got
+2624000, expected 1312000`.
+**Cause 1:** v2's 1,024-token vocab gives a 1025×640 prediction embedding.
+`parakeet-quantize` writes that tensor in f32 while the header says f16 for
+q4_k (640 isn't a multiple of the 256-wide k-quant block). v3's 8,192-token
+vocab never hit it.
+**Fix 1:** quantize v2 to **q5_0 / q8_0** (32-wide blocks). Both load and
+score the same as f16.
+**Symptom 2:** NeMo 3.0.0 failed on both 2026 unified models:
+`parakeet-unified-en-0.6b` with `'NoneType' object has no attribute 'get'`,
+and `nemotron-labs-unified-asr-0.6b` with `Unknown prompt key: 'None'`, even
+though `target_lang="en"` was passed.
+**Cause 2:** unified-en ships `validation_ds: null`, which `transcribe()`
+reads. Nemotron-labs' prompt dataset reads the language from each cut, which
+is None for plain wavs, and ignores `target_lang`. Its default prompt mode
+also *randomizes* between auto and the language ID, a training setting that
+would make inference nondeterministic.
+**Fix 2:** set `cfg.validation_ds = {}` under `open_dict`, and pin
+`_get_prompt_index_for_cut` to the requested language for inference.
+**Lesson:** when a converted or reference model scores 0 or 100 %, read the
+loader's first error line before blaming the model. Calibrate every new
+runtime with the shipping model first: Parakeet v3 scored 14.9 / 14.8 / 15.6 %
+in desi-cli / NeMo / MLX, so the runtimes weren't the variable.
 ## 2026-10-28 — Qwen3-ASR replaces Turbo as the accurate English model
 
 ### Failure mode #34 — a second ggml in one binary, and an LLM decoder's "errors"

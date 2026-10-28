@@ -12,13 +12,20 @@ public struct HistoryEntry: Codable, Identifiable, Equatable {
     public var raw: String?
     /// On-demand translation attached later (TRANSLATION.md Flow A).
     public var translation: String?
+    /// Words the vocabulary corrector changed (AUTO_VOCABULARY.md §3.6), and
+    /// the transcript before those changes, so each fix can be seen and undone.
+    public var fixes: [WordFix]?
+    public var unfixed: String?
 
-    public init(text: String, mode: String, raw: String? = nil) {
+    public init(text: String, mode: String, raw: String? = nil,
+                fixes: [WordFix] = [], unfixed: String? = nil) {
         self.id = UUID()
         self.date = Date()
         self.text = text
         self.mode = mode
         self.raw = raw
+        self.fixes = fixes.isEmpty ? nil : fixes
+        self.unfixed = fixes.isEmpty ? nil : unfixed
     }
 }
 
@@ -39,9 +46,11 @@ public final class HistoryStore: ObservableObject {
         prune()
     }
 
-    public func add(text: String, mode: LanguageMode, raw: String? = nil) {
+    public func add(text: String, mode: LanguageMode, raw: String? = nil,
+                    fixes: [WordFix] = [], unfixed: String? = nil) {
         guard !text.isEmpty, SettingsStore.shared.historyEnabled else { return }
-        entries.insert(HistoryEntry(text: text, mode: mode.rawValue, raw: raw), at: 0)
+        entries.insert(HistoryEntry(text: text, mode: mode.rawValue, raw: raw,
+                                    fixes: fixes, unfixed: unfixed), at: 0)
         prune()
         save()
     }

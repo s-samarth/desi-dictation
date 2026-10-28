@@ -49,3 +49,12 @@ public final class EngineRouter: TranscriptionEngine {
         return try active.transcribe(samples: samples, mode: mode)
     }
 }
+
+/// Auto-vocabulary hotwords reach whichever engine can use them (Qwen3-ASR
+/// today); Parakeet and whisper.cpp don't conform, so they get post-correction
+/// only (AUTO_VOCABULARY.md §2c).
+extension EngineRouter: HotwordBiasing {
+    public func setHotwords(_ terms: [String]) {
+        (active as? HotwordBiasing)?.setHotwords(terms)
+    }
+}

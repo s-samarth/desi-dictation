@@ -47,7 +47,7 @@ combination tests.
 
 - Different matching (e.g. Devanagari boundaries): all logic is in `apply` +
   `casedLike`; tests in `DesiTests/DictionaryTests.swift` pin current behavior.
-- Auto-learn ("it noticed you re-typed a word"): deliberately not built (see
-  implementation/README.md) — if added, it must show a review UI, not learn
-  silently.
+- Auto-learn ("it noticed you re-typed a word"): built as **proposals** in
+  [AUTO_VOCABULARY.md](AUTO_VOCABULARY.md). A popup plus a Suggestions list,
+  and accepted pairs land here via `add()`. Nothing is learned silently.
 - Import/export: it's one small JSON file; a share button would be trivial.

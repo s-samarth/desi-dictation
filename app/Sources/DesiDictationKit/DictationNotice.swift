@@ -11,6 +11,8 @@ public struct DictationNotice: Equatable {
         case problem
         /// The words are on the clipboard, but the paste was skipped.
         case copied
+        /// Pasted, and the vocabulary corrector changed a word (AUTO_VOCABULARY.md).
+        case fixed
     }
 
     public let kind: Kind

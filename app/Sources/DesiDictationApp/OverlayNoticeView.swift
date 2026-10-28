@@ -23,6 +23,7 @@ struct OverlayNoticeRow: View {
         switch notice.kind {
         case .problem: return "exclamationmark.triangle.fill"
         case .copied: return "doc.on.clipboard"
+        case .fixed: return "wand.and.stars"
         }
     }
 
@@ -30,6 +31,7 @@ struct OverlayNoticeRow: View {
         switch notice.kind {
         case .problem: return .orange
         case .copied: return .accentColor
+        case .fixed: return .green
         }
     }
 }
