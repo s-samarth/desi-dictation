@@ -669,9 +669,56 @@ property the gate is about (length), not by position in a directory that other
 work is free to rebuild — and print what was measured, so a drifted input shows
 up in the log instead of as a phantom regression.
 
-### Failure mode #31 — the paste fired while the toggle key was still down; empty results were silent
+## 2026-10-24 — Apex returned "" for a clear 15.7 s clip
 
-(#30 is the Apex/Prime "nan" label, in PR #1.)
+### Failure mode #30 — Apex's learned "nan" label swallowed real speech
+
+**Symptom:** found in the 2026-10-24 Roman-Hinglish model bake-off: Apex
+returned `""` for `hinglish/0081.wav`, 15.7 s of clear conversational Hinglish
+(IndicVoices code-mixed), on every run, VAD on or off. Vaani transcribed it
+fine. In the app the user dictates and nothing is pasted, with no error.
+**Cause:** with the `en` language token (Hinglish mode), Apex's first and only
+token was **`nan` (id 17622, p = 0.999)**, then end-of-text. It is not a
+numeric NaN: it decodes identically on CPU with flash attention off. It is a
+*learned label*. Almost certainly the fine-tuning data had rows with an
+empty transcript that were written out as pandas' NaN, i.e. the string
+"nan", so the model learned "nan" as its "no transcript" answer. Apex gives it
+for noise and hum too. The engine's old NaN-garbage guard (FM#12, item 4)
+then turned it into `""`. Beam search does not help, and neither do the no-speech,
+logprob or entropy thresholds: Apex's `no_speech_prob` is ~1e-9 even on pure
+noise, so whisper's own no-speech check never fires for this model. With
+`-l hi` the clip decodes fine, but that changes every Hinglish decode.
+**Fix:** `NaNLabelFilter`, a `logits_filter_callback` that bans the `nan`
+token as a window's **first** token only. That is where the label sits;
+mid-transcript `nan` is a legal word piece. Banned, real speech decodes in full
+(0081: "…Ek competition tha drawing competition…", 0 fallbacks). The filter is
+installed **only when VAD is on**: whisper decodes nothing when Silero hears no
+speech, so a decode means speech was vouched for. Without VAD the label
+stands, because forcing a decode on noise is unsafe. Apex then spells the
+label piece by piece ("n", "na", "ne"), and the evaluated-only **Prime**
+(Oriserve's large-v3 sibling, same label, p 0.74–0.92 on noise) invents whole
+sentences ("The company which runs retail automotive stores…"). As a backstop
+against VAD false positives, the filter records whether `nan` was the top
+first-token choice, and a forced decode of a single text token keeps the
+"no transcript" answer. One pass, no re-decode. A `nan label overruled` line
+logs at `.notice`. Onboarding installs Silero with every language model, so
+the gate covers nearly every user; VAD-off is the debugging kill-switch.
+**Results (quick tier, hinglish, 23 clips):** Apex **crWER 28.6 % → 23.5 %**
+(0081 was its only empty clip and the only text that changed). Prime **23.5 % →
+17.3 %**, empties 2 → 0. All 10 CS-FLEURS clips that Prime returned empty in
+the full tier (0000, 0006, 0009, 0014, 0018, 0026–0029, 0031) now decode, with
+the same `nan` (id 17622) as the cause. Prime's 0000 was empty only with VAD
+on, because the trimmed audio tipped the first token to the label. Noise, loud
+noise and hum still paste nothing on both models, with VAD on or off.
+**Likely also FM#12:** v0.3's user-reported "nan" dictations were blamed on
+flash attention, but flash attention was ruled out on retest (2026-08-19).
+Live mic audio hitting this label fits the symptoms better.
+**Lesson:** a fine-tuned model can learn its dataset's bugs as vocabulary.
+When a model's output is a single high-confidence token that looks like a
+sentinel ("nan", "None", "null", ""), suspect a training-data artifact before a
+numeric bug, and check by changing the hardware path (CPU, no flash attention):
+a numeric bug moves, a learned label does not.
+### Failure mode #31 — the paste fired while the toggle key was still down; empty results were silent
 
 **Symptom:** 2026-10-28 user report. Start dictating, switch apps or Spaces
 while recording, come back to a text box, tap Right ⌥ (toggle mode) to stop:
