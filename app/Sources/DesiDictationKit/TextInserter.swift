@@ -18,6 +18,8 @@ public enum PasteBlock: Equatable {
     /// A modifier was still held when the wait ran out, so ⌘V would have
     /// arrived as ⌥⌘V / ⇧⌘V, which is not paste (and ⌥⌘V moves files in Finder).
     case modifiersHeld
+    /// One of our menus stayed open (it would swallow ⌘V) — FM#32.
+    case menuOpen
 }
 
 /// The pure decision behind each paste attempt, split out so it is testable
@@ -30,14 +32,16 @@ public enum PasteGate {
     /// toggle is still down at stop: stop fires on keyDown).
     public static let maxWait: TimeInterval = 1.5
 
-    public enum Step: Equatable { case copyOnly, paste, wait, skip(PasteBlock) }
+    public enum Step: Equatable { case copyOnly, paste, wait, closeMenu, skip(PasteBlock) }
 
     public static func step(
-        copyOnly: Bool, trusted: Bool, held: CGEventFlags,
+        copyOnly: Bool, trusted: Bool, menuOpen: Bool = false, held: CGEventFlags,
         waited: TimeInterval, timeout: TimeInterval = maxWait
     ) -> Step {
         if copyOnly { return .copyOnly }
         if !trusted { return .skip(.noAccessibility) }
+        // An open menu of ours owns the keyboard: ⌘V would go to it (FM#32).
+        if menuOpen { return waited >= timeout ? .skip(.menuOpen) : .closeMenu }
         if held.intersection(blockingModifiers).isEmpty { return .paste }
         return waited >= timeout ? .skip(.modifiersHeld) : .wait
     }
@@ -72,15 +76,24 @@ public enum TextInserter {
         // tap merges held modifiers into posted events, and a silent tail
         // transcribes in ~10 ms, so the toggle key is often still down (FM#31).
         let start = Date()
+        var closedMenu = false
         while true {
             let step = PasteGate.step(
                 copyOnly: copyOnly, trusted: AXIsProcessTrusted(),
+                menuOpen: MenuTracker.shared.isMenuOpen,
                 held: CGEventSource.flagsState(.hidSystemState),
                 waited: Date().timeIntervalSince(start))
             switch step {
             case .copyOnly: return .copied
             case .skip(let reason): return .pasteSkipped(reason)
+            case .closeMenu:
+                if !closedMenu { MenuTracker.shared.closeAll() }
+                closedMenu = true
+                try? await Task.sleep(nanoseconds: 20_000_000)
             case .paste:
+                // Focus goes back to the text field as the menu ends; give
+                // the window server a beat before the keystroke.
+                if closedMenu { try? await Task.sleep(nanoseconds: 80_000_000) }
                 synthesizePaste()
                 return .pasted
             case .wait:
