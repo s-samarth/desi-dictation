@@ -942,3 +942,20 @@ list on the Vocabulary page now says what happened after each dictation, or
 why nothing did. `EditTrackerTests` replays the exact case.
 **Lesson:** a feature that can fail silently needs a visible trace. Every
 "nothing happened" path now logs a reason the user can read.
+
+### Failure mode #38 — "Not now" twice meant never, silently
+
+**Symptom:** after two "Not now"s on *cloud → Claude*, fixing the word again
+never brought the popup back, and the activity list said "Not a sound-alike",
+which was false.
+**Cause:** `AutoVocabularyStore.dismiss` put the pair on the permanent reject
+list on the second dismissal. `CorrectionLearner` was handed that list, so a
+rejected pair came back as "no proposal" and was logged as the wrong reason.
+**Fix:** "Not now" snoozes with backoff (asks again on the 3rd, 6th, 12th,
+then every 24th sighting); only "Never" and an undone auto-fix reject. The
+store decides and `propose` returns why (`ProposalOutcome`), so the activity
+list says "asks again after N more fixes" or "you turned this down". Old
+`autovocab.json` files (no `version`) drop pairs that two dismissals had
+rejected.
+**Lesson:** "don't ask so often" is not "never ask". A soft no should decay,
+and a filtered-out case needs its own log line, not the nearest one.

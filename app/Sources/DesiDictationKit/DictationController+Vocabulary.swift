@@ -82,10 +82,17 @@ extension DictationController {
                     store.respect(undone)
                     log.add(.learned, "You changed \"\(undone.to)\" back, so it won't make that fix again.")
                 } else if store.learnFromEdits, let proposal = CorrectionLearner.proposal(
-                    for: pair, mode: mode, dictionary: dictionary, rejected: store.rejected) {
+                    for: pair, mode: mode, dictionary: dictionary, rejected: []) {
                     let scope = WordScope(mode: mode) ?? .english
-                    store.propose(proposal, scope: scope)
-                    log.add(.suggested, "Suggested for your \(scope.label) words: always write \"\(proposal.heard)\" as \"\(proposal.typed)\"")
+                    let words = "\"\(proposal.heard)\" as \"\(proposal.typed)\""
+                    switch store.propose(proposal, scope: scope) {
+                    case .asked: log.add(.suggested, "Suggested for your \(scope.label) words: always write \(words)")
+                    case .waiting: log.add(.info, "Writing \(words) is already waiting for your answer.")
+                    case .snoozed(let left):
+                        log.add(.info, "You said Not now to writing \(words). It asks again after \(left) more fix\(left == 1 ? "" : "es").")
+                    case .rejected:
+                        log.add(.info, "You turned down writing \(words). Vocabulary → Advanced → Allow again brings it back.")
+                    }
                 } else {
                     log.add(.info, "Saw \"\(pair.heard)\" → \"\(pair.typed)\" in \(app). Not a sound-alike, so no suggestion.")
                 }

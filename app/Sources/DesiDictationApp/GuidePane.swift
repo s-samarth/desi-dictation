@@ -75,7 +75,7 @@ struct GuidePane: View {
             steps: ["Dictate as usual. Say it writes \"Call Rowan at 5\".",
                     "Within **30 seconds**, fix the word right there in the text: Rowan → Rohan.",
                     "Stop typing for **2 seconds** (or just press Enter). A small popup asks **Always write Rowan as Rohan in English?** Click **Add** and it's in that language's list for good.",
-                    "Missed the popup? It waits in Vocabulary → Waiting for you. Say **Not now** twice and it stops asking.",
+                    "Missed the popup? It waits in Vocabulary → Waiting for you. **Not now** waits until you make the same fix a few more times; only **Never** stops it for good.",
                     "Want proof it's working? Vocabulary → **What it's been doing** lists what it saw after each dictation, what it suggested and what it learned. Learned words appear under **Your words**."],
             turnOnIf: "it keeps mishearing the same names, brands or terms.",
             skipIf: "you'd rather add words yourself. It only ever asks; nothing is learned without your yes. It watches just the field you dictated into, for 30 seconds, and ignores rewrites and grammar fixes like their → there.",

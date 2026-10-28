@@ -60,12 +60,28 @@ func runVocabularyLearningTests() {
     store.accept(store.suggestions[0], into: dict)
     T.equal(dict.entries.map { $0.written }, ["Saraswat"], "Add puts it in the dictionary")
     T.expect(store.suggestions.isEmpty && store.liveSuggestion == nil, "…and clears the prompt")
-    store.propose(EditPair(heard: "Kavia", typed: "Kavya"))
+    let kavya = EditPair(heard: "Kavia", typed: "Kavya")
+    T.equal(store.propose(kavya), .asked, "first sighting asks")
+    T.equal(store.propose(kavya), .waiting, "…and waits while unanswered")
     store.dismiss(store.suggestions[0])
-    store.propose(EditPair(heard: "Kavia", typed: "Kavya"))
+    T.equal(store.propose(kavya), .snoozed(left: 2), "Not now snoozes")
+    T.equal(store.propose(kavya), .snoozed(left: 1), "…counting down")
+    T.equal(store.propose(kavya), .asked, "…and asks again on the 3rd sighting")
     store.dismiss(store.suggestions[0])
-    store.propose(EditPair(heard: "Kavia", typed: "Kavya"))
-    T.expect(store.suggestions.isEmpty, "two 'Not now's mean never")
+    for _ in 0..<5 { store.propose(kavya) }
+    T.equal(store.propose(kavya), .asked, "two Not nows still never mean never (6 sightings)")
+    store.never(store.suggestions[0])
+    T.equal(store.propose(kavya), .rejected, "only Never stops it")
+
+    T.begin("Vocabulary — old 'two Not nows' rejections are lifted")
+    let oldFile = T.tempFile("autovocab-v1.json")
+    try? Data(#"{"suggestions":[],"rejected":["cloud→claude","rowan→rohan"],"dismissCounts":{"cloud→claude":2}}"#.utf8)
+        .write(to: oldFile)
+    let migrated = AutoVocabularyStore(fileURL: oldFile,
+                                       defaults: UserDefaults(suiteName: "desi-tests-\(UUID().uuidString)")!)
+    T.equal(migrated.rejected, ["rowan→rohan"], "Not-now rejections cleared; Never and undo kept")
+    T.equal(AutoVocabularyStore(fileURL: oldFile, defaults: UserDefaults(suiteName: "desi-tests-\(UUID().uuidString)")!)
+                .rejected, ["rowan→rohan"], "the cleanup is saved, so a restart keeps it")
 
     T.begin("Vocabulary — screen terms")
     let terms = TermExtractor.terms(from: [

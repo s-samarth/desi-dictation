@@ -141,6 +141,8 @@ menu items and right-click services are hidden (§3–§8).
   the overlay asks **"Always write Rowan as Rohan?"** with **Add** / **Not now**.
   It never steals the caret. Ignore it and the proposal waits under
   Vocabulary → **Waiting for you**. "Add" puts the pair in your Personal dictionary.
+  **Not now** only snoozes it: make the same fix a few more times and it
+  asks again. Only **Never** stops it for good.
 - **Your edit wins:** if it auto-fixed a word and you change it back, the
   popup says "Got it" and that fix is never made again.
 - **Near-miss fixes:** "Saraswath" becomes "Saraswat" when the dictionary
