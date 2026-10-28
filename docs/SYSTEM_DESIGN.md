@@ -104,6 +104,19 @@ ggml-metal checks in a static destructor that every GPU buffer is gone, and
 `applicationWillTerminate` (`DictationController.shutdown()`) and `desi-cli`
 unloads on every exit path. Otherwise Quit is a SIGABRT.
 
+### Overrule the "nan" label on real speech (FM#30)
+Hinglish Apex (and the evaluated-only Prime) learned `nan`, a pandas-NaN
+artifact in their training data, as their "no transcript" answer. They give it
+for some clear speech as well as for noise. `NaNLabelFilter` (a whisper
+`logits_filter_callback`) bans `nan` as a window's first token, **only when VAD
+is on**: whisper decodes nothing when Silero hears no speech, so a decode means
+speech was vouched for. Without VAD the label stands, because forced decodes on
+noise make Prime invent sentences. Backstop for VAD false positives: if `nan`
+was the top choice and the forced decode is a single token, the
+"no transcript" answer stands. One pass, no retry. These models'
+`no_speech_prob` is ~1e-9 even on noise, so whisper's built-in check can't make
+this call.
+
 ### Input-only mic unit, not AVAudioEngine (v0.6.2)
 
 On macOS, AVAudioEngine runs input and output as **one** device, so the mic is
@@ -116,8 +129,12 @@ stereo downmixed rather than dropping a channel. The speaker can no longer
 touch the words (BUILD_LOG FM#22).
 
 ### Pasteboard-swap insertion
-1. Save current clipboard string → 2. set transcript → 3. synthesize ⌘V via
-`CGEvent` at the HID tap → 4. restore old clipboard after 400 ms.
+1. Set transcript on the clipboard → 2. wait until ⌥/⇧/⌃ are physically up
+(≤ 1.5 s, else skip and tell the user — FM#31) → 3. synthesize ⌘V via
+`CGEvent` at the HID tap. The clipboard is **not** restored: the transcript
+stays there so a rejected paste is one ⌘V away. ⌘V goes to whatever field is
+focused at stop; nothing is captured at start
+([PASTE_AND_FEEDBACK.md](features/implementation/PASTE_AND_FEEDBACK.md)).
 - Works in native apps, Electron, browsers, terminals — the widest single
   strategy. Known gaps (apps that block programmatic paste, non-string
   clipboard content is not restored) get the AX-API fallback in a later rev.

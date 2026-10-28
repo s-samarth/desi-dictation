@@ -58,7 +58,7 @@ struct HistoryView: View {
                                 .background(.quaternary, in: Capsule())
                             Spacer()
                             Button("Copy") {
-                                TextInserter.insert(entry.text, copyOnly: true)
+                                TextInserter.copy(entry.text)
                             }
                             .buttonStyle(.borderless)
                         }
@@ -71,7 +71,7 @@ struct HistoryView: View {
                             fixingEntry = entry
                         }
                         Button("Copy") {
-                            TextInserter.insert(entry.text, copyOnly: true)
+                            TextInserter.copy(entry.text)
                         }
                     }
                 }

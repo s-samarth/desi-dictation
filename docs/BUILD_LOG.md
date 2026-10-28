@@ -669,6 +669,122 @@ property the gate is about (length), not by position in a directory that other
 work is free to rebuild — and print what was measured, so a drifted input shows
 up in the log instead of as a phantom regression.
 
+## 2026-10-24 — Apex returned "" for a clear 15.7 s clip
+
+### Failure mode #30 — Apex's learned "nan" label swallowed real speech
+
+**Symptom:** found in the 2026-10-24 Roman-Hinglish model bake-off: Apex
+returned `""` for `hinglish/0081.wav`, 15.7 s of clear conversational Hinglish
+(IndicVoices code-mixed), on every run, VAD on or off. Vaani transcribed it
+fine. In the app the user dictates and nothing is pasted, with no error.
+**Cause:** with the `en` language token (Hinglish mode), Apex's first and only
+token was **`nan` (id 17622, p = 0.999)**, then end-of-text. It is not a
+numeric NaN: it decodes identically on CPU with flash attention off. It is a
+*learned label*. Almost certainly the fine-tuning data had rows with an
+empty transcript that were written out as pandas' NaN, i.e. the string
+"nan", so the model learned "nan" as its "no transcript" answer. Apex gives it
+for noise and hum too. The engine's old NaN-garbage guard (FM#12, item 4)
+then turned it into `""`. Beam search does not help, and neither do the no-speech,
+logprob or entropy thresholds: Apex's `no_speech_prob` is ~1e-9 even on pure
+noise, so whisper's own no-speech check never fires for this model. With
+`-l hi` the clip decodes fine, but that changes every Hinglish decode.
+**Fix:** `NaNLabelFilter`, a `logits_filter_callback` that bans the `nan`
+token as a window's **first** token only. That is where the label sits;
+mid-transcript `nan` is a legal word piece. Banned, real speech decodes in full
+(0081: "…Ek competition tha drawing competition…", 0 fallbacks). The filter is
+installed **only when VAD is on**: whisper decodes nothing when Silero hears no
+speech, so a decode means speech was vouched for. Without VAD the label
+stands, because forcing a decode on noise is unsafe. Apex then spells the
+label piece by piece ("n", "na", "ne"), and the evaluated-only **Prime**
+(Oriserve's large-v3 sibling, same label, p 0.74–0.92 on noise) invents whole
+sentences ("The company which runs retail automotive stores…"). As a backstop
+against VAD false positives, the filter records whether `nan` was the top
+first-token choice, and a forced decode of a single text token keeps the
+"no transcript" answer. One pass, no re-decode. A `nan label overruled` line
+logs at `.notice`. Onboarding installs Silero with every language model, so
+the gate covers nearly every user; VAD-off is the debugging kill-switch.
+**Results (quick tier, hinglish, 23 clips):** Apex **crWER 28.6 % → 23.5 %**
+(0081 was its only empty clip and the only text that changed). Prime **23.5 % →
+17.3 %**, empties 2 → 0. All 10 CS-FLEURS clips that Prime returned empty in
+the full tier (0000, 0006, 0009, 0014, 0018, 0026–0029, 0031) now decode, with
+the same `nan` (id 17622) as the cause. Prime's 0000 was empty only with VAD
+on, because the trimmed audio tipped the first token to the label. Noise, loud
+noise and hum still paste nothing on both models, with VAD on or off.
+**Likely also FM#12:** v0.3's user-reported "nan" dictations were blamed on
+flash attention, but flash attention was ruled out on retest (2026-08-19).
+Live mic audio hitting this label fits the symptoms better.
+**Lesson:** a fine-tuned model can learn its dataset's bugs as vocabulary.
+When a model's output is a single high-confidence token that looks like a
+sentinel ("nan", "None", "null", ""), suspect a training-data artifact before a
+numeric bug, and check by changing the hardware path (CPU, no flash attention):
+a numeric bug moves, a learned label does not.
+### Failure mode #31 — the paste fired while the toggle key was still down; empty results were silent
+
+**Symptom:** 2026-10-28 user report. Start dictating, switch apps or Spaces
+while recording, come back to a text box, tap Right ⌥ (toggle mode) to stop:
+"it sometimes does not paste the output there. That makes me press Cmd+V."
+The transcript was on the clipboard. Separately: "sometimes when it is unable
+to catch, I do not get a warning. It just fails silently."
+**Cause (paste):** the paste target was never the problem. Nothing is
+captured at start; ⌘V goes to the field focused at stop. The problem was
+timing. Toggle mode stops on Right ⌥ **keyDown**, and `TextInserter` posted ⌘V
+as soon as the text was ready. Switching apps mid-dictation makes a session
+long and quiet in places: past 30 s it is chunked at quiet moments, so the
+tail left at stop is often pure silence. Measured: a 4 s silent or room-noise
+tail through Prime returns in **0.01 s** with VAD on (English on Parakeet is
+~0.09 s for real speech). So ⌘V went out while ⌥ was still physically held.
+Events posted at the HID tap pick up held modifiers, so the app got ⌥⌘V,
+which isn't paste (and in Finder it moves files). Short single-call
+dictations take ~1.4 s to transcribe, so ⌥ was long released. That's why it
+was "sometimes" and tied to switching apps. Not reproduced live: this shell
+has no Accessibility or Input Monitoring grant, so a test tap couldn't be created.
+**Cause (silence):** `OverlayCoordinator` hid on every non-active phase,
+`.error` included. "No speech detected — nothing inserted or copied." existed
+but only reached the menu text and the menu-bar icon, plus a Basso nobody
+could read.
+**Fix:** `TextInserter.insert` is async and waits (20 ms polls, ≤ 1.5 s) until
+⌥/⇧/⌃ are up in `CGEventSource.flagsState(.hidSystemState)` before posting
+⌘V. If they're still held, or `AXIsProcessTrusted()` is false (posted events
+are dropped silently), it skips the paste and returns `.pasteSkipped`. The
+controller publishes `notice: DictationNotice?`. Every transient error and
+every skipped paste sets one, and the overlay stays up for 4 s with it:
+"Didn't catch that — nothing pasted. Try again." / "Copied — press ⌘V to
+paste". Pure logic (`PasteGate.step`, `DictationNotice.forOutcome`) is covered
+in `DesiTests/PasteTests.swift`. Details: implementation/PASTE_AND_FEEDBACK.md.
+**Lesson:** a synthesized shortcut must not assume the keyboard is idle. The
+hotkey that triggered it may still be down, and a faster pipeline (VAD,
+chunking, Parakeet) shrinks the gap until it isn't. Every ending that isn't
+the happy path has to be visible where the user is looking, the overlay, not
+only in the menu.
+
+### Failure mode #32 — our own open menu swallowed the paste
+
+**Symptom:** 2026-10-28, right after the FM#31 fix shipped. Toggle mode:
+the user "clicked somewhere else" while talking, came back to the text box,
+tapped Right ⌥, and nothing pasted. The app log said `insert outcome: pasted`
+after a 108 ms wait for ⌥, so the FM#31 guard did its job.
+**Cause:** WindowServer's log for that second shows where the keystroke went:
+`destinations for kCGSEventKeyDown event: <keyboardFocus; pid: <Desi>>`, via
+"active key thief". The Desi menu-bar menu had been opened at 09:25:36
+(`StealKeyFocusReturningID … keyThief … Desi Dictation`), *before* recording
+started at 09:25:45. It stayed open, with submenus opening and closing as the
+pointer crossed it, until a click at 09:27:11.6 closed it
+(`+[NSRemoteView _menuDidEndTracking:]`). The stop was at 09:27:09. An open
+menu holds keyboard focus even though the frontmost app (here Claude) never
+changes, so our ⌘V went into the menu and vanished. FM#31's checks
+(modifiers, Accessibility) couldn't see it.
+**Fix:** `MenuTracker` follows `NSMenu.didBegin/EndTrackingNotification` for
+every menu in our process. `PasteGate` gained `menuOpen`: an open menu means
+`.closeMenu` (`cancelTracking()`, wait for didEndTracking, +80 ms) and then
+the paste. If it's still open at 1.5 s, the step is `.skip(.menuOpen)` and
+the overlay says "Copied — press ⌘V to paste". Tests in `PasteTests.swift`.
+**Lesson:** "frontmost app" is not "where keystrokes go". The window server
+has its own keyboard-focus owner (menus, key thieves), and its log
+(`log show --predicate 'process == "WindowServer"'`, look for
+`destinations for kCGSEventKeyDown`) names the real recipient. Read it before
+theorising: it turned a "same bug again" report into a one-line diagnosis.
+Other apps' menus still steal the keystroke; we can't observe those.
+
 ## 2026-10-24 — Hinglish model bake-off: Prime added as an opt-in download
 
 Full write-up and table: MODEL_RESEARCH.md §F. What to remember:
@@ -689,3 +805,4 @@ Full write-up and table: MODEL_RESEARCH.md §F. What to remember:
 - transformers 4.57+ rejects `forced_decoder_ids` in `generate()`; the model
   cards that use it need a manual decode loop (only matters for side-by-side
   runs of HF-only models like Tara).
+||||||| f3d6828

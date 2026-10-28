@@ -32,6 +32,9 @@ public final class DictationController: ObservableObject {
     /// Language of the session in progress — the overlay shows it, so a
     /// per-app rule overriding the global language is visible.
     @Published public private(set) var sessionLanguage: SessionLanguage?
+    /// What the overlay says after a dictation that didn't end in a clean
+    /// paste (FM#31). Persistent errors (permissions) stay out of it.
+    @Published public private(set) var notice: DictationNotice?
 
     /// Engine-call accounting for the session in progress. Touched on the
     /// workQueue and on main between sessions — never concurrently.
@@ -55,10 +58,17 @@ public final class DictationController: ObservableObject {
         controllerLog.error("transient error: \(message, privacy: .public)")
         phase = .error(message)
         Sounds.error.play()
+        show(DictationNotice(kind: .problem, message: message))
+    }
+
+    /// Puts a notice in the overlay, then clears it (and any transient error).
+    private func show(_ notice: DictationNotice) {
+        self.notice = notice
         errorResetTask?.cancel()
         errorResetTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            try? await Task.sleep(nanoseconds: UInt64(DictationNotice.displaySeconds * 1e9))
             guard let self, !Task.isCancelled else { return }
+            self.notice = nil
             if case .error = self.phase { self.phase = .idle }
         }
     }
@@ -77,6 +87,7 @@ public final class DictationController: ObservableObject {
         hotkeys.onDictateDown = { [weak self] in self?.hotkeyDown() }
         hotkeys.onDictateUp = { [weak self] in self?.hotkeyUp() }
         hotkeys.onCancel = { [weak self] in self?.cancel() }
+        MenuTracker.shared.start()   // an open menu of ours swallows ⌘V (FM#32)
 
         // Start cue plays when the mic is ACTUALLY capturing (not at keypress) —
         // "speak after the tink" then never loses first words.
@@ -224,42 +235,7 @@ public final class DictationController: ObservableObject {
 
     // MARK: - Session
 
-    // MARK: - Incremental chunking (perceived-latency fix, v0.4)
-    // While the user speaks, completed stretches are transcribed in the
-    // background; on release only the tail remains → even multi-minute
-    // dictations insert quickly.
-    //
-    // Thresholds re-derived from measurement in v0.6.1 (PERF_RCA_2026-08.md):
-    // whisper always encodes a padded 30 s window, so a chunk call costs the
-    // SAME ~1.5 s (M3) / ~3 s (M1 Air) whether it holds 2 s of speech or 30 s.
-    // The old 12 s cut therefore taxed every ordinary dictation with extra
-    // full-price calls — and the tail queues behind any chunk still decoding on
-    // this serial queue. So: don't chunk short dictations at all, and when we
-    // do chunk, make each chunk far longer than the call it costs.
-
-    /// No chunking below this — a normal dictation should cost exactly one call.
-    public nonisolated static let chunkFloorSamples = 30 * 16000        // 30 s of speech
-    /// Minimum audio per chunk once chunking starts.
-    public nonisolated static let chunkEverySamples = 25 * 16000        // 25 s
-    /// Cut here even mid-sentence, so one bad cut can't poison more than this.
-    public nonisolated static let chunkForceSamples = 35 * 16000        // 35 s
-    /// Below this the "tail" is key-release noise, not speech.
-    public nonisolated static let tailFloorSamples = 5600               // 0.35 s
-
-    /// The (floor, every, force) chunk thresholds for a session in `mode`.
-    /// हिन्दी is the exception (FM#26): the engine splits anything over 12 s
-    /// into separate whisper calls to stay under the decoder's token budget,
-    /// so those calls are paid either way — make them while the user is still
-    /// talking. Force is one ticker second under the cap, so the engine never
-    /// has to split a chunk again.
-    public nonisolated static func chunkThresholds(
-        for mode: LanguageMode
-    ) -> (floor: Int, every: Int, force: Int) {
-        guard let cap = WhisperCppEngine.maxCallSamples(for: mode) else {
-            return (chunkFloorSamples, chunkEverySamples, chunkForceSamples)
-        }
-        return (cap, cap * 2 / 3, cap - 16000)
-    }
+    // MARK: - Incremental chunking (thresholds: DictationController+Chunking.swift)
 
     /// Accessed only on workQueue (serial) — safe despite nonisolated access.
     private nonisolated(unsafe) var pendingParts: [String] = []
@@ -323,6 +299,7 @@ public final class DictationController: ObservableObject {
         default: return
         }
         errorResetTask?.cancel()
+        notice = nil
         let language = effectiveLanguage()
         let mode = language.mode
         guard let modelPath = resolvedModelPath(for: mode) else {
@@ -432,7 +409,7 @@ public final class DictationController: ObservableObject {
         if thinkingSessionArmed {
             thinkingSessionArmed = false
             guard !text.isEmpty else {
-                transientError("No speech detected — nothing captured.")
+                transientError(DictationNotice.nothingHeard)
                 return
             }
             phase = .idle
@@ -498,7 +475,7 @@ public final class DictationController: ObservableObject {
 
     private func deliver(text: String, mode: LanguageMode, copyOnly: Bool, raw: String? = nil) {
         guard !text.isEmpty else {
-            transientError("No speech detected — nothing inserted or copied.")
+            transientError(DictationNotice.nothingHeard)
             return
         }
         controllerLog.info("deliver: \(text.count, privacy: .public) chars, copyOnly=\(copyOnly, privacy: .public)")
@@ -507,9 +484,29 @@ public final class DictationController: ObservableObject {
         recordTimings(llmStage: raw != nil)
         lastTranscript = text
         HistoryStore.shared.add(text: text, mode: mode, raw: raw)
-        TextInserter.insert(text, copyOnly: copyOnly)
-        Sounds.finish.play()
-        phase = .idle
+        // Async: the paste waits for the hotkey's modifier to come up (FM#31).
+        Task { @MainActor [weak self] in
+            let outcome = await TextInserter.insert(text, copyOnly: copyOnly)
+            self?.delivered(outcome)
+        }
+    }
+
+    /// Ends the session once the paste ran. A skipped paste says so — the
+    /// words are on the clipboard, the user must know to press ⌘V.
+    private func delivered(_ outcome: InsertOutcome) {
+        controllerLog.info("insert outcome: \(String(describing: outcome), privacy: .public)")
+        // Only leave the pipeline's own phases: a fallback error message, or a
+        // session the user already started again, must survive.
+        switch phase {
+        case .transcribing, .translating, .polishing: phase = .idle
+        default: break
+        }
+        if let notice = DictationNotice.forOutcome(outcome) {
+            Sounds.error.play()
+            show(notice)
+        } else {
+            Sounds.finish.play()
+        }
     }
 
     /// Snapshots what this dictation cost, publishes it, and writes it to the

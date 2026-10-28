@@ -52,6 +52,31 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
   Bluetooth headset mic is call quality (16–24 kHz). Both are macOS/hardware
   limits; TROUBLESHOOTING §6b shows how to check which mic was used.
 
+## 0c · Switching apps mid-dictation, and when it doesn't work (v0.6.2)
+
+- **Flow:** start dictating in one app, switch apps or Spaces while you talk,
+  click into any text box (the same one or another), tap Right ⌥ to stop.
+  The words paste into the box you're in **when you stop**.
+- **What changed:** before v0.6.2 this sometimes put the words on the
+  clipboard without pasting, so you had to press ⌘V. The paste could fire
+  while Right ⌥ was still held, and apps saw ⌥⌘V (BUILD_LOG FM#31). The app
+  now waits for you to let go first. You won't notice the wait.
+- **Menu left open (fixed after v0.6.2):** if you open the Desi menu-bar menu
+  and then dictate, the open menu used to swallow the paste (FM#32). The app
+  now closes its own menu before pasting. Another app's open menu (Spotlight,
+  another menu-bar icon) still swallows it. Close it, then stop.
+- **No more silent failures:** when a dictation doesn't end in a paste, the
+  overlay stays up for a few seconds and says why, with the error sound:
+  - ⚠️ *"Didn't catch that — nothing pasted. Try again."*: no speech was
+    heard. Your clipboard was left alone.
+  - 📋 *"Copied — press ⌘V to paste"*: the words are on the clipboard but
+    weren't pasted (a modifier key was still held after 1.5 s).
+  - 📋 *"… Grant Accessibility to auto-paste"*: macOS is blocking the paste;
+    re-grant Accessibility (section 0).
+  - ⚠️ any other error (too short, no model, engine failure) shows its own text.
+- **Friction:** a text field that quietly ignores pasted text can't be
+  detected. The words are still on the clipboard and in History.
+
 ## 1 · Personal dictionary — zero setup, works today
 
 - **Discovery:** you notice a wrong spelling in a paste; you open menu bar

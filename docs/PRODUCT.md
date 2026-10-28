@@ -21,6 +21,7 @@ What exists, how well it works, and where it's going. Update this every release.
 | Error recovery without relaunch | ✅ fixed v0.2.1 | all errors transient |
 | **Mic capture independent of speakers** | ✅ fixed v0.6.2 | mic's native rate, reopens on device change mid-dictation, logs which mic ([FM#22](BUILD_LOG.md)) |
 | Transcript always recoverable | ✅ shipped | clipboard + 24 h history + Copy Last |
+| **Paste after switching apps + no silent failures** | ✅ fixed v0.6.2 | ⌘V lands in the field focused at stop; the overlay says "Didn't catch that" / "Copied — press ⌘V" instead of failing silently ([impl](features/implementation/PASTE_AND_FEEDBACK.md), [FM#31](BUILD_LOG.md)) |
 | Replacement dictionary | ✅ shipped | user-enforced Hinglish spellings |
 | **Personal dictionary ("always write it as…")** | ✅ built 2026-07-10 | word-boundary + casing-aware; add from History right-click ([impl](features/implementation/PERSONAL_DICTIONARY.md)) |
 | **Per-app language modes** | ✅ built 2026-07-10 | WhatsApp→Hinglish, Mail→English, zero switching; the overlay names the rule when one overrides (v0.6.2) ([impl](features/implementation/PER_APP_MODES.md)) |
