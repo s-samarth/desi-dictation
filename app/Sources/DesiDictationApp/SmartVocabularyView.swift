@@ -1,12 +1,11 @@
 import SwiftUI
 import DesiDictationKit
 
-/// The five opt-in switches (AUTO_VOCABULARY.md), shared by the Vocabulary
+/// The four opt-in switches (AUTO_VOCABULARY.md), shared by the Vocabulary
 /// pane and onboarding. Each one carries its own privacy line, so turning a
 /// switch on is an informed choice.
 struct SmartVocabularyToggles: View {
     @ObservedObject var store = AutoVocabularyStore.shared
-    @State private var contactsDenied = false
 
     var body: some View {
         toggle("Suggest words from my corrections", $store.learnFromEdits,
@@ -15,13 +14,6 @@ struct SmartVocabularyToggles: View {
                "\"Saraswath\" → \"Saraswat\" when it sounds and looks almost the same. Everyday words are never touched. Every fix shows on screen and in History.")
         toggle("Read names from the window I'm dictating into", $store.readScreen,
                "Names on screen are read when you start dictating, kept in memory for that one dictation, then dropped. Never saved.")
-            .disabled(!store.fixNearMisses)
-        toggle("Use names from Contacts", Binding(
-            get: { store.useContacts },
-            set: { on in setContacts(on) }),
-               contactsDenied
-                   ? "Contacts access is off — allow it in System Settings → Privacy & Security → Contacts."
-                   : "First, last and nicknames, kept in memory only. A contact name alone never changes a real word.")
             .disabled(!store.fixNearMisses)
         toggle("Hinglish: match the spelling already in the text I'm editing", $store.hinglishFieldSpelling,
                "If the field already writes \"nahi\" (twice or more), \"nahin\" becomes \"nahi\" in this dictation only.")
@@ -32,19 +24,6 @@ struct SmartVocabularyToggles: View {
             Toggle(title, isOn: isOn)
             Text(note).font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    /// Turning Contacts on asks macOS first; a "no" turns the switch back off.
-    private func setContacts(_ on: Bool) {
-        guard on else {
-            store.useContacts = false
-            ContactsVocabulary.shared.stop()
-            return
-        }
-        ContactsVocabulary.shared.enable { granted in
-            store.useContacts = granted
-            contactsDenied = !granted
         }
     }
 }

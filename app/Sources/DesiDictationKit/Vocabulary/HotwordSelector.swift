@@ -26,21 +26,16 @@ public protocol HotwordBiasing: AnyObject {
 /// Chooses the few terms a biasable engine gets *before* any audio is
 /// decoded. Speech LLMs get worse as distractors grow, and word order
 /// matters (BR-ASR; Huber & Waibel 2026), so the list is short, ordered,
-/// and never the whole contact book.
+/// and only what this dictation can see plus your own dictionary.
 public enum HotwordSelector {
     public static let limit = 30
 
     public static func select(
         fieldTerms: [String], windowTerms: [String],
-        dictionary: [String], contacts: Set<String>, limit: Int = limit
+        dictionary: [String], limit: Int = limit
     ) -> [String] {
-        let contactsLower = Set(contacts.map { $0.lowercased() })
-        let isContact = { (t: String) in contactsLower.contains(t.lowercased()) }
-        // Names you're writing about right now first; a known contact on
-        // screen is more likely a name than any other capitalized word.
-        let ordered = fieldTerms.filter(isContact) + fieldTerms
-            + windowTerms.filter(isContact) + windowTerms
-            + dictionary
+        // The field you're writing in first, then the window, then your own words.
+        let ordered = fieldTerms + windowTerms + dictionary
         var seen = Set<String>()
         var out: [String] = []
         for term in ordered where seen.insert(term.lowercased()).inserted {

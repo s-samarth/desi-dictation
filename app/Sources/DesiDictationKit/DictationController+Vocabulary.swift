@@ -44,12 +44,15 @@ extension DictationController {
         VocabularySession.shared.end()
         guard outcome == .pasted else { return nil }
         let store = AutoVocabularyStore.shared
-        if store.learnFromEdits {
+        // Watch when there's something to learn, or a fix the user may undo.
+        if store.learnFromEdits || !fixes.isEmpty {
             let mode = sessionLanguage?.mode ?? settingsMode
             EditWatcher.shared.watch(inserted: text) { pairs in
                 let dictionary = PersonalDictionary.shared.entries
                 for pair in pairs {
-                    if let proposal = CorrectionLearner.proposal(
+                    if let undone = CorrectionLearner.revertedFix(pair, fixes: fixes) {
+                        store.respect(undone)
+                    } else if store.learnFromEdits, let proposal = CorrectionLearner.proposal(
                         for: pair, mode: mode, dictionary: dictionary, rejected: store.rejected) {
                         store.propose(proposal)
                     }

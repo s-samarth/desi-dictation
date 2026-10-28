@@ -24,7 +24,6 @@ public final class VocabularySession: @unchecked Sendable {
         var useVocabulary: Bool
         var hinglishSpelling: Bool
         var dictionaryTerms: [String]
-        var contacts: Set<String>
         var rejected: Set<String>
     }
 
@@ -36,7 +35,6 @@ public final class VocabularySession: @unchecked Sendable {
              useVocabulary: store.fixNearMisses,
              hinglishSpelling: store.hinglishFieldSpelling,
              dictionaryTerms: dictionary.entries.flatMap { WordTokens.words(in: $0.written) },
-             contacts: store.fixNearMisses && store.useContacts ? ContactsVocabulary.shared.names : [],
              rejected: store.rejected)
     }
 
@@ -60,7 +58,7 @@ public final class VocabularySession: @unchecked Sendable {
             fieldWords = plan.hinglishSpelling ? WordTokens.words(in: context.fieldText) : []
             if plan.useVocabulary {
                 hotwords = HotwordSelector.select(fieldTerms: fieldTerms, windowTerms: windowTerms,
-                                                  dictionary: plan.dictionaryTerms, contacts: plan.contacts)
+                                                  dictionary: plan.dictionaryTerms)
             }
         }
     }
@@ -78,7 +76,6 @@ public final class VocabularySession: @unchecked Sendable {
         if plan.useVocabulary {
             terms += screenTerms
             terms += plan.dictionaryTerms.map { VocabularyTerm($0, source: .dictionary) }
-            terms += plan.contacts.map { VocabularyTerm($0, source: .contacts) }
         }
         let hinglish = mode == .hinglish || mode == .anyToEnglish
         return VocabularySnapshot(terms: terms, fieldWords: hinglish ? fieldWords : [],

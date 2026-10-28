@@ -2,7 +2,7 @@ import Foundation
 
 /// This dictation's terms, deduplicated, with their phonetic keys computed
 /// once. When a term arrives from several sources the most trusted one wins:
-/// on screen > your dictionary > Contacts.
+/// on screen > your dictionary.
 struct TermIndex {
     struct Entry {
         let term: VocabularyTerm
@@ -39,7 +39,6 @@ struct TermIndex {
         switch source {
         case .screen, .fieldSpelling: return 3
         case .dictionary: return 2
-        case .contacts: return 1
         }
     }
 }

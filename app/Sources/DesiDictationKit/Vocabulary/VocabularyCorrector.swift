@@ -93,7 +93,7 @@ public enum VocabularyCorrector {
             let joined = la + lb
             guard joined.count >= 5 else { return nil }
             // An exact join is strong evidence; anything fuzzier must be on screen.
-            if let exact = index.exact(joined), exact.source != .contacts,
+            if let exact = index.exact(joined), 
                !rejected.contains(WordFix.pairKey(from: "\(la) \(lb)", to: joined)) {
                 return exact
             }

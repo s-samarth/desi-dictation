@@ -40,6 +40,33 @@ func runVocabularyLearningTests() {
                                         dictionary: [], rejected: [WordFix.pairKey(from: "Rowan", to: "Rohan")]) == nil,
              "a rejected pair is never proposed again")
 
+    T.begin("Vocabulary — the user's edit is respected")
+    let fixes = [WordFix(from: "Rowan", to: "Rohan", source: .screen)]
+    T.equal(CorrectionLearner.revertedFix(EditPair(heard: "Rohan", typed: "Rowan"), fixes: fixes), fixes.first,
+            "typing our fix back is detected")
+    T.equal(CorrectionLearner.revertedFix(EditPair(heard: "Rohan", typed: "Rohit"), fixes: fixes), nil,
+            "a different edit is not an undo")
+    let store = AutoVocabularyStore(fileURL: T.tempFile("autovocab.json"),
+                                    defaults: UserDefaults(suiteName: "desi-tests-\(UUID().uuidString)")!)
+    store.respect(fixes[0])
+    T.expect(store.rejected.contains(fixes[0].pairKey), "an undone fix is never applied again")
+    T.expect(store.liveAcknowledgement != nil, "…and the user is told so")
+    T.expect(!store.learnFromEdits && !store.fixNearMisses && !store.readScreen && !store.hinglishFieldSpelling,
+             "every switch is off by default")
+    let dict = PersonalDictionary(fileURL: T.tempFile("dict.json"))
+    store.propose(EditPair(heard: "Saraswath", typed: "Saraswat"))
+    store.propose(EditPair(heard: "saraswath", typed: "Saraswat"))
+    T.equal(store.suggestions.count, 1, "duplicate proposals collapse")
+    store.accept(store.suggestions[0], into: dict)
+    T.equal(dict.entries.map { $0.written }, ["Saraswat"], "Add puts it in the dictionary")
+    T.expect(store.suggestions.isEmpty && store.liveSuggestion == nil, "…and clears the prompt")
+    store.propose(EditPair(heard: "Kavia", typed: "Kavya"))
+    store.dismiss(store.suggestions[0])
+    store.propose(EditPair(heard: "Kavia", typed: "Kavya"))
+    store.dismiss(store.suggestions[0])
+    store.propose(EditPair(heard: "Kavia", typed: "Kavya"))
+    T.expect(store.suggestions.isEmpty, "two 'Not now's mean never")
+
     T.begin("Vocabulary — screen terms")
     let terms = TermExtractor.terms(from: [
         "Rohan Mehta",
@@ -59,12 +86,11 @@ func runVocabularyLearningTests() {
     T.begin("Vocabulary — hotword selection (Qwen3-ASR)")
     let hot = HotwordSelector.select(
         fieldTerms: ["Figma", "Rohan"], windowTerms: ["Slack", "Priya", "Rohan"],
-        dictionary: ["Saraswat", "figma"], contacts: ["Rohan", "Priya", "Zubin", "Kavya"])
-    T.equal(hot, ["Rohan", "Figma", "Priya", "Slack", "Saraswat"],
-            "ordered field → window → dictionary, contacts first, deduped")
-    T.expect(!hot.contains("Zubin") && !hot.contains("Kavya"), "contacts not on screen are never passed")
+        dictionary: ["Saraswat", "figma"])
+    T.equal(hot, ["Figma", "Rohan", "Slack", "Priya", "Saraswat"],
+            "ordered field → window → dictionary, deduped")
     let capped = HotwordSelector.select(fieldTerms: (0..<50).map { "Term\($0)" }, windowTerms: [],
-                                        dictionary: [], contacts: [])
+                                        dictionary: [])
     T.equal(capped.count, HotwordSelector.limit, "at most 30 hotwords")
     T.equal(HotwordSelector.contextPrompt(["Rohan", "Figma"]), "Vocabulary: Rohan, Figma.", "context prompt")
     T.equal(HotwordSelector.contextPrompt([]), "", "no terms → no prompt")

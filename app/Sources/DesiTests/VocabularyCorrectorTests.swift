@@ -15,7 +15,6 @@ func runVocabularyCorrectorTests() {
     }
     let dict = { (t: String) in VocabularyTerm(t, source: .dictionary) }
     let screen = { (t: String) in VocabularyTerm(t, source: .screen) }
-    let contact = { (t: String) in VocabularyTerm(t, source: .contacts) }
 
     T.begin("Vocabulary — phonetics")
     T.equal(IndicPhonetics.key("Saraswath"), IndicPhonetics.key("Saraswat"), "th ≈ t")
@@ -35,10 +34,8 @@ func runVocabularyCorrectorTests() {
     T.begin("Vocabulary — false positives (must NOT change)")
     T.equal(fix("we will rise and shine", [screen("Rishi")]).text,
             "we will rise and shine", "common word never replaced, even with screen term")
-    T.equal(fix("the origin of the bug", [contact("Arjun")]).text,
-            "the origin of the bug", "common word vs contact")
-    T.equal(fix("a rowan tree", [contact("Rohan")]).text,
-            "a rowan tree", "real word: contact alone can't overrule")
+    T.equal(fix("the origin of the bug", [screen("Arjun")]).text,
+            "the origin of the bug", "common word vs screen term")
     T.equal(fix("a rowan tree", [dict("Rohan")]).text,
             "a rowan tree", "real word: dictionary term alone can't overrule (no confidence yet)")
     T.equal(fix("an uncut gem", [screen("Ankit")]).text,
@@ -53,8 +50,8 @@ func runVocabularyCorrectorTests() {
             "ask Kavia", "rejected pair is never applied")
     T.equal(fix("kal tum aana", [screen("Kalam"), screen("Tumul")], mode: .hinglish).text,
             "kal tum aana", "Hinglish common words untouched")
-    T.equal(fix("rahul ne bola", [contact("Raahul")], mode: .hinglish).text,
-            "rahul ne bola", "Hinglish: contacts can't change a word on their own")
+    T.equal(fix("rahul ne bola", [dict("Raahul")], mode: .hinglish).text,
+            "rahul ne bola", "Hinglish: a dictionary term alone can't change a word")
     T.equal(fix("नमस्ते Kavia", [dict("Kavya")], mode: .hindi).text,
             "नमस्ते Kavia", "हिन्दी mode is skipped")
     T.equal(fix("API and SDK", [screen("Apee")]).text, "API and SDK", "acronyms untouched")
@@ -62,8 +59,8 @@ func runVocabularyCorrectorTests() {
     T.begin("Vocabulary — true positives")
     T.equal(fix("call Saraswath tomorrow", [dict("Saraswat")]).text,
             "call Saraswat tomorrow", "misspelled name → dictionary term")
-    T.equal(fix("tell Kavia hi", [contact("Kavya")]).text,
-            "tell Kavya hi", "non-word → contact name")
+    T.equal(fix("tell Kavia hi", [screen("Kavya")]).text,
+            "tell Kavya hi", "non-word → name on screen")
     T.equal(fix("send it to Rowan today", [screen("Rohan")]).text,
             "send it to Rohan today", "real word → name visible on screen")
     T.equal(fix("Rowan's deck", [screen("Rohan")]).text,

@@ -45,6 +45,16 @@ public enum CorrectionLearner {
         return similar ? pair : nil
     }
 
+    /// The user typed one of our automatic fixes back ("Rohan" → "Rowan"):
+    /// their edit wins. That fix goes on the reject list without a question,
+    /// because undoing a change is an answer already. It only ever *stops*
+    /// a change, so this is never silent learning of a new word.
+    public static func revertedFix(_ pair: EditPair, fixes: [WordFix]) -> WordFix? {
+        fixes.first {
+            $0.to.lowercased() == pair.heard.lowercased() && $0.from.lowercased() == pair.typed.lowercased()
+        }
+    }
+
     private static func isWordy(_ s: String) -> Bool {
         !s.isEmpty && s.count <= 40 && s.allSatisfy { $0.isLetter || $0 == " " || $0 == "'" || $0 == "-" }
     }

@@ -21,7 +21,7 @@ public struct VocabularySuggestion: Codable, Identifiable, Equatable {
 /// Smart-vocabulary settings, pending proposals and the reject list
 /// (AUTO_VOCABULARY.md). Its own file and defaults keys, so it never collides
 /// with SettingsStore. Everything is **off** by default. What this stores is
-/// only what the user typed or rejected; screen text and contacts are never
+/// only what the user typed or rejected; screen text is never
 /// written anywhere.
 public final class AutoVocabularyStore: ObservableObject {
     public static let shared = AutoVocabularyStore()
@@ -29,7 +29,6 @@ public final class AutoVocabularyStore: ObservableObject {
     @Published public var learnFromEdits: Bool { didSet { d.set(learnFromEdits, forKey: "autoVocab.learnFromEdits") } }
     @Published public var fixNearMisses: Bool { didSet { d.set(fixNearMisses, forKey: "autoVocab.fixNearMisses") } }
     @Published public var readScreen: Bool { didSet { d.set(readScreen, forKey: "autoVocab.readScreen") } }
-    @Published public var useContacts: Bool { didSet { d.set(useContacts, forKey: "autoVocab.useContacts") } }
     @Published public var hinglishFieldSpelling: Bool {
         didSet { d.set(hinglishFieldSpelling, forKey: "autoVocab.hinglishFieldSpelling") }
     }
@@ -39,6 +38,8 @@ public final class AutoVocabularyStore: ObservableObject {
     @Published public private(set) var rejected: Set<String> = []
     /// The newest proposal, for the on-screen prompt. The UI clears it.
     @Published public var liveSuggestion: VocabularySuggestion?
+    /// A one-line confirmation for the popup ("Got it — …"). The UI clears it.
+    @Published public var liveAcknowledgement: String?
 
     private var dismissCounts: [String: Int] = [:]
     private let d: UserDefaults
@@ -51,7 +52,6 @@ public final class AutoVocabularyStore: ObservableObject {
         learnFromEdits = defaults.bool(forKey: "autoVocab.learnFromEdits")
         fixNearMisses = defaults.bool(forKey: "autoVocab.fixNearMisses")
         readScreen = defaults.bool(forKey: "autoVocab.readScreen")
-        useContacts = defaults.bool(forKey: "autoVocab.useContacts")
         hinglishFieldSpelling = defaults.bool(forKey: "autoVocab.hinglishFieldSpelling")
         load()
     }
@@ -96,6 +96,13 @@ public final class AutoVocabularyStore: ObservableObject {
     public func reject(_ fix: WordFix) {
         rejected.insert(fix.pairKey)
         save()
+    }
+
+    /// The user undid an automatic fix in the field: never make it again,
+    /// and say so (the popup shows `liveAcknowledgement`).
+    public func respect(_ fix: WordFix) {
+        reject(fix)
+        liveAcknowledgement = "Got it — \"\(fix.from)\" stays \"\(fix.from)\" from now on."
     }
 
     public func clearRejections() {

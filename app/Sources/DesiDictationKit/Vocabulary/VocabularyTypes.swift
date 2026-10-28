@@ -2,14 +2,12 @@ import Foundation
 
 /// Where a vocabulary term came from. The source decides how much a term is
 /// trusted (AUTO_VOCABULARY.md §3.4): text visible right now may overrule a
-/// real-but-wrong word, a contact name alone may not.
+/// real-but-wrong word, a dictionary term alone may not.
 public enum VocabularySource: String, Codable, Sendable {
     /// A written form from the user's PersonalDictionary.
     case dictionary
     /// Text in the focused field or window at dictation start (memory only).
     case screen
-    /// A name from Contacts (opt-in, memory only).
-    case contacts
     /// Hinglish spelling already used in the field being edited.
     case fieldSpelling
 
@@ -18,7 +16,6 @@ public enum VocabularySource: String, Codable, Sendable {
         switch self {
         case .dictionary: return "your dictionary"
         case .screen: return "on screen"
-        case .contacts: return "Contacts"
         case .fieldSpelling: return "your spelling"
         }
     }
