@@ -80,10 +80,12 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 ## 0d · The menu and the window (2026-10-28)
 
 The menu bar mic holds what you change daily, nothing else: status,
-**Enable Dictation**, **Language**, "For <app>", **Copy Last**, **History**
-(last 10, plus **Show All…**), **Settings… (⌘,)**, **Send Feedback…**, **Quit**.
+**Open Desi Dictation… (⌘,)** right under it, **Enable Dictation**, **Language**, "For <app>", **Copy Last**, **History**
+(last 10, plus **Show All…**), **Send Feedback…**, **Quit**.
 
-**Settings…** opens the app's one window. Its sidebar has four pages, each
+**Open Desi Dictation…** opens the app's one window, and so does opening the
+app from Applications, Spotlight or Launchpad (at login it stays in the menu
+bar). Its sidebar has four pages, each
 with its own colored icon, and the sidebar never goes away:
 
 - **Dictation**: on/off with a status dot ("Ready, hold ⌥ and speak"), the
@@ -118,7 +120,7 @@ menu items and right-click services are hidden (§3–§8).
 
 ## 1b · Smart vocabulary — it learns from your edits (opt-in)
 
-- **Discovery:** onboarding step 4, or menu bar → Settings… → **Vocabulary →
+- **Discovery:** onboarding step 4, or menu bar → Open Desi Dictation… → **Vocabulary →
   Learn automatically**. Four switches, all off, each with a one-line note.
 - **Learn from corrections:** dictate, then fix a word in the field
   ("Rowan" → "Rohan"). About 2 s after you stop typing, a small popup above
@@ -154,7 +156,7 @@ menu items and right-click services are hidden (§3–§8).
   orange and names the app, e.g. **"English · Claude rule"**. Before this the
   switch was silent: a forgotten Claude → English rule made हिन्दी dictation
   in Claude come out as English or nothing, with no hint why.
-- **Review/remove:** Settings… → Dictation → **Advanced** lists every rule.
+- **Review/remove:** Open Desi Dictation… → Dictation → **Advanced** lists every rule.
 
 ## 3 · "English — from any language ✨" — the flagship (needs AI setup)
 
@@ -242,7 +244,7 @@ decision — the model for that language loads itself, and the **Model** picker
 for it is picked for you. The Dictation page names it ("Uses Hinglish Prime").
 
 Want a specific model for one language and a different one for another?
-**Settings… → Models → Model for each language**. "Auto" names what it
+**Open Desi Dictation… → Models → Model for each language**. "Auto" names what it
 picked, e.g. *Auto (Parakeet)*, and only models that can write that
 language's script are listed. Each language remembers its
 own choice; switching language switches model silently.
@@ -258,9 +260,9 @@ fewer mistakes on long, conversational Hinglish (a joke, a voice-note-style
 rant). It's a little slower: 1.8 s instead of 1.4 s on a short dictation,
 and roughly twice as long on long ones. Apex is no longer offered. If you
 already have it and pinned it, it keeps working until you pick Prime under
-**Settings… → Models → Model for each language → Hinglish**.
+**Open Desi Dictation… → Models → Model for each language → Hinglish**.
 **Want the most accurate English? Qwen3-ASR (v0.6.3).** It replaced Whisper
-Turbo under **Settings… → Models** (2.08 GB). On Indian-accented
+Turbo under **Open Desi Dictation… → Models** (2.08 GB). On Indian-accented
 English it makes about 11 % fewer errors than Parakeet in quiet rooms and 9 %
 fewer in noise. The cost is speed: about 0.4 s for a short dictation instead
 of 0.1 s. Parakeet stays the default. Pick Qwen for English under **Model for each

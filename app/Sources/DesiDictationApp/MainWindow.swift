@@ -1,7 +1,7 @@
 import SwiftUI
 import DesiDictationKit
 
-/// The app's one window (menu bar → Settings…). Four pages, always reachable
+/// The app's one window (menu bar → Open Desi Dictation…). Four pages, always reachable
 /// from the sidebar. Unreleased features stay out of the list entirely rather
 /// than showing up as a dead page.
 enum SidebarItem: String, CaseIterable, Identifiable {

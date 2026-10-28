@@ -40,7 +40,7 @@ open "/Applications/Desi Dictation.app"
 3. Grant the other two in **System Settings → Privacy & Security**:
    - **Accessibility** → add/enable *Desi Dictation* (needed to paste text)
    - **Input Monitoring** → add/enable *Desi Dictation* (needed for the global hotkey)
-   Menu bar → *Settings… → Dictation → Permissions* has "Open Settings"
+   Menu bar → *Open Desi Dictation… → Dictation → Permissions* has "Open Settings"
    buttons and a live status for each.
 4. **Quit and relaunch the app after granting** (macOS only applies these to
    new processes).
@@ -53,10 +53,10 @@ open "/Applications/Desi Dictation.app"
    one-time — the icon settles once ready).
 2. Model defaults to **Auto** per language — Hinglish→Prime, English→Parakeet,
    हिन्दी→Vaani. Each language remembers **its own** model
-   (Settings… → Models → *Model for each language*), and only models that
+   (Open Desi Dictation… → Models → *Model for each language*), and only models that
    can produce that language's script are listed
    ([MODEL_ROUTING.md](features/implementation/MODEL_ROUTING.md)).
-   Everything else lives at menu bar → **Settings… (⌘,)** — one window,
+   Everything else lives at menu bar → **Open Desi Dictation… (⌘,)** — one window,
    sidebar: Dictation / Vocabulary / History / Models.
 3. Click into any text field (Notes, WhatsApp Web, Slack, VS Code…).
 4. **Hold Right ⌥ (Option)** — overlay shows *"Listening…"*, start sound plays.
@@ -64,9 +64,9 @@ open "/Applications/Desi Dictation.app"
 6. **Release** — *"Transcribing…"* flashes, then the text is pasted at your cursor.
 7. **Esc** while recording = discard everything (error sound confirms).
 
-**Toggle mode** (tap to start, tap to stop): Settings… → Dictation → Mode.
-**Different hotkey** (Right ⌘, F13, F16–F19): Settings… → Dictation → Key.
-**Clipboard-only mode** (never auto-paste): Settings… → Dictation → Options.
+**Toggle mode** (tap to start, tap to stop): Open Desi Dictation… → Dictation → Mode.
+**Different hotkey** (Right ⌘, F13, F16–F19): Open Desi Dictation… → Dictation → Key.
+**Clipboard-only mode** (never auto-paste): Open Desi Dictation… → Dictation → Options.
 
 ## D. Language modes
 
@@ -78,12 +78,12 @@ open "/Applications/Desi Dictation.app"
 
 ## E. Power features
 
-- **Personal dictionary** (Settings… → Vocabulary, or right-click a History entry →
+- **Personal dictionary** (Open Desi Dictation… → Vocabulary, or right-click a History entry →
   "Always write a word as…"): names, brands, code terms — whole-word,
   keeps casing (`saraswath`→`Saraswat`, `gpt`→`GPT`). The old `find=replace`
   Replacements box still works under Vocabulary → **Advanced**.
 - **Per-app language** (menu bar → "For <app>"): pin WhatsApp→Hinglish,
-  Mail→English, etc. Review/remove rules in Settings… → Dictation → Advanced.
+  Mail→English, etc. Review/remove rules in Open Desi Dictation… → Dictation → Advanced.
 - **History**: menu bar → History → click any entry to re-copy it. Local file,
   clearable. AI-transformed entries show a "heard:" line with the original.
 

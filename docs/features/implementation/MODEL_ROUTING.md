@@ -31,7 +31,7 @@ ours.**
 | Which models serve which language | `ModelScoring.swift` (`ModelManager.score(_:for:)`) → `candidates(for:)`, `autoChoice(for:)` |
 | What can be downloaded, onboarding picks | `ModelCatalog.swift` (`catalog`, `catalogEntry(for:)`) |
 | Verified download (SHA256, progress) | `ModelDownloader.swift` |
-| Settings… → Models → "Model for each language" (the only picker) | `DefaultModelSettings.swift` |
+| Open Desi Dictation… → Models → "Model for each language" (the only picker) | `DefaultModelSettings.swift` |
 | Dictation page footer ("Uses Hinglish Prime") | `DictationPane.swift` |
 | Engine chosen from the model file | `EngineRouter.swift` |
 

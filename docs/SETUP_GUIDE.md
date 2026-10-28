@@ -77,7 +77,7 @@ whole point of this app. No account, no cloud, no telemetry.
 ## 3. Download models (one time, the important step)
 
 The app is tiny; the AI models are not, so you download just the ones you need:
-menu bar → **Settings… → Models**.
+menu bar → **Open Desi Dictation… → Models**.
 
 **Get one ⭐ per language you speak, plus the VAD add-on:**
 
@@ -96,7 +96,7 @@ Downloads are SHA256-verified — a corrupted or tampered file is refused automa
 
 Leave the models on **Auto** — each language remembers its own model, and
 the app loads the right one when you switch languages. To pick one yourself:
-**Settings… → Models → Model for each language**.
+**Open Desi Dictation… → Models → Model for each language**.
 
 ## 4. Dictate
 
@@ -106,7 +106,7 @@ the app loads the right one when you switch languages. To pick one yourself:
 3. **Hold Right ⌥ (Option)**, speak naturally — pauses are fine — release.
 4. Your words appear at the cursor, and are also on your clipboard (⌘V pastes
    them again anywhere).
-- Prefer tap-to-start/tap-to-stop? → Settings… → Dictation → Mode → **Toggle**.
+- Prefer tap-to-start/tap-to-stop? → Open Desi Dictation… → Dictation → Mode → **Toggle**.
 - Pressed it by accident? **Esc** discards.
 - Different key (Right ⌘, F13, F16–F19)? → Dictation screen.
 

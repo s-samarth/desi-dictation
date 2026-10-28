@@ -903,3 +903,19 @@ render of Vocabulary came out blank, which is how the cause was confirmed.
 **Lesson:** in a split view or any fixed-size window, a page must scroll.
 Use `.formStyle(.grouped)` for every settings page, and render each page
 before calling a UI change done.
+
+### Failure mode #36 — "I open the app and see the old one, with no way in"
+
+**Symptom:** right after #9 shipped, opening Desi Dictation showed the old app,
+and the new menu had no visible way to open the window.
+**Cause:** (1) a stale September build sat in the main checkout's `app/dist`,
+and Spotlight indexes it as a second "Desi Dictation"; (2) #9 renamed the menu
+item "Open Desi Dictation…" to "Settings…" and moved it to the bottom, so the
+entry point the user knew vanished; (3) launching the app by hand while
+onboarded showed nothing at all.
+**Fix:** "Open Desi Dictation… (⌘,)" is back as the first menu item; a manual
+launch (not a login launch, detected via `keyAELaunchedAsLogInItem`) opens the
+window; the stale bundle was trashed and /Applications re-registered.
+**Lesson:** never rename the one entry point users already know; and after
+installing, `mdfind "kMDItemCFBundleIdentifier == 'com.desi.dictation'"`
+should list exactly one app outside build folders.

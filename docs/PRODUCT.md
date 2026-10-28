@@ -30,7 +30,7 @@ What exists, how well it works, and where it's going. Update this every release.
 | **Translate on Demand (edit → translate)** | 🔒 built 2026-07-10, hidden | last-dictation window, → English / हिन्दी ([impl](features/implementation/TRANSLATE_ON_DEMAND.md)) |
 | **Structure my thoughts (beta)** | 🔒 built 2026-07-10, hidden | ramble → Notes/Actions/Email/Outline review window ([impl](features/implementation/STRUCTURE_THOUGHTS_IMPL.md)) |
 | **Tone modes (Faithful/Casual/Professional/Respectful)** | 🔒 built 2026-07-10, hidden | Faithful default = zero rewrite ([impl](features/implementation/TONE_MODES.md)) |
-| Main window (sidebar UI) | ✅ shipped, decluttered 2026-10-28 | one window (menu → Settings… ⌘,): Dictation / Vocabulary / History / Models, colored icons; tuning knobs under Advanced ([walkthrough §0d](features/implementation/USER_WALKTHROUGH.md)) |
+| Main window (sidebar UI) | ✅ shipped, decluttered 2026-10-28 | one window (menu → Open Desi Dictation…, ⌘,): Dictation / Vocabulary / History / Models, colored icons; tuning knobs under Advanced ([walkthrough §0d](features/implementation/USER_WALKTHROUGH.md)) |
 | AI cleanup via local Ollama | 🔒 built, hidden | unreleased with the rest of the AI layer (`aiFeaturesReleased`) |
 | Gumroad licensing | 🔨 code ready | needs product ID at launch |
 | App icon | ✅ shipped | generated, tricolor mic |
