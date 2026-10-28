@@ -785,6 +785,26 @@ has its own keyboard-focus owner (menus, key thieves), and its log
 theorising: it turned a "same bug again" report into a one-line diagnosis.
 Other apps' menus still steal the keystroke; we can't observe those.
 
+## 2026-10-24 — Hinglish model bake-off: Prime added as an opt-in download
+
+Full write-up and table: MODEL_RESEARCH.md §F. What to remember:
+- **The quick tier can flip a ranking.** On the 23-clip quick tier, Vaani in
+  हिन्दी mode beat Apex (24.2 % vs 28.6 % crWER). On all 112 clips it lost
+  (27.7 % vs 25.3 %). A model change is decided on the full suite of its own
+  language, which is ~5 min for Apex and ~13 min for Prime on the M3 Air.
+- **crWER doesn't check output script.** It romanizes both sides, so a model
+  that writes English words in Devanagari (Vaani: "स्लो कम्युनिकेशन") is only
+  partly penalized. For Hinglish mode, also check the share of English words
+  written in Latin and the share of Roman letters in the output.
+- **Count empty outputs separately.** Prime returned "" on 10 of 112 clips of
+  clear read speech (Apex on 1, fixed in PR #1). An average error rate hides
+  this, but in the app it means the user speaks and nothing gets inserted.
+- **Prime's HF weights are fp32:** a 6.2 GB download for a 1.08 GB q5_0. It
+  converts cleanly with the vendored `convert-h5-to-ggml.py` (standard 51,866
+  vocab).
+- transformers 4.57+ rejects `forced_decoder_ids` in `generate()`; the model
+  cards that use it need a manual decode loop (only matters for side-by-side
+  runs of HF-only models like Tara).
 ## 2026-10-28 — English A/B of Parakeet challengers (docs/ENGLISH_ASR_AB_2026-10.md)
 
 ### Failure mode #33 — two silent traps when A/B-ing NeMo models
@@ -816,4 +836,3 @@ would make inference nondeterministic.
 loader's first error line before blaming the model. Calibrate every new
 runtime with the shipping model first: Parakeet v3 scored 14.9 / 14.8 / 15.6 %
 in desi-cli / NeMo / MLX, so the runtimes weren't the variable.
-||||||| b0d8a1b
