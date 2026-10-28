@@ -11,6 +11,13 @@ struct MenuContent: View {
     var body: some View {
         Text(statusLine)
 
+        // The way into the app's window: first item, named after the app.
+        Button("Open Desi Dictation…") {
+            MainNav.shared.selection = .dictation
+            AppWindows.shared.showMain()
+        }
+        .keyboardShortcut(",")
+
         Divider()
 
         Toggle("Enable Dictation", isOn: Binding(
@@ -116,11 +123,6 @@ struct MenuContent: View {
 
         Divider()
 
-        Button("Settings…") {
-            MainNav.shared.selection = .dictation
-            AppWindows.shared.showMain()
-        }
-        .keyboardShortcut(",")
         Button("Send Feedback…") { Feedback.compose() }
 
         Divider()

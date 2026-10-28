@@ -42,7 +42,7 @@ context in [BUILD_LOG.md](BUILD_LOG.md).
 - Focus was lost: the target text field must stay focused while you dictate —
   don't click elsewhere mid-dictation (the overlay never steals focus).
 - Some apps block programmatic paste (rare; some password fields, some VMs).
-  Workaround: Settings… → Dictation → "Copy to clipboard instead of pasting",
+  Workaround: Open Desi Dictation… → Dictation → "Copy to clipboard instead of pasting",
   then ⌘V manually.
 - Secure input mode: password managers/terminals can enable *SecureKeyboardEntry*
   which blocks event taps globally. Quit the offending app (`ioreg -l -w0 |
@@ -50,7 +50,7 @@ context in [BUILD_LOG.md](BUILD_LOG.md).
 
 ## 3. "No model is loaded" error
 
-- Settings… → Models: get the ⭐ model for your language. Converted models
+- Open Desi Dictation… → Models: get the ⭐ model for your language. Converted models
   live in `~/Library/Application Support/DesiDictation/models/*.bin` — copy
   one there and hit **Refresh** on the Models page.
 - Model file corrupt (interrupted download/conversion): re-run
@@ -95,11 +95,11 @@ being reloaded — check nothing else is deleting/touching the model file.
 - Wrong mode/model pairing. Hinglish output needs BOTH: Language =
   *Hinglish (Roman)* AND a `hinglish-*` model. Stock Whisper models cannot
   produce Roman Hinglish no matter the mode.
-- Spelling variants annoying you (`nahin` vs `nahi`)? Settings… → Vocabulary
+- Spelling variants annoying you (`nahin` vs `nahi`)? Open Desi Dictation… → Vocabulary
   → Your words, or → Advanced → Replacements (one `find=replace` per line).
 - **हिन्दी comes out as English, or nothing, in one app only?** A per-app rule
   is overriding your language: the overlay badge says e.g. "English · Claude
-  rule" in orange. Remove it in Settings… → Dictation → Advanced, or via menu
+  rule" in orange. Remove it in Open Desi Dictation… → Dictation → Advanced, or via menu
   → For <App> → Follow global setting. English mode runs Parakeet, which cannot
   write Devanagari at all.
 

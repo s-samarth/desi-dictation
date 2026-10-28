@@ -92,7 +92,7 @@ struct OnboardingView: View {
                     .frame(height: 230)
 
                 Divider()
-                Text("Then: **hold Right ⌥ (Option)**, speak, release — your words appear wherever your cursor is. Esc cancels. Change the key, language or model anytime: menu bar mic → Settings….")
+                Text("Then: **hold Right ⌥ (Option)**, speak, release — your words appear wherever your cursor is. Esc cancels. Change the key, language or model anytime: menu bar mic → Open Desi Dictation…")
                     .font(.callout)
 
                 Button("Finish — Restart Desi Dictation") {
