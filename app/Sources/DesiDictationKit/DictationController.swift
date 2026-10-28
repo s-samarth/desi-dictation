@@ -345,7 +345,8 @@ public final class DictationController: ObservableObject {
         // Snapshot on main; applied off-main via the pure static core.
         let dictionary = PersonalDictionary.shared.entries
         let vocabulary = vocabularyPlan()
-        let useOllama = settings.ollamaEnabled && LicenseManager.shared.isPro
+        let useOllama = settings.aiFeaturesEnabled && settings.ollamaEnabled
+            && LicenseManager.shared.isPro
         let ollamaModel = settings.ollamaModel
         let prompt = settings.cleanupPrompt
         let copyOnly = settings.copyInsteadOfPaste
@@ -446,7 +447,7 @@ public final class DictationController: ObservableObject {
         let tone = settings.toneMode
         // Skip the stage outright when the engine isn't ready — a "Polishing"
         // overlay that changes nothing reads as a broken feature.
-        if tone != .faithful, LLMServices.shared.status.isReady {
+        if tone != .faithful, settings.aiFeaturesEnabled, LLMServices.shared.status.isReady {
             let token = beginLLMStage(.polishing, raw: (text, mode, copyOnly))
             Task { @MainActor [weak self] in
                 guard let self else { return }

@@ -25,7 +25,7 @@ struct OnboardingView: View {
                 Text("Namaste! 🙏").font(.largeTitle.bold())
                 Text("Desi Dictation lives in your **menu bar** (the mic icon, top-right). Two minutes of setup and you'll be dictating anywhere on your Mac.")
 
-                Text("1 · Which language will you dictate in most?").font(.headline)
+                step(1, "Which language will you dictate in most?")
                 Picker("", selection: $choice) {
                     Text("Hinglish — \"kal meeting hai, deck ready rakhna\"").tag(LanguageMode.hinglish)
                     Text("English").tag(LanguageMode.english)
@@ -38,7 +38,7 @@ struct OnboardingView: View {
                 Text("Also download models for:").font(.subheadline)
                 HStack {
                     // Base languages only — "English from any language" shares
-                    // the Hinglish model + adds an AI stage (set up later in AI tab).
+                    // the Hinglish model + adds an AI stage (unreleased).
                     ForEach([LanguageMode.hinglish, .english, .hindi].filter { $0 != choice },
                             id: \.self) { mode in
                         Toggle(mode.displayName, isOn: Binding(
@@ -50,7 +50,7 @@ struct OnboardingView: View {
                     }
                 }
 
-                Text("2 · Download your models").font(.headline)
+                step(2, "Download your models")
                 ForEach(wanted) { item in
                     HStack {
                         Text(item.label).font(.callout)
@@ -76,23 +76,24 @@ struct OnboardingView: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(allDownloaded)
 
-                Text("3 · Give macOS permissions").font(.headline)
+                step(3, "Give macOS permissions")
                 permissionRow("Microphone — to hear you", permissions.microphone, .microphone)
                 permissionRow("Accessibility — to type into apps", permissions.accessibility, .accessibility)
                 permissionRow("Input Monitoring — for the hotkey", permissions.inputMonitoring, .inputMonitoring)
                 Button("Re-check permissions") { permissions = Permissions.check() }
                     .font(.caption)
 
-                Text("4 · Teach it your names (optional)").font(.headline)
-                Text("Fixes names it keeps getting wrong, and learns from the words you correct. All off until you turn them on; change them anytime in Vocabulary.")
+                step(4, "Teach it your names (optional)")
+                Text("Fixes names it keeps getting wrong, and learns from the words you correct. All off until you turn them on; change them anytime in Settings → Vocabulary.")
                     .font(.caption).foregroundStyle(.secondary)
-                SmartVocabularyToggles()
+                Form { SmartVocabularyToggles() }
+                    .formStyle(.grouped)
+                    .scrollDisabled(true)
+                    .frame(height: 230)
 
                 Divider()
-                Text("Then: **hold Right ⌥ (Option)**, speak, release — your words appear wherever your cursor is. Esc cancels. Change the key, language, or model anytime: menu bar mic → Open Desi Dictation.")
+                Text("Then: **hold Right ⌥ (Option)**, speak, release — your words appear wherever your cursor is. Esc cancels. Change the key, language or model anytime: menu bar mic → Settings….")
                     .font(.callout)
-                Text("New ✨: speak Hindi/Hinglish and paste polished English, structure your rambles into notes, or set a tone — one-time AI setup lives in Open Desi Dictation → AI.")
-                    .font(.caption).foregroundStyle(.secondary)
 
                 Button("Finish — Restart Desi Dictation") {
                     settings.languageMode = choice
@@ -110,7 +111,20 @@ struct OnboardingView: View {
             }
             .padding(24)
         }
+        .tint(Theme.accent)
         .frame(width: 560, height: 640)
+    }
+
+    /// Step heading with a saffron number badge.
+    private func step(_ number: Int, _ title: String) -> some View {
+        HStack(spacing: 8) {
+            Text("\(number)")
+                .font(.caption.weight(.bold)).foregroundStyle(.white)
+                .frame(width: 20, height: 20)
+                .background(Theme.accent, in: Circle())
+            Text(title).font(.headline)
+        }
+        .padding(.top, 4)
     }
 
     private func permissionRow(_ label: String, _ granted: Bool, _ pane: Permissions.Pane) -> some View {

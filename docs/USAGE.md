@@ -40,7 +40,7 @@ open "/Applications/Desi Dictation.app"
 3. Grant the other two in **System Settings → Privacy & Security**:
    - **Accessibility** → add/enable *Desi Dictation* (needed to paste text)
    - **Input Monitoring** → add/enable *Desi Dictation* (needed for the global hotkey)
-   The app's *Settings → General → Permissions* section has "Open Settings"
+   Menu bar → *Settings… → Dictation → Permissions* has "Open Settings"
    buttons and a live status for each.
 4. **Quit and relaunch the app after granting** (macOS only applies these to
    new processes).
@@ -52,22 +52,21 @@ open "/Applications/Desi Dictation.app"
 1. Menu bar mic → **Enable Dictation** (first enable preloads the model; ~8 s
    one-time — the icon settles once ready).
 2. Model defaults to **Auto** per language — Hinglish→Prime, English→Parakeet,
-   हिन्दी→Vaani. Each language remembers **its own** default: change the Model
-   picker while English is selected and only English is affected
-   (Settings → Models → *Default model per language*). The picker only lists
-   models that can actually produce that language's script
+   हिन्दी→Vaani. Each language remembers **its own** model
+   (Settings… → Models → *Model for each language*), and only models that
+   can produce that language's script are listed
    ([MODEL_ROUTING.md](features/implementation/MODEL_ROUTING.md)).
-   The full control panel lives at menu bar → **Open Desi Dictation…**
-   (sidebar: Dictation / History / Models / Text & AI / License).
+   Everything else lives at menu bar → **Settings… (⌘,)** — one window,
+   sidebar: Dictation / Vocabulary / History / Models.
 3. Click into any text field (Notes, WhatsApp Web, Slack, VS Code…).
 4. **Hold Right ⌥ (Option)** — overlay shows *"Listening…"*, start sound plays.
 5. Speak naturally. Pauses are fine; it records until you release.
 6. **Release** — *"Transcribing…"* flashes, then the text is pasted at your cursor.
 7. **Esc** while recording = discard everything (error sound confirms).
 
-**Toggle mode** (tap to start, tap to stop): Settings → General → Activation.
-**Different hotkey** (Right ⌘, F13, F16–F19): Settings → General.
-**Clipboard-only mode** (never auto-paste): Settings → General.
+**Toggle mode** (tap to start, tap to stop): Settings… → Dictation → Mode.
+**Different hotkey** (Right ⌘, F13, F16–F19): Settings… → Dictation → Key.
+**Clipboard-only mode** (never auto-paste): Settings… → Dictation → Options.
 
 ## D. Language modes
 
@@ -79,16 +78,19 @@ open "/Applications/Desi Dictation.app"
 
 ## E. Power features
 
-- **Personal dictionary** (Settings → Text, or right-click a History entry →
+- **Personal dictionary** (Settings… → Vocabulary, or right-click a History entry →
   "Always write a word as…"): names, brands, code terms — whole-word,
   keeps casing (`saraswath`→`Saraswat`, `gpt`→`GPT`). The old `find=replace`
-  Replacements box still works underneath (labeled "advanced").
+  Replacements box still works under Vocabulary → **Advanced**.
 - **Per-app language** (menu bar → "For <app>"): pin WhatsApp→Hinglish,
-  Mail→English-from-any, etc. Review/remove rules in Settings → General.
+  Mail→English, etc. Review/remove rules in Settings… → Dictation → Advanced.
 - **History**: menu bar → History → click any entry to re-copy it. Local file,
   clearable. AI-transformed entries show a "heard:" line with the original.
 
 ## E². AI features (one-time setup: Ollama + a model, all on-device)
+
+> **Hidden in current builds** — built but not released
+> (`SettingsStore.aiFeaturesReleased`). Nothing below shows in the app yet.
 
 Prereq: the free [Ollama](https://ollama.com) app running; then **Open Desi
 Dictation → AI → Get AI model** (default gemma3:4b on ≥12 GB Macs — the

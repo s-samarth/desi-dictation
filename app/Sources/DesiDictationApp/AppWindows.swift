@@ -18,7 +18,7 @@ final class AppWindows {
         if main == nil {
             main = makeWindow(title: "Desi Dictation",
                               content: NSHostingView(rootView: MainWindow()),
-                              size: NSSize(width: 780, height: 520))
+                              size: MainWindow.size)
         }
         present(main!)
     }

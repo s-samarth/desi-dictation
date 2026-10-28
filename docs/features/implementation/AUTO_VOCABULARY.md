@@ -48,7 +48,7 @@ Hinglish has no standard spelling, and each person is self-consistent
 | Post-paste watch (1 Hz, 30 s, settles after 2 s) | `EditWatcher.swift` | diff ✓, AX live only |
 | One dictation's state (screen terms, hotwords, fixes) | `VocabularySession.swift` | — |
 | Pipeline hooks | `DictationController+Vocabulary.swift` | — |
-| UI: switches + suggestions, popup, History rows | `SmartVocabularyView.swift`, `VocabularyPromptPanel.swift`, `HistoryView.swift` | — |
+| UI: Vocabulary page (switches, waiting suggestions, your words), popup, History rows | `SmartVocabularyView.swift` (`VocabularyPane`), `VocabularyPromptPanel.swift`, `HistoryView.swift` | — |
 
 Tests: `DesiTests/VocabularyCorrectorTests.swift`, `VocabularyLearningTests.swift`.
 
@@ -90,7 +90,7 @@ Tests: `DesiTests/VocabularyCorrectorTests.swift`, `VocabularyLearningTests.swif
      and the popup says "Got it".
    - Any other spelling-like edit becomes a proposal: the popup asks *Always
      write X as Y?* with **Add** / **Not now**, and the proposal is also queued
-     in Vocabulary → Suggestions.
+     in Vocabulary → Waiting for you.
 
    Field text lives only in the watch and is dropped when it ends.
 

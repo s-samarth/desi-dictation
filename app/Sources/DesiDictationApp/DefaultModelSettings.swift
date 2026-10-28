@@ -1,7 +1,7 @@
 import SwiftUI
 import DesiDictationKit
 
-/// "Default model for each language" — Settings → Models.
+/// "Which model each language uses" — the Models page.
 ///
 /// The rule this encodes (v0.6.1 feedback): choosing a *language* is the user's
 /// job; choosing the *model* that serves it is ours. Each language keeps its own
@@ -23,17 +23,15 @@ struct DefaultModelSettings: View {
                 Picker(mode.displayName, selection: binding(for: mode)) {
                     Text(autoLabel(for: mode)).tag("")
                     ForEach(models.candidates(for: mode)) { model in
-                        Text("\(model.name) (\(model.sizeMB) MB)").tag(model.path)
+                        Text(model.displayName).tag(model.path)
                     }
                 }
             }
         } header: {
-            Text("Default model per language")
+            Text("Model for each language")
         } footer: {
-            Text("Pick a language in the menu bar and the right model loads itself. "
-                 + "Auto follows our recommendation as you install better models; "
-                 + "pin one here if you prefer a specific file.")
-                .font(.caption)
+            Text("Auto picks the best model you have. Switching language switches model.")
+                .footnote()
         }
     }
 
@@ -51,6 +49,6 @@ struct DefaultModelSettings: View {
         guard let pick = models.autoChoice(for: mode) else {
             return "Auto — none installed yet"
         }
-        return "Auto (\(pick.name))"
+        return "Auto (\(pick.displayName))"
     }
 }

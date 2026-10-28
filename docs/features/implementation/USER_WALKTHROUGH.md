@@ -77,11 +77,39 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 - **Friction:** a text field that quietly ignores pasted text can't be
   detected. The words are still on the clipboard and in History.
 
+## 0d · The menu and the window (2026-10-28)
+
+The menu bar mic holds what you change daily, nothing else: status,
+**Enable Dictation**, **Language**, "For <app>", **Copy Last**, **History**
+(last 10, plus **Show All…**), **Settings… (⌘,)**, **Send Feedback…**, **Quit**.
+
+**Settings…** opens the app's one window. Its sidebar has four pages, each
+with its own colored icon, and the sidebar never goes away:
+
+- **Dictation**: on/off with a status dot ("Ready, hold ⌥ and speak"), the
+  key and mode, language (the footer names the model it uses), three
+  everyday options. VAD, quick restart, flash attention and per-app rules
+  sit under **Advanced**. Permissions shrink to one green line once all
+  three are granted.
+- **Vocabulary**: suggestions waiting for a yes (only when there are any),
+  your words, the four "Learn automatically" switches, and Replacements
+  under **Advanced**.
+- **History**: search, copy, right-click to fix; language tags are colored
+  (Hinglish saffron, English blue, हिन्दी green).
+- **Models**: the model for each language, then one Downloads list where
+  each row says whether you have it, with **Show in Finder** / **Refresh**.
+
+Before this, the same pages lived twice (a sidebar window *and* a Settings
+window with different tab names), and the Vocabulary, Models and Text pages
+could outgrow the window and hide the sidebar, leaving no way back
+(BUILD_LOG FM#35). AI features are built but not released, so their page,
+menu items and right-click services are hidden (§3–§8).
+
 ## 1 · Personal dictionary — zero setup, works today
 
 - **Discovery:** you notice a wrong spelling in a paste; you open menu bar
   mic → History and right-click the entry → **"Always write a word as…"**.
-  Also listed in Settings → Text with an "Add word…" button.
+  Also listed in Settings → **Vocabulary → Your words** with "Add word…".
 - **Flow:** type `Saraswath → Saraswat` once. Done forever, all apps.
 - **Why:** names/brands/jargon are the #1 repeated annoyance; no model fixes
   YOUR words.
@@ -90,14 +118,13 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 
 ## 1b · Smart vocabulary — it learns from your edits (opt-in)
 
-- **Discovery:** onboarding step 4, or Open Desi Dictation → **Vocabulary**
-  (also Settings → Vocabulary). Four switches, all off, each with a one-line
-  privacy note.
+- **Discovery:** onboarding step 4, or menu bar → Settings… → **Vocabulary →
+  Learn automatically**. Four switches, all off, each with a one-line note.
 - **Learn from corrections:** dictate, then fix a word in the field
   ("Rowan" → "Rohan"). About 2 s after you stop typing, a small popup above
   the overlay asks **"Always write Rowan as Rohan?"** with **Add** / **Not now**.
   It never steals the caret. Ignore it and the proposal waits under
-  Vocabulary → Suggestions. "Add" puts the pair in your Personal dictionary.
+  Vocabulary → **Waiting for you**. "Add" puts the pair in your Personal dictionary.
 - **Your edit wins:** if it auto-fixed a word and you change it back, the
   popup says "Got it" and that fix is never made again.
 - **Near-miss fixes:** "Saraswath" becomes "Saraswat" when the dictionary
@@ -127,9 +154,14 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
   orange and names the app, e.g. **"English · Claude rule"**. Before this the
   switch was silent: a forgotten Claude → English rule made हिन्दी dictation
   in Claude come out as English or nothing, with no hint why.
-- **Friction:** review and removal still live in Settings → General.
+- **Review/remove:** Settings… → Dictation → **Advanced** lists every rule.
 
 ## 3 · "English — from any language ✨" — the flagship (needs AI setup)
+
+> **Not released (2026-10-28).** §3–§8 describe AI features that are built but
+> hidden: `SettingsStore.aiFeaturesReleased = false` hides the AI page, these
+> menu items and the language mode, and `scripts/build_app.sh` drops the
+> right-click services unless built with `DESI_AI_FEATURES=1`.
 
 - **Discovery:** a fourth entry in the same Language picker + one line in
   onboarding. If selected before setup, the menu shows
@@ -207,11 +239,12 @@ Skip AI entirely → 0 extra.
 
 Menu bar → **Language** → English / Hinglish / हिन्दी. That is the whole
 decision — the model for that language loads itself, and the **Model** picker
-under it only lists models that can actually produce that language's script.
-"Auto" names what it picked, e.g. *Auto (parakeet-tdt-0.6b-v3-q4_k)*.
+for it is picked for you. The Dictation page names it ("Uses Hinglish Prime").
 
-Want a specific file for one language and a different one for another?
-**Settings → Models → Default model per language**. Each language remembers its
+Want a specific model for one language and a different one for another?
+**Settings… → Models → Model for each language**. "Auto" names what it
+picked, e.g. *Auto (Parakeet)*, and only models that can write that
+language's script are listed. Each language remembers its
 own choice; switching language switches model silently.
 
 **English is now much faster.** English mode runs NVIDIA's Parakeet model
@@ -225,14 +258,13 @@ fewer mistakes on long, conversational Hinglish (a joke, a voice-note-style
 rant). It's a little slower: 1.8 s instead of 1.4 s on a short dictation,
 and roughly twice as long on long ones. Apex is no longer offered. If you
 already have it and pinned it, it keeps working until you pick Prime under
-**Settings → Models → Default model per language → Hinglish**.
+**Settings… → Models → Model for each language → Hinglish**.
 **Want the most accurate English? Qwen3-ASR (v0.6.3).** It replaced Whisper
-Turbo under **Settings → Models → English** (2.08 GB). On Indian-accented
+Turbo under **Settings… → Models** (2.08 GB). On Indian-accented
 English it makes about 11 % fewer errors than Parakeet in quiet rooms and 9 %
 fewer in noise. The cost is speed: about 0.4 s for a short dictation instead
-of 0.1 s. Parakeet stays the default. Pick Qwen in the English model picker
-when accuracy matters more than speed, or make it the English default under
-**Default model per language**.
+of 0.1 s. Parakeet stays the default. Pick Qwen for English under **Model for each
+language** when accuracy matters more than speed.
 
 **How fast was that?** The Dictation screen shows the last dictation's real
 cost — *"Last: 4.2s speech · 0.31s to paste · 1 call"*. If dictation ever feels

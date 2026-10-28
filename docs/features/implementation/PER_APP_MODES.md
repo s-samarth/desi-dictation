@@ -15,7 +15,7 @@ manual mode-switches a day become zero.
 - **Menu (`MenuContent.swift`)** — a "**For <AppName>**" submenu under the
   Language picker: inline radio list of *Follow global setting* + the four
   languages. Writes/removes a rule for `currentTarget` and preloads the model.
-- **Settings (`PerAppModesView.swift`)** — General tab section: the
+- **Settings (`PerAppModesView.swift`)** — Dictation page → Advanced: the
   `perAppModes` master toggle + every learned rule as *AppName [mode picker]
   (–)* for review/edit/removal.
 

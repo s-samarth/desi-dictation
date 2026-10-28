@@ -878,3 +878,28 @@ vs 8.9 % clean, 14.1 vs 15.2 % noisy).
 **Lesson:** read the library's status enum before treating every non-OK
 status as fatal. An LLM decoder has "stopped early but here's your text"
 outcomes that a CTC/TDT model never produces.
+
+## 2026-10-28 — One window, four pages, AI hidden
+
+### Failure mode #35 — a plain `Form` in the sidebar window hid the sidebar
+
+**Symptom:** open Vocabulary in the main window and the sidebar went blank,
+with the page's switches floating mid-window. There was no way back to the
+other pages short of closing the window.
+**Cause:** the Dictation page used `.formStyle(.grouped)`, which scrolls. The
+Vocabulary, Models, Text, AI and License pages were plain `Form { }.padding()`,
+which doesn't. Inside `NavigationSplitView` a non-scrolling page taller than
+the window pushed the whole split view's layout out of the window, sidebar
+included. The same pages also lived in a second SwiftUI `Settings` window
+under different names.
+**Fix:** every page is a grouped `Form` (scrolls inside the window); one
+window only (menu → Settings… opens it); four pages (Dictation / Vocabulary /
+History / Models); unreleased AI features hidden behind
+`SettingsStore.aiFeaturesReleased`.
+**Seeing it:** a menu-bar app's windows can't be screen-captured from a shell,
+so debug builds now render every page to PNGs:
+`DESI_UI_SNAPSHOTS=/tmp/shots app/.build/debug/desi-dictation`. The "before"
+render of Vocabulary came out blank, which is how the cause was confirmed.
+**Lesson:** in a split view or any fixed-size window, a page must scroll.
+Use `.formStyle(.grouped)` for every settings page, and render each page
+before calling a UI change done.

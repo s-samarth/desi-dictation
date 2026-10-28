@@ -64,6 +64,10 @@ whisper → dictionary → translate) and re-validated the model choice against
    skipped instead of flashing and changing nothing.
 5. **"Enable AI features" master switch** (AI tab, default on) — off = the
    classic dictation app: no AI menu items, no LLM modes, nothing to download.
+   Since 2026-10-28 the AI layer is **unreleased**: `SettingsStore.aiFeaturesReleased
+   = false` forces the switch off and hides the AI page, menu items and
+   LLM language mode; `build_app.sh` drops the Services entries unless
+   `DESI_AI_FEATURES=1`. Flip both to ship it.
 6. **Small-Mac default model** qwen2.5:1.5b → qwen3:1.7b (matrix: the 1.5b
    hallucinates whole sentences; 1.7b + prepass is repairable), and
    `think:false` sent always.

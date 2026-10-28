@@ -77,7 +77,7 @@ whole point of this app. No account, no cloud, no telemetry.
 ## 3. Download models (one time, the important step)
 
 The app is tiny; the AI models are not, so you download just the ones you need:
-menu bar → **Open Desi Dictation… → Models**.
+menu bar → **Settings… → Models**.
 
 **Get one ⭐ per language you speak, plus the VAD add-on:**
 
@@ -94,9 +94,9 @@ All models are **free** during the beta:
 
 Downloads are SHA256-verified — a corrupted or tampered file is refused automatically.
 
-Leave **Model: Auto** — each language remembers its own model, and the app
-loads the right one when you switch languages. To pin a specific file per
-language: **Settings → Models → Default model per language**.
+Leave the models on **Auto** — each language remembers its own model, and
+the app loads the right one when you switch languages. To pick one yourself:
+**Settings… → Models → Model for each language**.
 
 ## 4. Dictate
 
@@ -106,17 +106,17 @@ language: **Settings → Models → Default model per language**.
 3. **Hold Right ⌥ (Option)**, speak naturally — pauses are fine — release.
 4. Your words appear at the cursor, and are also on your clipboard (⌘V pastes
    them again anywhere).
-- Prefer tap-to-start/tap-to-stop? → app window → Activation mode → **Toggle**.
+- Prefer tap-to-start/tap-to-stop? → Settings… → Dictation → Mode → **Toggle**.
 - Pressed it by accident? **Esc** discards.
 - Different key (Right ⌘, F13, F16–F19)? → Dictation screen.
 
 ## 5. Make it yours
 
-- **Text & AI → Replacements**: enforce your spellings (`nahin=nahi`), fix
-  names it gets wrong (`dezi=desi`) — one `find=replace` per line.
+- **Vocabulary → Your words**: fix names it gets wrong (`Saraswath` →
+  `Saraswat`). Turn on **Learn automatically** and it offers these itself
+  when you correct a word after dictating.
 - **History**: last 24 h of dictations, searchable, local-only, can be turned off.
-- **AI cleanup**: pipe transcripts through a local Ollama model (Text & AI tab) —
-  optional, and like everything else, fully on-device.
+
 
 ## Something broken?
 

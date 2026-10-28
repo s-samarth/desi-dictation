@@ -1,20 +1,30 @@
 import SwiftUI
 import DesiDictationKit
 
-/// The main app window (MacWhisper-style sidebar layout). The menu bar icon is
-/// for quick toggles; this window is where users actually configure things —
-/// added after v0.1 feedback that a bare menu bar icon felt undiscoverable.
+/// The app's one window (menu bar → Settings…). Four pages, always reachable
+/// from the sidebar. Unreleased features stay out of the list entirely rather
+/// than showing up as a dead page.
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case dictation, history, models, text, vocabulary, ai, license
+    case dictation, vocabulary, history, models, ai, license
     var id: String { rawValue }
+
+    /// What the sidebar shows today.
+    static var visible: [SidebarItem] {
+        allCases.filter { item in
+            switch item {
+            case .ai: return SettingsStore.aiFeaturesReleased
+            case .license: return LicenseManager.gatingEnabled
+            default: return true
+            }
+        }
+    }
 
     var title: String {
         switch self {
         case .dictation: return "Dictation"
+        case .vocabulary: return "Vocabulary"
         case .history: return "History"
         case .models: return "Models"
-        case .text: return "Text"
-        case .vocabulary: return "Vocabulary"
         case .ai: return "AI"
         case .license: return "License"
         }
@@ -23,10 +33,9 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .dictation: return "mic"
+        case .vocabulary: return "text.book.closed"
         case .history: return "clock.arrow.circlepath"
         case .models: return "cpu"
-        case .text: return "character.cursor.ibeam"
-        case .vocabulary: return "text.badge.star"
         case .ai: return "sparkles"
         case .license: return "key"
         }
@@ -34,7 +43,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
 }
 
 /// Sidebar selection, reachable from outside the view hierarchy (menu items
-/// deep-link straight to a pane — e.g. "Finish AI setup" → the AI pane).
+/// deep-link straight to a page).
 @MainActor
 final class MainNav: ObservableObject {
     static let shared = MainNav()
@@ -42,28 +51,64 @@ final class MainNav: ObservableObject {
 }
 
 struct MainWindow: View {
+    static let size = NSSize(width: 720, height: 540)
     @ObservedObject private var nav = MainNav.shared
 
     var body: some View {
         NavigationSplitView {
-            List(SidebarItem.allCases, selection: Binding(
+            List(SidebarItem.visible, selection: Binding(
                 get: { Optional(nav.selection) },
                 set: { nav.selection = $0 ?? .dictation })) { item in
-                Label(item.title, systemImage: item.icon).tag(item)
+                Label { Text(item.title) } icon: { IconTile(symbol: item.icon, color: item.tint) }
+                    .tag(item)
             }
-            .navigationSplitViewColumnWidth(min: 170, ideal: 180)
+            .navigationSplitViewColumnWidth(min: 160, ideal: 170, max: 200)
         } detail: {
-            switch nav.selection {
-            case .dictation: DictationPane()
-            case .history: HistoryView()
-            case .models: ModelsSettings()
-            case .text: TextSettings()
-            case .vocabulary: SmartVocabularyView()
-            case .ai: AISettings()
-            case .license: LicenseSettings()
+            // Every page is a grouped Form: it scrolls inside the window. A
+            // plain Form doesn't, so a long page outgrew the window and hid
+            // the sidebar — no way back (BUILD_LOG FM#35).
+            Group {
+                switch nav.selection {
+                case .dictation: DictationPane()
+                case .vocabulary: VocabularyPane()
+                case .history: HistoryView()
+                case .models: ModelsPane()
+                case .ai: AISettings()
+                case .license: LicenseSettings()
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(minWidth: 680, minHeight: 460)
-        .navigationTitle("Desi Dictation")
+        .tint(Theme.accent)
+        .frame(minWidth: 640, minHeight: 440)
+        .navigationTitle(nav.selection.title)
+    }
+}
+
+extension LanguageMode {
+    /// Languages the pickers offer: AI-only modes stay hidden while AI is off.
+    @MainActor static var offered: [LanguageMode] {
+        allCases.filter { SettingsStore.shared.aiFeaturesEnabled || !$0.needsLLM }
+    }
+}
+
+extension Text {
+    /// Section footer, aligned with the rows above it (grouped forms
+    /// right-align footers by default, which reads as a stray caption).
+    func footnote() -> some View {
+        font(.callout).foregroundStyle(.secondary)
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 10)
+    }
+}
+
+extension ModelDescriptor {
+    /// "Hinglish Prime" rather than "ggml-hinglish-prime-q5_0": the catalog's
+    /// name for a downloaded file, else the file name.
+    var displayName: String {
+        guard let entry = ModelManager.catalog.first(where: { "ggml-\($0.id)" == name }) else {
+            return name
+        }
+        return entry.label.components(separatedBy: " — ").first ?? entry.label
     }
 }

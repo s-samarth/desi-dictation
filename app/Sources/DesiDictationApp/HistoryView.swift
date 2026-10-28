@@ -50,7 +50,7 @@ struct HistoryView: View {
                         if let fixes = entry.fixes, !fixes.isEmpty {
                             Text("fixed: " + fixes.map { "\($0.from) → \($0.to) (\($0.source.label))" }
                                 .joined(separator: ", "))
-                                .font(.caption).foregroundStyle(.green)
+                                .font(.caption).foregroundStyle(Theme.hindi)
                                 .lineLimit(2)
                         }
                         if let translation = entry.translation {
@@ -60,9 +60,7 @@ struct HistoryView: View {
                         }
                         HStack {
                             Text(entry.date, style: .relative) + Text(" ago")
-                            Text(entry.mode)
-                                .padding(.horizontal, 6).padding(.vertical, 1)
-                                .background(.quaternary, in: Capsule())
+                            Chip(text: entry.mode, color: modeColor(entry.mode))
                             Spacer()
                             Button("Copy") {
                                 TextInserter.copy(entry.text)
@@ -104,6 +102,13 @@ struct HistoryView: View {
             }
             .padding(10)
         }
+    }
+
+    private func modeColor(_ mode: String) -> Color {
+        if mode.contains("hinglish") { return Theme.hinglish }
+        if mode.contains("hindi") { return Theme.hindi }
+        if mode.contains("english") { return Theme.english }
+        return Theme.neutral
     }
 
     private func emptyState(_ title: String, _ subtitle: String) -> some View {
