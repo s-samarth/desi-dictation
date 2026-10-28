@@ -2,9 +2,10 @@ import Foundation
 
 /// Picks the runtime for a model file and keeps exactly one model resident.
 ///
-/// Two engines ship now — whisper.cpp (Hinglish / हिन्दी / any Whisper GGML)
-/// and Parakeet TDT (English, v0.6.1) — and the model *file* decides which one
-/// runs, so nothing above this layer has to know engines exist.
+/// Three engines ship now — whisper.cpp (Hinglish / हिन्दी / any Whisper GGML),
+/// Parakeet TDT (English default, v0.6.1) and Qwen3-ASR via transcribe.cpp
+/// ("Accurate English", v0.6.3) — and the model *file* decides which one runs,
+/// so nothing above this layer has to know engines exist.
 ///
 /// One resident model, never two: a 574 MB whisper model plus a 416 MB
 /// Parakeet model would be ~1 GB of wired memory on a machine that may only
@@ -16,6 +17,7 @@ import Foundation
 public final class EngineRouter: TranscriptionEngine {
     private let whisper = WhisperCppEngine()
     private let parakeet = ParakeetEngine()
+    private let qwen = QwenASREngine()
 
     private var active: TranscriptionEngine?
 
@@ -32,8 +34,10 @@ public final class EngineRouter: TranscriptionEngine {
     /// Loads `path` if it isn't already resident, unloading the other engine.
     public func load(modelPath: String) throws {
         if let active, active.isLoaded, active.loadedModelPath == modelPath { return }
-        let wanted: TranscriptionEngine =
-            ParakeetEngine.handles(modelPath: modelPath) ? parakeet : whisper
+        let wanted: TranscriptionEngine
+        if ParakeetEngine.handles(modelPath: modelPath) { wanted = parakeet }
+        else if QwenASREngine.handles(modelPath: modelPath) { wanted = qwen }
+        else { wanted = whisper }
         // Free the outgoing model BEFORE allocating the incoming one.
         if let active, active !== wanted { active.unload() }
         try wanted.load(modelPath: modelPath)
@@ -43,5 +47,14 @@ public final class EngineRouter: TranscriptionEngine {
     public func transcribe(samples: [Float], mode: LanguageMode) throws -> TranscriptionResult {
         guard let active else { throw EngineError.modelNotLoaded }
         return try active.transcribe(samples: samples, mode: mode)
+    }
+}
+
+/// Auto-vocabulary hotwords reach whichever engine can use them (Qwen3-ASR
+/// today); Parakeet and whisper.cpp don't conform, so they get post-correction
+/// only (AUTO_VOCABULARY.md §2c).
+extension EngineRouter: HotwordBiasing {
+    public func setHotwords(_ terms: [String]) {
+        (active as? HotwordBiasing)?.setHotwords(terms)
     }
 }

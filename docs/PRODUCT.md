@@ -48,6 +48,7 @@ the AI tab; default gemma3:4b on ≥12 GB Macs). Test coverage: `desi-tests`
 - Hinglish (Apex q5): word-perfect on eval clips; ~3× realtime; **15× realtime
   with VAD** on pause-heavy audio; long-form degradation eliminated.
 - English (Parakeet TDT v3 q4_k): 4.3 % nWER on the English eval suite (US English — see FM#24), 0.21 s/call — better and ~9× faster than the Turbo q5 it replaced ([research §E](MODEL_RESEARCH.md)).
+- Accurate English (Qwen3-ASR-1.7B q8_0, opt-in, v0.6.3): on 278 Indian-English clips, 12.6 % / 17.7 % nWER clean / noisy vs Parakeet's 14.3 % / 19.5 %, at ~0.4 s per short dictation. It replaced Turbo in the catalog ([A/B](ENGLISH_ASR_AB_2026-10.md)).
 - Known limits: Hinglish spelling variance (mitigate: replacements); very noisy
   environments untested; proper-noun bias toward common words.
 

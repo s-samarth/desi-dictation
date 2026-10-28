@@ -226,6 +226,13 @@ twice as long, ~3.5 s instead of ~2 s. Apex stays the default. To use Prime,
 download it, then pick it under **Settings → Models → Default model per
 language → Hinglish**. For one-word replies ("haan", "theek hai"), Apex is
 still better.
+**Want the most accurate English? Qwen3-ASR (v0.6.3).** It replaced Whisper
+Turbo under **Settings → Models → English** (2.08 GB). On Indian-accented
+English it makes about 11 % fewer errors than Parakeet in quiet rooms and 9 %
+fewer in noise. The cost is speed: about 0.4 s for a short dictation instead
+of 0.1 s. Parakeet stays the default. Pick Qwen in the English model picker
+when accuracy matters more than speed, or make it the English default under
+**Default model per language**.
 
 **How fast was that?** The Dictation screen shows the last dictation's real
 cost — *"Last: 4.2s speech · 0.31s to paste · 1 call"*. If dictation ever feels

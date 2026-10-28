@@ -5,18 +5,11 @@ import Foundation
 /// the context in its system prompt, and mlx-audio exposes that as hotwords
 /// (AUTO_VOCABULARY.md §2c, Path 2).
 ///
-/// Hooking up an engine takes two steps. The engine conforms; then
-/// `EngineRouter` forwards to its active engine (in EngineRouter.swift,
-/// where the private `active` is visible):
-///
-///     extension EngineRouter: HotwordBiasing {
-///         public func setHotwords(_ terms: [String]) {
-///             (active as? HotwordBiasing)?.setHotwords(terms)
-///         }
-///     }
-///
-/// The controller already calls `setHotwords` before every engine call when
-/// the engine conforms (DictationController+Vocabulary.swift).
+/// `EngineRouter` conforms and forwards to its active engine; QwenASREngine
+/// passes the terms as transcribe.cpp's `vocabulary` run parameter. The
+/// controller calls `setHotwords` before every engine call
+/// (DictationController+Vocabulary.swift). A new biasable engine only has to
+/// conform. Try it: `desi-cli <qwen model> clip.wav english --hotwords "A,B"`.
 public protocol HotwordBiasing: AnyObject {
     /// Terms for the next transcription, most relevant first. An empty list
     /// clears them. Called on the engine's work queue.

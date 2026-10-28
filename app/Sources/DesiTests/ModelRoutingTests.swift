@@ -64,9 +64,31 @@ func runModelRoutingTests() {
     T.expect(primeEntry?.category == "Hinglish" && primeEntry?.recommended == false,
              "Prime listed under Hinglish, un-starred")
 
+    T.begin("Qwen3-ASR — the opt-in accurate English model (replaced turbo)")
+    let qwenPin = "/models/ggml-qwen3-asr-1.7b-q8_0.bin"
+    let qwen = ModelDescriptor(name: "qwen3-asr-1.7b-q8_0", path: qwenPin, sizeMB: 2084)
+    T.expect(qwen.isQwenASR && !qwen.isParakeet, "qwen detected by filename")
+    T.expect(ModelManager.score(qwen, for: .english) > 0, "Qwen serves English")
+    T.equal(ModelManager.score(qwen, for: .hindi), 0, "Qwen hidden for हिन्दी (English pick only)")
+    T.equal(ModelManager.score(qwen, for: .hinglish), 0, "Qwen hidden for Hinglish")
+    T.equal(ModelManager.score(qwen, for: .anyToEnglish), 0, "Qwen hidden for any→English")
+    // Parakeet stays the default: 4x faster on short dictations. Qwen is the
+    // pick when the user chooses accuracy over speed.
+    T.expect(ModelManager.score(parakeet, for: .english) > ModelManager.score(qwen, for: .english),
+             "English Auto keeps Parakeet as the default")
+    let turbo = ModelDescriptor(name: "large-v3-turbo-q5_0", path: "/m/turbo.bin", sizeMB: 574)
+    T.expect(ModelManager.score(qwen, for: .english) > ModelManager.score(turbo, for: .english),
+             "Qwen outranks a leftover turbo file")
+    T.expect(!ModelManager.catalog.contains { $0.id.contains("turbo") }, "turbo left the catalog")
+    T.expect(ModelManager.catalog.contains { $0.id.hasPrefix("qwen3-asr") && $0.category == "English" },
+             "Qwen is offered as an English model")
+
     T.begin("Engine routing by model file")
     T.expect(ParakeetEngine.handles(modelPath: englishPin), "parakeet file → Parakeet engine")
     T.expect(!ParakeetEngine.handles(modelPath: hinglishPin), "ggml whisper file → whisper.cpp")
+    T.expect(QwenASREngine.handles(modelPath: qwenPin), "qwen file → transcribe.cpp engine")
+    T.expect(!QwenASREngine.handles(modelPath: englishPin) && !ParakeetEngine.handles(modelPath: qwenPin),
+             "parakeet and qwen files never cross")
 
     T.begin("Chunking thresholds (PERF_RCA_2026-08.md RC2)")
     // A whisper call costs a full padded 30 s window whatever it holds, so a

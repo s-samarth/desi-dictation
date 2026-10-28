@@ -30,7 +30,7 @@ if args.contains("--novad") {
 }
 guard args.count >= 3 else {
     print("""
-    usage: desi-cli <model.bin> <audio file | --batch dir> [hinglish|english|hindi]
+    usage: desi-cli <model.bin> <audio file | --batch dir> [hinglish|english|hindi] [--hotwords "A,B"]
            desi-cli --translate "text" [english|hindi]
            desi-cli --structure "text" [notes|actionList|emailDraft|outline]
     """)
@@ -161,6 +161,11 @@ do {
 
     let samples = try AudioFileLoader.loadSamples(url: audioURL)
     print("audio: \(String(format: "%.1f", Double(samples.count) / 16000.0))s")
+    // `--hotwords "Rohan,Figma"`: the auto-vocabulary terms a biasable engine
+    // (Qwen3-ASR) gets in the app; ignored by Parakeet / whisper.cpp.
+    if let i = args.firstIndex(of: "--hotwords"), i + 1 < args.count {
+        engine.setHotwords(args[i + 1].split(separator: ",").map(String.init))
+    }
 
     // Repeated transcriptions on ONE loaded context — mirrors real app usage
     // (the app keeps the model resident across dictations).

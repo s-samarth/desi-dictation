@@ -17,6 +17,8 @@ public struct ModelDescriptor: Identifiable, Equatable {
     /// True for Parakeet TDT files — a different runtime (EngineRouter) and
     /// English-only for us, so it must never be offered for हिन्दी/Hinglish.
     public var isParakeet: Bool { name.contains("parakeet") }
+    /// True for Qwen3-ASR files (transcribe.cpp engine) — English-only here.
+    public var isQwenASR: Bool { name.contains("qwen3-asr") }
 }
 
 public final class ModelManager: ObservableObject {

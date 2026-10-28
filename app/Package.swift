@@ -18,6 +18,10 @@ let whisperLinkerSettings: [LinkerSetting] = [
     .linkedLibrary("ggml-cpu"),
     .linkedLibrary("ggml-blas"),
     .linkedLibrary("ggml-metal"),
+    // transcribe.cpp (Qwen3-ASR, "Accurate English") — pre-linked with its own
+    // newer ggml hidden inside, so it can't clash with the libs above
+    // (scripts/setup_transcribe.sh).
+    .linkedLibrary("transcribe-bundle"),
     .linkedLibrary("c++"),
     .linkedFramework("Accelerate"),
     .linkedFramework("Metal"),
@@ -31,11 +35,13 @@ let package = Package(
     targets: [
         // C shim exposing whisper.h to Swift
         .systemLibrary(name: "CWhisper", path: "Sources/CWhisper"),
+        // C shim exposing transcribe.h (Qwen3-ASR runtime) to Swift
+        .systemLibrary(name: "CTranscribe", path: "Sources/CTranscribe"),
 
         // Core logic: audio, engine, hotkeys, insertion, settings, licensing
         .target(
             name: "DesiDictationKit",
-            dependencies: ["CWhisper"],
+            dependencies: ["CWhisper", "CTranscribe"],
             path: "Sources/DesiDictationKit",
             swiftSettings: [.unsafeFlags(["-swift-version", "5"])],
             linkerSettings: whisperLinkerSettings

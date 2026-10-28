@@ -59,13 +59,38 @@ was last dictating in, so on first launch it moves into **that** language's slot
 and nowhere else. Everything else starts on Auto. Covered by
 `DesiTests/ModelRoutingTests.swift`.
 
-## Two engines, one protocol
+## Three engines, one protocol (v0.6.3)
 
 `EngineRouter` conforms to `TranscriptionEngine` and picks the concrete engine
-from the model **filename** (`parakeet` → `ParakeetEngine`, otherwise
-`WhisperCppEngine`). It keeps **exactly one model resident** — two ~500 MB
-models in RAM on an 8 GB Air is not a trade we make — so switching language
-unloads the outgoing model before loading the incoming one.
+from the model **filename**: `parakeet` → `ParakeetEngine`, `qwen3-asr` →
+`QwenASREngine` (transcribe.cpp), otherwise `WhisperCppEngine`. It keeps
+**exactly one model resident**, because two ~500 MB models in RAM on an 8 GB
+Air is not a trade we make. Switching language unloads the outgoing model
+before loading the incoming one.
+
+## English: a fast default and an accurate option (v0.6.3)
+
+| | Parakeet TDT v3 (default, score 120) | Qwen3-ASR-1.7B q8_0 (score 110) |
+|---|---|---|
+| nWER, Indian English, 278 clips clean / noisy | 14.3 % / 19.5 % | 12.6 % / 17.7 % (MLX run) |
+| Short dictation, median | 0.09 s | ~0.35–0.45 s |
+| Download | 416 MB | 2.08 GB |
+
+Auto keeps **Parakeet**. Qwen is the pick when you want accuracy over speed:
+choose it under the English model picker, or as the English default in
+Settings. It replaced Whisper large-v3-turbo in the catalog. Turbo was less
+accurate than Parakeet clean and noisy, at 10× its latency
+(ENGLISH_ASR_AB_2026-10.md). A leftover turbo file still works and ranks below
+Qwen.
+
+**Qwen is English-only here.** `score()` returns 0 for Hinglish, हिन्दी and
+any→English. The model can do Hindi, but those modes have their own
+fine-tunes.
+
+**Long audio is cut at pauses into pieces of 30 s or less** (`AudioSplitter`).
+On the quick tier, one call over 45–110 s scored 40 % vs 32 % nWER in noise.
+A decode that starts looping (`OUTPUT_REPETITION`) or hits its budget keeps
+its partial text instead of failing the dictation.
 
 `desi-cli` uses the router too, so the eval harness and the latency gate
 exercise the same path the app does.

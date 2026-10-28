@@ -41,6 +41,9 @@ jobs:
           brew install cmake || true
           ./scripts/setup_whisper.sh
 
+      - name: Build transcribe.cpp bundle (Qwen3-ASR, pinned commit)
+        run: ./scripts/setup_transcribe.sh
+
       - name: Preflight — tests + app↔web parity (same gate as CI)
         run: |
           (cd app && swift build)

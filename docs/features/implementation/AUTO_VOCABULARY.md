@@ -71,9 +71,13 @@ Tests: `DesiTests/VocabularyCorrectorTests.swift`, `VocabularyLearningTests.swif
    2. window terms;
    3. dictionary written forms.
 
-   Parakeet and whisper.cpp don't conform. To hook up Qwen, add in
-   `EngineRouter.swift`: `extension EngineRouter: HotwordBiasing {
-   public func setHotwords(_ t: [String]) { (active as? HotwordBiasing)?.setHotwords(t) } }`.
+   Parakeet and whisper.cpp don't conform. `EngineRouter` forwards to the
+   active engine, and `QwenASREngine` passes the terms as transcribe.cpp's
+   `transcribe_run_params::vocabulary` (the runtime formats them for
+   Qwen3-ASR). Measured on one synthetic clip: without hotwords Qwen wrote
+   "Pinkavia and Mr. Saras went about the eco B rollout"; with
+   `Kavya,Saraswat,Ecobee` it wrote "Kavya … Saraswat … Ecobee" (+0.03 s).
+   Reproduce with `desi-cli <model> clip.wav english --hotwords "A,B"`.
 3. **After transcription** (work queue): legacy rules → PersonalDictionary
    (exact pairs) → **`VocabularyCorrector`** → translate/tone. Anything the
    screen read hadn't finished by then is skipped.

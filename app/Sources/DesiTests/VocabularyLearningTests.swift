@@ -94,4 +94,7 @@ func runVocabularyLearningTests() {
     T.equal(capped.count, HotwordSelector.limit, "at most 30 hotwords")
     T.equal(HotwordSelector.contextPrompt(["Rohan", "Figma"]), "Vocabulary: Rohan, Figma.", "context prompt")
     T.equal(HotwordSelector.contextPrompt([]), "", "no terms → no prompt")
+    T.expect((EngineRouter() as AnyObject) is HotwordBiasing, "the router forwards hotwords")
+    T.expect((QwenASREngine() as AnyObject) is HotwordBiasing, "Qwen3-ASR takes hotwords")
+    T.expect(!((ParakeetEngine() as AnyObject) is HotwordBiasing), "Parakeet relies on post-correction")
 }

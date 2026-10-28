@@ -9,6 +9,9 @@ extension ModelManager {
         // Parakeet covers English + 24 European languages — no Hindi, and it
         // cannot emit Devanagari or Roman-Hinglish. English mode only.
         if model.isParakeet, mode != .english { return 0 }
+        // Qwen3-ASR could transcribe Hindi, but here it is the English
+        // accuracy pick; Hinglish and हिन्दी have their own fine-tunes.
+        if model.isQwenASR, mode != .english { return 0 }
         switch mode {
         // anyToEnglish transcribes the same mixed speech as Hinglish mode
         // (TRANSCRIBE_TRANSLATE.md §4: Apex handles the mix best); the English
@@ -26,6 +29,9 @@ extension ModelManager {
             // Svarah as once written — FM#24) at 5x
             // the speed — MODEL_RESEARCH.md §E, ParakeetEngine.swift.
             if name.contains("parakeet") { score = 120 }
+            // Opt-in accuracy pick: below Parakeet so Auto keeps the fast
+            // default, above everything else (ENGLISH_ASR_AB_2026-10.md).
+            else if name.contains("qwen3-asr") { score = 110 }
             else if name.contains("turbo") { score = 100 }
             else if name.contains("hinglish-apex") { score = 80 }   // great Indian English
             else if name.contains("small") { score = 60 }
