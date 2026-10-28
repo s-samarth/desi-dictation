@@ -718,3 +718,41 @@ When a model's output is a single high-confidence token that looks like a
 sentinel ("nan", "None", "null", ""), suspect a training-data artifact before a
 numeric bug, and check by changing the hardware path (CPU, no flash attention):
 a numeric bug moves, a learned label does not.
+### Failure mode #31 — the paste fired while the toggle key was still down; empty results were silent
+
+**Symptom:** 2026-10-28 user report. Start dictating, switch apps or Spaces
+while recording, come back to a text box, tap Right ⌥ (toggle mode) to stop:
+"it sometimes does not paste the output there. That makes me press Cmd+V."
+The transcript was on the clipboard. Separately: "sometimes when it is unable
+to catch, I do not get a warning. It just fails silently."
+**Cause (paste):** the paste target was never the problem. Nothing is
+captured at start; ⌘V goes to the field focused at stop. The problem was
+timing. Toggle mode stops on Right ⌥ **keyDown**, and `TextInserter` posted ⌘V
+as soon as the text was ready. Switching apps mid-dictation makes a session
+long and quiet in places: past 30 s it is chunked at quiet moments, so the
+tail left at stop is often pure silence. Measured: a 4 s silent or room-noise
+tail through Prime returns in **0.01 s** with VAD on (English on Parakeet is
+~0.09 s for real speech). So ⌘V went out while ⌥ was still physically held.
+Events posted at the HID tap pick up held modifiers, so the app got ⌥⌘V,
+which isn't paste (and in Finder it moves files). Short single-call
+dictations take ~1.4 s to transcribe, so ⌥ was long released. That's why it
+was "sometimes" and tied to switching apps. Not reproduced live: this shell
+has no Accessibility or Input Monitoring grant, so a test tap couldn't be created.
+**Cause (silence):** `OverlayCoordinator` hid on every non-active phase,
+`.error` included. "No speech detected — nothing inserted or copied." existed
+but only reached the menu text and the menu-bar icon, plus a Basso nobody
+could read.
+**Fix:** `TextInserter.insert` is async and waits (20 ms polls, ≤ 1.5 s) until
+⌥/⇧/⌃ are up in `CGEventSource.flagsState(.hidSystemState)` before posting
+⌘V. If they're still held, or `AXIsProcessTrusted()` is false (posted events
+are dropped silently), it skips the paste and returns `.pasteSkipped`. The
+controller publishes `notice: DictationNotice?`. Every transient error and
+every skipped paste sets one, and the overlay stays up for 4 s with it:
+"Didn't catch that — nothing pasted. Try again." / "Copied — press ⌘V to
+paste". Pure logic (`PasteGate.step`, `DictationNotice.forOutcome`) is covered
+in `DesiTests/PasteTests.swift`. Details: implementation/PASTE_AND_FEEDBACK.md.
+**Lesson:** a synthesized shortcut must not assume the keyboard is idle. The
+hotkey that triggered it may still be down, and a faster pipeline (VAD,
+chunking, Parakeet) shrinks the gap until it isn't. Every ending that isn't
+the happy path has to be visible where the user is looking, the overlay, not
+only in the menu.

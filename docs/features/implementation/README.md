@@ -19,6 +19,7 @@ written to be read two months from now.
 | Structure my thoughts (beta) | STRUCTURE_THOUGHTS.md | [STRUCTURE_THOUGHTS_IMPL.md](STRUCTURE_THOUGHTS_IMPL.md) |
 | Tone modes (Faithful/Casual/Professional/Respectful) | IDEAS #1, PATTERNS §1 | [TONE_MODES.md](TONE_MODES.md) |
 | Model routing — one language, one default model | v0.6.1 user feedback | [MODEL_ROUTING.md](MODEL_ROUTING.md) |
+| Paste-back + end-of-dictation notices (FM#31) | v0.6.2 user report | [PASTE_AND_FEEDBACK.md](PASTE_AND_FEEDBACK.md) |
 | Test harness + how everything is verified | — | [TESTING.md](TESTING.md) |
 
 ## What was deliberately NOT built, and why

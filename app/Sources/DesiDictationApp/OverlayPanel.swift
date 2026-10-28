@@ -8,6 +8,8 @@ import DesiDictationKit
 /// CRITICAL: the panel is `.nonactivatingPanel` and never becomes key — if it
 /// stole focus, the target text field would lose focus and insertion would
 /// break (see docs/SYSTEM_DESIGN.md). It only *shows* state; all input is global.
+/// After a dictation it stays up briefly when there is something to say
+/// (nothing heard, an error, a skipped paste): `DictationController.notice`.
 @MainActor
 final class OverlayCoordinator {
     static let shared = OverlayCoordinator()
@@ -15,15 +17,16 @@ final class OverlayCoordinator {
     private var cancellable: AnyCancellable?
 
     func start() {
-        cancellable = DictationController.shared.$phase
+        let controller = DictationController.shared
+        cancellable = controller.$phase.combineLatest(controller.$notice)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] phase in self?.update(for: phase) }
+            .sink { [weak self] phase, notice in self?.update(for: phase, notice: notice) }
     }
 
-    private func update(for phase: DictationPhase) {
+    private func update(for phase: DictationPhase, notice: DictationNotice?) {
         switch phase {
         case .recording, .transcribing, .translating, .polishing: show()
-        default: hide()
+        default: notice == nil ? hide() : show()
         }
     }
 
@@ -39,7 +42,7 @@ final class OverlayCoordinator {
 
     private func makePanel() -> NSPanel {
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: OverlayView.width, height: 48),
+            contentRect: NSRect(x: 0, y: 0, width: OverlayView.width, height: OverlayView.height),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered, defer: false)
         panel.level = .statusBar
@@ -57,7 +60,7 @@ final class OverlayCoordinator {
         guard let screen = NSScreen.main else { return }
         let frame = screen.visibleFrame
         let x = frame.midX - panel.frame.width / 2
-        let y = frame.minY + 60
+        let y = frame.minY + 52   // capsule center unchanged by the taller panel
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 }
@@ -109,7 +112,7 @@ struct OverlayView: View {
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
             default:
-                EmptyView()
+                if let notice = controller.notice { OverlayNoticeRow(notice: notice) }
             }
         }
         .padding(.horizontal, 16)
@@ -120,11 +123,13 @@ struct OverlayView: View {
                 .overlay(Capsule().strokeBorder(.white.opacity(0.12), lineWidth: 0.5))
         )
         .fixedSize()   // capsule hugs its content; the clear panel is wider
-        .frame(width: Self.width, height: 48)
+        .frame(width: Self.width, height: Self.height)
     }
 
     /// Room for the longest row: "Listening · English · WhatsApp rule · esc…".
     static let width: CGFloat = 420
+    /// Tall enough for a two-line notice; one-line rows stay centered.
+    static let height: CGFloat = 64
 
     /// Which language this dictation is in. Orange + the app's name when a
     /// per-app rule overrode the global language, so the switch is never silent.
