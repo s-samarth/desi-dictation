@@ -83,6 +83,11 @@ struct OnboardingView: View {
                 Button("Re-check permissions") { permissions = Permissions.check() }
                     .font(.caption)
 
+                Text("4 · Teach it your names (optional)").font(.headline)
+                Text("Fixes names it keeps getting wrong, and learns from the words you correct. All off until you turn them on; change them anytime in Vocabulary.")
+                    .font(.caption).foregroundStyle(.secondary)
+                SmartVocabularyToggles()
+
                 Divider()
                 Text("Then: **hold Right ⌥ (Option)**, speak, release — your words appear wherever your cursor is. Esc cancels. Change the key, language, or model anytime: menu bar mic → Open Desi Dictation.")
                     .font(.callout)

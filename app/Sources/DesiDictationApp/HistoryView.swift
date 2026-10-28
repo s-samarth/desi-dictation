@@ -46,6 +46,13 @@ struct HistoryView: View {
                                 .font(.caption).foregroundStyle(.tertiary)
                                 .lineLimit(2).textSelection(.enabled)
                         }
+                        // What the vocabulary corrector changed — never invisible.
+                        if let fixes = entry.fixes, !fixes.isEmpty {
+                            Text("fixed: " + fixes.map { "\($0.from) → \($0.to) (\($0.source.label))" }
+                                .joined(separator: ", "))
+                                .font(.caption).foregroundStyle(.green)
+                                .lineLimit(2)
+                        }
                         if let translation = entry.translation {
                             Text("translation: \(translation)")
                                 .font(.caption).foregroundStyle(.secondary)
@@ -72,6 +79,14 @@ struct HistoryView: View {
                         }
                         Button("Copy") {
                             TextInserter.copy(entry.text)
+                        }
+                        ForEach(entry.fixes ?? [], id: \.self) { fix in
+                            Button("Don't change “\(fix.from)” to “\(fix.to)” again") {
+                                AutoVocabularyStore.shared.reject(fix)
+                            }
+                        }
+                        if let unfixed = entry.unfixed {
+                            Button("Copy as heard (before fixes)") { TextInserter.copy(unfixed) }
                         }
                     }
                 }
