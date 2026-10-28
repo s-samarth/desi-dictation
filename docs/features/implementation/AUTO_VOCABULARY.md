@@ -1,6 +1,6 @@
 # Auto vocabulary — research, plan, decisions
 
-**Status:** plan, awaiting approval (2026-10-28). No Swift written yet.
+**Status:** plan v2 (Qwen3-ASR + Hinglish style), awaiting approval (2026-10-28). No Swift yet.
 **Goal:** the user never maintains a dictionary by hand. Names and terms come
 from three places: corrections the user makes, the window they're dictating
 into, and (opt-in) Contacts. Then they're applied without inventing errors.
@@ -8,36 +8,33 @@ into, and (opt-in) Contacts. Then they're applied without inventing errors.
 *plausible wrong word*: "Rohan" → "Rowan", "Saraswat" → "Saraswath" /
 "Sara swat", "Kavya" → "Cavia". The cause can be accent (v/w, t/th, d/dh merge
 in Indian English) or context (the language model prefers a common word).
+**The second pain (Hinglish):** Apex writes नहीं as *nahin* when the user
+writes *nahi*. Roman Hinglish has no standard spelling. Each person is
+self-consistent, but people differ from one another (P1_HINGLISH_ACCURACY.md
+§4). "Correct" Hinglish is a fact about *this user*, so this mode needs to
+learn the user's spelling style, not just names.
 
-## 1 · Research: how others do it
+**Models (decided 2026-10-28):**
+| Mode | Model | Runtime | How vocabulary reaches it |
+|---|---|---|---|
+| English (default) | Parakeet TDT 0.6B v3 | libparakeet | post-correction (no biasing in the model) |
+| English — Accurate (opt-in; engine lands in a later PR) | **Qwen3-ASR-1.7B** | MLX | **hotwords** in its system-prompt context, then post-correction |
+| Hinglish, any→English | Hinglish Apex (Oriserve whisper fine-tune, q5_0) | whisper.cpp | post-correction **+ personal spelling style** |
+| हिन्दी | vaani-hindi / multilingual | whisper.cpp | skipped in v1 (Devanagari) |
 
-| Product / paper | What it does | Applies to us? |
-|---|---|---|
-| **Wispr Flow** | You fix a word's spelling in the field and press Enter, and Flow adds the pair to an **"Auto-learned"** dictionary tab. Names get added automatically. [1] | Yes. But we never add silently: we *propose* (PERSONAL_DICTIONARY.md rule). |
-| **Superwhisper Super Mode** | Reads the active app, the focused field, the window title, and visible names/usernames through Accessibility. It also captures selected text at start and clipboard text from ≤3 s before. All of it is passed to an LLM. [2][3] | Yes, the AX reading part. Our "LLM" step is a deterministic matcher (§3). |
-| **Aqua Voice** | Reads screen text via Accessibility ("Deep Context") to get domain terms and to adapt to the target field. Plus a manual dictionary (capped per plan). [4][5] | Yes. We copy its memory-only handling: read at start, drop after paste. |
-| **Dragon** | "Learn from sent email" adds contact names. "Learn from documents" scans files for new words. Both end in a **review list** before anything is added. [6][7] | Contacts: yes (opt-in). Document scanning: no. Too broad, and the screen covers it. |
-| **Apple** | Siri/keyboard ASR inject the user's contact names at decode time (class-based FST). Their LLM work retrieves *phonetically similar* entries from the personal contact list. `SFSpeechRecognizer.contextualStrings` reportedly did nothing on-device. [8][9][10] | Phonetic retrieval against contacts: yes. Decode-time FST: not possible on Parakeet. |
-| **Gboard** | Learned words stay on the device, and "Delete learned words" clears them. [11] | Same deal: local JSON, clearable. |
-| **BR-ASR** (arXiv 2505.19179) | Retrieves bias words before the speech LLM. Accuracy **drops as the bias list grows** past ~10k entries. Homophone hard negatives in training gave **+30.6 % recall**. [12] | Pass a *short, relevant* list. Homophones are the hard case. |
-| **CMT-LLM** (arXiv 2506.12059) | Uses **two-stage filtering** of a large bias list down to the relevant rare words, then puts them in the LLM prompt. [13] | Same shape: filter first, bias second. |
-| **Huber & Waibel** (arXiv 2608.05759) | Word-list biasing cut biased-word WER by up to 88 % relative. Speech LLMs are **sensitive to the number of distractors and their order** in the prompt. [14] | Qwen3-ASR hotwords must be few and ordered by relevance. |
-| **Qwen3-ASR** | Trained to use the context in its system prompt. mlx-audio exposes this as `system_prompt`/hotwords. One integration fixed "incubator" → "Ecobee" with a prompt of "Vocabulary: Ecobee." [15] | The hotword path for a future engine (§3.4). |
-| **Phonetic NE correction** (DANCER 2403.17645; RAG pipeline 2608.22872; DeRAGEC 2506.07510) | Standard pipeline: phonetic code (Double Metaphone) blocks candidates, then edit distance re-ranks, then **a threshold accepts**. **Homophone confusion grows with list size.** DeRAGEC filters retrieved candidates by phonetic score first and gets −28 % WER. [16][17][18] | Our core for Parakeet. It runs on-device in microseconds. |
-| **LLM post-correction** (2505.17410; GEC-RAG 2501.10734) | A text-only LLM **over-corrects** and fails on rare words. It works when it is given N-best lists plus phonetic context. [19][20] | Not v1. It would need Ollama (opt-in, slow) and LLM_ENGINE.md shows rules beat bigger models here. |
-| **Indian-English phonology** | v/w merge (व sits between them). th → t/d. Aspirated/retroflex t, d. Vowel-length confusions (ship/sheep). [21][22] | These set the **cheap-substitution pairs** in our phoneme distance. |
+## 1 · Research
 
-**How apps see the user's edit after a paste.** No vendor documents this.
-The AX route is: keep the focused `AXUIElement` and its `AXValue` right after
-the paste, then compare later values. AXObserver notifications need a run loop
-and are unreliable per app [23]. Wispr's "press Enter" is a clue: they wait
-for the edit to *settle*. Electron/Chrome expose `AXValue` only when
-accessibility is on. Secure fields expose nothing.
-
-**On-device summary.** Phonetic + edit-distance matching, confidence gating
-(Parakeet exposes per-token `p`), AX screen reading and Contacts are all local
-and cheap. N-best is not available (Parakeet runs greedy here). LLM correction
-stays out of v1.
+Full findings and sources: [AUTO_VOCABULARY_RESEARCH.md](AUTO_VOCABULARY_RESEARCH.md)
+(`[n]` = its source list). What shaped the plan:
+- **Wispr Flow** auto-learns corrected spellings; **Dragon** reviews first;
+  Superwhisper/Aqua read the window via AX (Aqua: RAM only).
+- Bias lists must be **short and relevant**: accuracy falls as lists grow,
+  and speech LLMs are sensitive to distractors and their order [12][13][14].
+- For an unbiasable model, the standard fix is **phonetic blocking → edit
+  distance → threshold** [16][17][18]. Homophones are the hard case.
+- LLM correction over-corrects without N-best, so it's out [19].
+- Hinglish has no standard spelling, and automatic normalizers are ~74 %
+  accurate [24], so we learn the user's own spellings.
 
 ## 2 · Plan
 
@@ -53,7 +50,8 @@ stays out of v1.
    gives 1→1, 1→2 and 2→1 substitutions.
 4. A pair is proposed only if it looks like a *spelling fix*, not a rewrite:
    - sound + spelling similarity pass §3's thresholds;
-   - the two words aren't both common words ("their" → "there" is grammar);
+   - the two words aren't both common words ("their" → "there" is grammar),
+     except Hinglish variants of one word (*nahin → nahi*, see (d));
    - the pair isn't already in the dictionary or the reject list.
 5. Proposal: a clickable, **non-activating** panel by the overlay (never takes
    key focus) says *Always write "Rowan" as "Rohan"?* with **Add**/**Not now**.
@@ -77,29 +75,50 @@ stays out of v1.
   loaded into memory on enable and refreshed on `CNContactStoreDidChange`. We
   store nothing.
 
-### (c) Use it per engine: `VocabularyCorrector` + engine hook
+### (c) Use it per model: one vocabulary, two delivery paths
 For each dictation, `ActiveVocabulary` = dictionary written forms ∪ this
-dictation's screen terms ∪ contact names. Each term is tagged with its source.
+dictation's screen terms ∪ contact names, each tagged with its source.
 
-**Parakeet / whisper (no biasing) → post-correction**, after the dictionary
-step. For each output word (and each adjacent pair, for "Sara swat"), find the
-terms whose phonetic key is close, then decide with the rules in §3.
-`TranscriptionResult` gains optional per-word confidence. Parakeet's word
-confidence is the min of `parakeet_full_get_token_p` over its sub-tokens.
-Whisper's comes from `whisper_full_get_token_p`.
+**Path 1, post-correction (`VocabularyCorrector`): Parakeet and Apex.**
+Neither model can be biased, so this is the main path for both the default
+English and the Hinglish model. It runs after the dictionary step and before
+translate/tone, so any→English translates the corrected names. For each output
+word (and each adjacent pair, for "Sara swat"), it finds terms with a close
+phonetic key, then decides with §3. `TranscriptionResult` gains optional
+per-word confidence: the min sub-token `p` from `parakeet_full_get_token_p` or
+`whisper_full_get_token_p`.
 
-The English A/B (PR #5, `ENGLISH_ASR_AB_2026-10.md`) now recommends
-**Qwen3-ASR-1.7B** as the opt-in "Accurate English" model, replacing Turbo.
-Parakeet v3 stays the default. So (c) has two real paths: post-correction
-(always, Parakeet) and hotwords (Accurate model).
+**Path 2, hotwords: Qwen3-ASR-1.7B (Accurate English).** Qwen3-ASR was trained
+to use its system-prompt context; mlx-audio exposes it as hotwords. This PR
+adds the seam, not the engine:
+- a protocol `HotwordBiasing { func setHotwords(_: [String]) }`;
+- `EngineRouter` passes terms when the active engine conforms;
+- `HotwordSelector` picks ≤ 30 terms *before* audio exists (speech LLMs are
+  sensitive to distractor count and order [14]): focused-field terms →
+  window terms → dictionary written forms → contacts that are also on screen.
+  The whole contact list is never passed.
 
-**Qwen3-ASR (Accurate English) → hotwords.** A protocol
-`HotwordBiasing { func setHotwords(_: [String]) }`. `EngineRouter` passes ≤ 30
-terms when the active engine conforms. Since there's no transcript yet,
-`HotwordSelector` ranks them: screen terms (focused field first) →
-dictionary → contacts that are also on screen. Post-correction still runs
-after (idempotent). The Qwen engine itself is not in this PR. **Cohere
-Transcribe** (unlikely to ship): no biasing, so post-correction only.
+Post-correction runs after Qwen too (idempotent). That catches what the prompt
+missed. The Qwen engine PR only has to conform to `HotwordBiasing`.
+
+### (d) Hinglish: learn the user's spelling style (Apex)
+- **From corrections.** (a) runs in Hinglish mode too. A Hinglish edit like
+  *nahin → nahi* or *kyaa → kya* is a style fix, so it is proposed even
+  though both words are "common". The test: the two words share a strict
+  `HinglishVariants.key` (vowel length folded: aa→a, ee/ii→i, oo/uu→u;
+  doubled letters collapsed). Accepted pairs go into `PersonalDictionary` as
+  usual. The exact-match step then applies them, and keeps the user's casing.
+- **From the field being edited** (opt-in toggle). If the focused field
+  already uses a variant with the same strict key as an output word (*nahi*
+  in the field, *nahin* from Apex), use the field's spelling. This needs ≥ 2
+  uses in the field, and the output spelling must not appear there at all. It
+  applies to this dictation only and is never learned.
+- **Never folded:** the final nasal *n* (*hai*/*hain* are different words),
+  h-dropping (*bhai*/*bai*), and anything across the confirmed reject list.
+  Automatic normalizers get ~1 in 4 wrong [24], so the strict key only fixes
+  vowel length, and everything wider comes from the user's own corrections.
+- **Names** in Hinglish (WhatsApp, Slack chats) use Path 1, with the stricter
+  "real word" tier for every non-common word (§3.4).
 
 ### Settings and onboarding (all **off** by default)
 In Settings → Dictionary, a new **"Smart vocabulary"** section:
@@ -107,6 +126,7 @@ In Settings → Dictionary, a new **"Smart vocabulary"** section:
 - [ ] Fix near-misses of my names and words
 - [ ] Read names from the window I'm dictating into
 - [ ] Use names from Contacts
+- [ ] Hinglish: match the spelling already in the text I'm editing
 
 Each toggle has a one-line privacy note. Onboarding gets one optional page
 with the same toggles. The Contacts toggle triggers the system prompt. Info.plist
@@ -146,9 +166,11 @@ gains `NSContactsUsageDescription`.
    - false positives: common words untouched; "rise"/"origin" untouched
      without screen evidence; Hinglish words untouched; no partial-word edits;
      near-ties rejected; rejected pairs skipped;
+   - Hinglish: *hai* never becomes *hain*, *pita* stays with only 1 field
+     use, *nahin → nahi* is proposed but *their → there* is not;
    - true positives: Saraswath, Sara swat, Kavia, Rowan-with-screen;
    - edit-diff extraction (spelling fix vs rewrite);
-   - term extraction.
+   - term extraction and hotword selection (cap, order, no bare contacts).
 
 ## 4 · Decisions (and the one that needs approval)
 - **No new dependencies.** Double Metaphone is ~1k lines of English-specific
@@ -168,21 +190,11 @@ gains `NSContactsUsageDescription`.
 - **Latency.** The screen read overlaps recording. Correction is O(words ×
   bucket) and takes under 5 ms. Everything is off by default, so the latency
   gate is unaffected.
-- **Out of v1:** LLM post-correction, Whisper `initial_prompt` biasing
-  (silence-hallucination risk, P2-S2), and per-app vocabularies.
-
-## Sources
-[1] wispr.notion.site/Dictionary-1992ebdc733481a08064efd983f19f0f ·
-[2] superwhisper.com/docs/modes/super · [3] superwhisper.com/docs/common-issues/context ·
-[4] aquavoice.com/use-cases/arc · [5] dynamicbusiness.com/ai-tools/aqua-voice-voice-to-text-for-professionals.html ·
-[6] dummies.com/article/how-to-build-dragon-professional-individual-vocabulary-from-sent-emails-138642 ·
-[7] nuance.com/products/help/dragon15/dragon-for-pc/enx/dpg-cp/Content/Vocabulary/adding_words_to_your_vocabulary.htm ·
-[8] arxiv.org/abs/1603.03185 · [9] arxiv.org/abs/2409.15353 · [10] developer.apple.com/forums/thread/650927 ·
-[11] support.google.com/gboard/answer/12373137 · [12] arxiv.org/abs/2505.19179 ·
-[13] arxiv.org/abs/2506.12059 · [14] arxiv.org/abs/2608.05759 ·
-[15] huggingface.co/Qwen/Qwen3-ASR-1.7B-hf; github.com/Blaizzy/mlx-audio-swift/pull/126 ·
-[16] arxiv.org/abs/2403.17645 · [17] arxiv.org/abs/2608.22872 · [18] arxiv.org/abs/2506.07510 ·
-[19] arxiv.org/abs/2505.17410 · [20] arxiv.org/abs/2501.10734 ·
-[21] talkdrill.com/blog/pronunciation/indian-english/indian-english-pronunciation/ ·
-[22] brainscape.com/flashcards/phonological-differences-in-indian-engli-16677926/packs/22267740 ·
-[23] lists.apple.com/archives/accessibility-dev/2013/Jan/msg00010.html
+- **Out of this PR:**
+  - the Qwen3-ASR engine itself (its own PR; it plugs into `HotwordBiasing`);
+  - LLM post-correction;
+  - per-app vocabularies;
+  - Apex `initial_prompt` biasing with the user's names and spellings. This is
+    P1-S2's cheap lever, but a fine-tune may ignore or be destabilized by a
+    prompt (silence hallucinations, FM#30's `nan`). Follow-up: measure it on
+    the Hinglish quick tier plus the silence clips before shipping.
