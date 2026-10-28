@@ -26,16 +26,16 @@ What exists, how well it works, and where it's going. Update this every release.
 | **Personal dictionary ("always write it as…")** | ✅ built 2026-07-10 | word-boundary + casing-aware; add from History right-click ([impl](features/implementation/PERSONAL_DICTIONARY.md)) |
 | **Auto vocabulary (smart vocabulary)** | ✅ built 2026-10-28 | opt-in: retype a word → "Always write X as Y?" popup; undo an auto-fix → never made again; near-miss names fixed from your dictionary + the window you're in (memory only); Hinglish matches your field's spelling; Qwen3-ASR hotword seam ([impl](features/implementation/AUTO_VOCABULARY.md)) |
 | **Per-app language modes** | ✅ built 2026-07-10 | WhatsApp→Hinglish, Mail→English, zero switching; the overlay names the rule when one overrides (v0.6.2) ([impl](features/implementation/PER_APP_MODES.md)) |
-| **"English — from any language ✨" mode** | ✅ built 2026-07-10 | speak Hinglish → paste polished English; falls back to raw words ([impl](features/implementation/SPEAK_DESI_WRITE_ENGLISH.md)) |
-| **Translate on Demand (edit → translate)** | ✅ built 2026-07-10 | last-dictation window, → English / हिन्दी ([impl](features/implementation/TRANSLATE_ON_DEMAND.md)) |
-| **Structure my thoughts (beta)** | ✅ built 2026-07-10 | ramble → Notes/Actions/Email/Outline review window ([impl](features/implementation/STRUCTURE_THOUGHTS_IMPL.md)) |
-| **Tone modes (Faithful/Casual/Professional/Respectful)** | ✅ built 2026-07-10 | Faithful default = zero rewrite ([impl](features/implementation/TONE_MODES.md)) |
-| Main window (sidebar UI) | ✅ shipped | Dictation/History/Models/Text/**Vocabulary**/**AI**/License |
-| AI cleanup via local Ollama | ✅ shipped (Pro) | off by default, fails safe; now lives in the AI tab |
+| **"English — from any language ✨" mode** | 🔒 built 2026-07-10, hidden until AI ships | speak Hinglish → paste polished English; falls back to raw words ([impl](features/implementation/SPEAK_DESI_WRITE_ENGLISH.md)) |
+| **Translate on Demand (edit → translate)** | 🔒 built 2026-07-10, hidden | last-dictation window, → English / हिन्दी ([impl](features/implementation/TRANSLATE_ON_DEMAND.md)) |
+| **Structure my thoughts (beta)** | 🔒 built 2026-07-10, hidden | ramble → Notes/Actions/Email/Outline review window ([impl](features/implementation/STRUCTURE_THOUGHTS_IMPL.md)) |
+| **Tone modes (Faithful/Casual/Professional/Respectful)** | 🔒 built 2026-07-10, hidden | Faithful default = zero rewrite ([impl](features/implementation/TONE_MODES.md)) |
+| Main window (sidebar UI) | ✅ shipped, decluttered 2026-10-28 | one window (menu → Settings… ⌘,): Dictation / Vocabulary / History / Models, colored icons; tuning knobs under Advanced ([walkthrough §0d](features/implementation/USER_WALKTHROUGH.md)) |
+| AI cleanup via local Ollama | 🔒 built, hidden | unreleased with the rest of the AI layer (`aiFeaturesReleased`) |
 | Gumroad licensing | 🔨 code ready | needs product ID at launch |
 | App icon | ✅ shipped | generated, tricolor mic |
 | **Web demo (zero-install)** | ✅ built 2026-07-10 | browser mic → transcript + AI chips; share via tunnel ([web/](../web/README.md)) |
-| **Right-click Services translation** | ✅ built 2026-07-10 | select text anywhere → Services → English/हिन्दी |
+| **Right-click Services translation** | 🔒 built 2026-07-10, hidden (`DESI_AI_FEATURES=1` to build in) | select text anywhere → Services → English/हिन्दी |
 | **One-line installer** | ✅ built 2026-09-23 | `curl … install.sh \| bash` → latest release, SHA-256 checked, no Gatekeeper prompt ([SETUP_GUIDE](SETUP_GUIDE.md)) |
 | **CI/CD** | ✅ built 2026-07-10 | preflight = CI gate, tag→DMG release, app↔web parity enforced ([CICD.md](CICD.md)) |
 

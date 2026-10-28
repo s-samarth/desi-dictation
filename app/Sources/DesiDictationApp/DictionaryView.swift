@@ -2,7 +2,7 @@ import SwiftUI
 import DesiDictationKit
 
 /// Personal dictionary management (P4-S1): the list of "always write it as"
-/// rules. Lives in the Text tab; entries are also added from History.
+/// rules. Lives on the Vocabulary page; entries are also added from History.
 struct DictionarySettings: View {
     @ObservedObject var dictionary = PersonalDictionary.shared
     @State private var showAdd = false
@@ -10,7 +10,7 @@ struct DictionarySettings: View {
     var body: some View {
         Section {
             if dictionary.entries.isEmpty {
-                Text("Teach it your words: names, brands, code terms. Right-click any dictation in History, or add one here.")
+                Text("Names, brands, code terms. Add one here, or right-click a dictation in History.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             ForEach(dictionary.entries) { entry in
@@ -31,10 +31,9 @@ struct DictionarySettings: View {
             }
             Button("Add word…") { showAdd = true }
         } header: {
-            Text("Personal dictionary — always write it as…")
+            Text("Your words")
         } footer: {
-            Text("Applied to every dictation, whole words only, keeps capitalization. Stays on your Mac.")
-                .font(.caption)
+            Text("Applied to every dictation, whole words only.").footnote()
         }
         .sheet(isPresented: $showAdd) { AddDictionaryEntrySheet() }
     }

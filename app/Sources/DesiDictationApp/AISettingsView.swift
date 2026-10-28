@@ -78,7 +78,7 @@ struct AISettings: View {
             }
             }
         }
-        .padding()
+        .formStyle(.grouped)
         .task { await llm.refreshStatus() }
     }
 

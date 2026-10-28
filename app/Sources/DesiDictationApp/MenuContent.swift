@@ -4,18 +4,12 @@ import DesiDictationKit
 struct MenuContent: View {
     @ObservedObject var controller = DictationController.shared
     @ObservedObject var settings = SettingsStore.shared
-    @ObservedObject var models = ModelManager.shared
     @ObservedObject var history = HistoryStore.shared
     @ObservedObject var appModes = AppModeStore.shared
     @ObservedObject var llm = LLMServices.shared
-    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Text(statusLine)
-
-        Button("Open Desi Dictation…") {
-            AppWindows.shared.showMain()
-        }
 
         Divider()
 
@@ -27,9 +21,7 @@ struct MenuContent: View {
             }))
 
         Picker("Language", selection: $settings.languageMode) {
-            ForEach(LanguageMode.allCases.filter {
-                settings.aiFeaturesEnabled || !$0.needsLLM
-            }, id: \.self) { mode in
+            ForEach(LanguageMode.offered, id: \.self) { mode in
                 Text(mode.displayName).tag(mode)
             }
         }
@@ -60,27 +52,11 @@ struct MenuContent: View {
                         controller.modelChanged()
                     })) {
                     Text("Follow global setting").tag("")
-                    ForEach(LanguageMode.allCases, id: \.self) { mode in
+                    ForEach(LanguageMode.offered, id: \.self) { mode in
                         Text(mode.displayName).tag(mode.rawValue)
                     }
                 }
                 .pickerStyle(.inline)
-            }
-        }
-
-        // Model list is scoped to the language above it: picking "English" and
-        // then having to know which file speaks English was the app leaking its
-        // internals (v0.6.1 feedback). Whatever is chosen here becomes THIS
-        // language's default and is remembered per language.
-        Picker("Model for \(settings.languageMode.displayName)", selection: Binding(
-            get: { settings.modelPath(for: settings.languageMode) },
-            set: {
-                settings.setModelPath($0, for: settings.languageMode)
-                controller.modelChanged()
-            })) {
-            Text(autoLabel).tag("")
-            ForEach(models.candidates(for: settings.languageMode)) { model in
-                Text("\(model.name) (\(model.sizeMB) MB)").tag(model.path)
             }
         }
 
@@ -132,34 +108,24 @@ struct MenuContent: View {
                 }
             }
             Divider()
-            Button("Clear History") { history.clear() }
+            Button("Show All…") {
+                MainNav.shared.selection = .history
+                AppWindows.shared.showMain()
+            }
         }
 
         Divider()
 
-        SettingsLink { Text("Settings…") }
+        Button("Settings…") {
+            MainNav.shared.selection = .dictation
+            AppWindows.shared.showMain()
+        }
+        .keyboardShortcut(",")
         Button("Send Feedback…") { Feedback.compose() }
-        if !controller.lastTranscript.isEmpty {
-            Button("Report Last Transcription…") {
-                Feedback.compose(includeLastTranscript: true)
-            }
-        }
-        Button("Open Models Folder") {
-            NSWorkspace.shared.open(AppPaths.modelsDirectory)
-        }
-        Button("Refresh Models") { models.refresh() }
 
         Divider()
         Button("Quit Desi Dictation") { NSApp.terminate(nil) }
-    }
-
-    /// "Auto" names what it actually resolves to — a default the user can't see
-    /// is a default they don't trust.
-    private var autoLabel: String {
-        guard let pick = models.autoChoice(for: settings.languageMode) else {
-            return "Auto — no model for this language yet"
-        }
-        return "Auto (\(pick.name))"
+            .keyboardShortcut("q")
     }
 
     /// True when an AI-dependent choice is active but the engine isn't ready.

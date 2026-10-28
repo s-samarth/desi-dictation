@@ -14,13 +14,10 @@ struct DesiDictationApp: App {
             Image(systemName: menuBarSymbol)
         }
         .menuBarExtraStyle(.menu)
-
-        // Main window + onboarding are AppKit-managed (AppWindows) so Dock
-        // clicks and the AppDelegate can summon them — SwiftUI Window scenes
-        // can't be opened from outside the view hierarchy.
-        Settings {
-            SettingsView()
-        }
+        // The one window (menu → Settings…) and onboarding are AppKit-managed
+        // (AppWindows) so Dock clicks and the AppDelegate can summon them. No
+        // SwiftUI Settings scene: a second window with the same pages under
+        // other names was half of the clutter.
     }
 
     private var menuBarSymbol: String {
@@ -40,12 +37,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let services = ServiceProvider()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        if let directory = UISnapshots.directory {
+            NSApp.setActivationPolicy(.accessory)
+            UISnapshots.run(into: directory)
+            return
+        }
+        #endif
         // Menu-bar-only app (no Dock icon), also when run via `swift run`.
         NSApp.setActivationPolicy(.accessory)
 
-        // Right-click → Services → Translate, from any app (Flow B).
-        NSApp.servicesProvider = services
-        NSUpdateDynamicServices()
+        // Right-click → Services → Translate, from any app (Flow B). Only
+        // once AI ships; the Info.plist entries are gated the same way.
+        if SettingsStore.aiFeaturesReleased {
+            NSApp.servicesProvider = services
+            NSUpdateDynamicServices()
+        }
 
         // Surface permission prompts early instead of on first dictation.
         let status = Permissions.check()

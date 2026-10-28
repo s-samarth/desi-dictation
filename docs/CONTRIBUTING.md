@@ -71,6 +71,18 @@ The dev certificate (`make_dev_cert.sh`, one-time) keeps mic/Accessibility/
 Input-Monitoring grants across rebuilds. Ad-hoc builds lose them every time
 (TROUBLESHOOTING.md §1).
 
+**UI changes need pictures.** A menu-bar app's windows can't be captured from
+a shell, so a debug build renders every page of the main window plus
+onboarding to PNGs and quits (`UISnapshots.swift`, debug-only):
+
+```bash
+(cd app && swift build)
+DESI_UI_SNAPSHOTS=/tmp/shots app/.build/debug/desi-dictation
+```
+
+It reads the unbundled binary's own defaults, not the installed app's, so
+switches show their defaults. Toggles render grey because the window isn't key.
+
 ## 4. How the change reaches each surface
 
 | Surface | How it updates | Trigger |

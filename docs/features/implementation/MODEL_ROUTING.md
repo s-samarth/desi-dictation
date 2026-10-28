@@ -16,8 +16,10 @@ ours.**
    by `LanguageMode.modelKey`). Switching language switches model silently.
 2. Every model picker is **scoped to the language above it** — only models that
    serve it are listed (`ModelManager.candidates(for:)`).
-3. **Auto names its choice** ("Auto (parakeet-tdt-0.6b-v3-q4_k)") — a default
-   you can't see is a default you don't trust.
+3. **Auto names its choice** ("Auto (Parakeet)") — a default you can't see is
+   a default you don't trust. Since 2026-10-28 the menu bar has no model
+   picker: the language is the user's choice, the model lives on the Models
+   page.
 4. Changing language **preloads** the new model, so the swap never lands inside
    the transcribing phase (PERF_RCA_2026-08.md RC5). Per-app rules do this too.
 
@@ -29,9 +31,8 @@ ours.**
 | Which models serve which language | `ModelScoring.swift` (`ModelManager.score(_:for:)`) → `candidates(for:)`, `autoChoice(for:)` |
 | What can be downloaded, onboarding picks | `ModelCatalog.swift` (`catalog`, `catalogEntry(for:)`) |
 | Verified download (SHA256, progress) | `ModelDownloader.swift` |
-| Menu-bar picker (scoped, per language) | `MenuContent.swift` |
-| Settings → Models → "Default model per language" | `DefaultModelSettings.swift` |
-| Main window picker | `DictationPane.swift` |
+| Settings… → Models → "Model for each language" (the only picker) | `DefaultModelSettings.swift` |
+| Dictation page footer ("Uses Hinglish Prime") | `DictationPane.swift` |
 | Engine chosen from the model file | `EngineRouter.swift` |
 
 ## The scoring rules (why a model is hidden)

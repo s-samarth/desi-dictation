@@ -83,6 +83,13 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
+# The Translate services are AI features, which aren't released yet
+# (SettingsStore.aiFeaturesReleased). Without this they'd show in every app's
+# Services menu and fail. Build with DESI_AI_FEATURES=1 to keep them.
+if [ "${DESI_AI_FEATURES:-0}" != "1" ]; then
+  /usr/libexec/PlistBuddy -c "Delete :NSServices" "$CONTENTS/Info.plist"
+fi
+
 # Prefer a stable identity so TCC grants survive rebuilds (make_dev_cert.sh);
 # fall back to ad-hoc. Distribution builds use a Developer ID (LAUNCH.md).
 # NOTE: no `-v` — the self-signed dev cert is untrusted (fine for signing/TCC)

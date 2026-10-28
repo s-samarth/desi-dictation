@@ -2,62 +2,76 @@ import SwiftUI
 import DesiDictationKit
 
 /// The four opt-in switches (AUTO_VOCABULARY.md), shared by the Vocabulary
-/// pane and onboarding. Each one carries its own privacy line, so turning a
-/// switch on is an informed choice.
+/// page and onboarding. Each carries one short line on what it reads or
+/// changes, so turning a switch on is an informed choice.
 struct SmartVocabularyToggles: View {
     @ObservedObject var store = AutoVocabularyStore.shared
 
     var body: some View {
         toggle("Suggest words from my corrections", $store.learnFromEdits,
-               "After a paste, if you retype a word it wrote, it asks: \"Always write X as Y?\". Nothing is added until you say yes.")
-        toggle("Fix near-misses of my names and words", $store.fixNearMisses,
-               "\"Saraswath\" → \"Saraswat\" when it sounds and looks almost the same. Everyday words are never touched. Every fix shows on screen and in History.")
-        toggle("Read names from the window I'm dictating into", $store.readScreen,
-               "Names on screen are read when you start dictating, kept in memory for that one dictation, then dropped. Never saved.")
+               "Retype a word it got wrong and it asks \"Always write X as Y?\"")
+        toggle("Fix near-misses of my words", $store.fixNearMisses,
+               "\"Saraswath\" becomes \"Saraswat\". Everyday words are never changed.")
+        toggle("Use names on screen", $store.readScreen,
+               "Reads the window you dictate into, for that dictation only. Never saved.")
             .disabled(!store.fixNearMisses)
-        toggle("Hinglish: match the spelling already in the text I'm editing", $store.hinglishFieldSpelling,
-               "If the field already writes \"nahi\" (twice or more), \"nahin\" becomes \"nahi\" in this dictation only.")
+        toggle("Hinglish: match my spelling in the field", $store.hinglishFieldSpelling,
+               "If the text already says \"nahi\", \"nahin\" becomes \"nahi\".")
     }
 
     private func toggle(_ title: String, _ isOn: Binding<Bool>, _ note: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Toggle(title, isOn: isOn)
-            Text(note).font(.caption).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+        Toggle(isOn: isOn) {
+            Text(title)
+            Text(note)
         }
     }
 }
 
-/// Settings → Vocabulary: the switches plus the review queue of proposals.
-struct SmartVocabularyView: View {
+/// Vocabulary page: the words it should always write, how it learns more,
+/// and anything waiting for a yes.
+struct VocabularyPane: View {
     @ObservedObject var store = AutoVocabularyStore.shared
+    @ObservedObject var settings = SettingsStore.shared
+    @State private var showReplacements = false
 
     var body: some View {
         Form {
+            if !store.suggestions.isEmpty {
+                Section("Waiting for you") {
+                    ForEach(store.suggestions) { SuggestionRow(suggestion: $0) }
+                }
+            }
+
+            DictionarySettings()
+
             Section {
                 SmartVocabularyToggles()
             } header: {
-                Text("Smart vocabulary — teach it your names without typing a list")
+                Text("Learn automatically")
             } footer: {
-                Text("Everything here is off until you turn it on, and nothing leaves your Mac. Accepted words go into your Personal dictionary (Text).")
-                    .font(.caption)
+                Text("Off until you turn them on. Nothing leaves your Mac, and every automatic fix shows in History.")
+                    .footnote()
             }
-            Section("Suggestions waiting for you (\(store.suggestions.count))") {
-                if store.suggestions.isEmpty {
-                    Text("When you retype a word it got wrong, the fix shows up here.")
+
+            Section {
+                DisclosureGroup("Advanced", isExpanded: $showReplacements) {
+                    Text("Replacements, one per line: find=replace")
                         .font(.caption).foregroundStyle(.secondary)
-                }
-                ForEach(store.suggestions) { SuggestionRow(suggestion: $0) }
-            }
-            if !store.rejected.isEmpty {
-                Section("Fixes you turned down") {
-                    Text("\(store.rejected.count) word pairs will never be suggested or applied.")
-                        .font(.caption).foregroundStyle(.secondary)
-                    Button("Allow them again") { store.clearRejections() }
+                    TextEditor(text: $settings.replacementRules)
+                        .font(.system(.body, design: .monospaced))
+                        .frame(height: 80)
+                    if !store.rejected.isEmpty {
+                        HStack {
+                            Text("\(store.rejected.count) fixes you turned down are never applied.")
+                                .font(.caption).foregroundStyle(.secondary)
+                            Spacer()
+                            Button("Allow again") { store.clearRejections() }
+                        }
+                    }
                 }
             }
         }
-        .padding()
+        .formStyle(.grouped)
     }
 }
 

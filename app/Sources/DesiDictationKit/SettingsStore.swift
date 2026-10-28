@@ -120,6 +120,12 @@ public final class SettingsStore: ObservableObject {
     @Published public var micWarm: Bool { didSet { d.set(micWarm, forKey: "micWarm") } }
     @Published public var onboarded: Bool { didSet { d.set(onboarded, forKey: "onboarded") } }
     @Published public var launchAtLogin: Bool { didSet { d.set(launchAtLogin, forKey: "launchAtLogin") } }
+    /// AI features (translate, tones, thinking sessions, custom cleanup) are
+    /// built but not released: until this flips, they are hidden everywhere
+    /// and `aiFeaturesEnabled` stays false whatever was stored. Flip it
+    /// together with DESI_AI_FEATURES in scripts/build_app.sh (Services menu).
+    public static let aiFeaturesReleased = false
+
     /// Master switch: off = the classic dictation app — no AI menu items, no
     /// LLM modes, no extra downloads ever (not everyone wants the AI layer).
     @Published public var aiFeaturesEnabled: Bool { didSet { d.set(aiFeaturesEnabled, forKey: "aiFeaturesEnabled") } }
@@ -179,7 +185,8 @@ public final class SettingsStore: ObservableObject {
         micWarm = d.object(forKey: "micWarm") as? Bool ?? true
         onboarded = d.object(forKey: "onboarded") as? Bool ?? false
         launchAtLogin = d.object(forKey: "launchAtLogin") as? Bool ?? true
-        aiFeaturesEnabled = d.object(forKey: "aiFeaturesEnabled") as? Bool ?? true
+        aiFeaturesEnabled = Self.aiFeaturesReleased
+            && d.object(forKey: "aiFeaturesEnabled") as? Bool ?? true
         llmModel = d.string(forKey: "llmModel") ?? LLMServices.defaultModel
         toneMode = ToneMode(rawValue: d.string(forKey: "toneMode") ?? "") ?? .faithful
         perAppModes = d.object(forKey: "perAppModes") as? Bool ?? true

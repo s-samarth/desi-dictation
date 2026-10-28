@@ -13,7 +13,7 @@ competitors/PATTERNS.md §1 ("the only serious app without it — overdue").
   as HistoryStore: JSON file, atomic writes, `init(fileURL:)` injectable so
   tests never touch real data).
 - **`DesiDictationApp/DictionaryView.swift`** — `DictionarySettings` (the list
-  section in Settings → Text: entries as ~~heard~~ → written rows with remove
+  section "Your words" on the Vocabulary page: ~~heard~~ → written rows with remove
   buttons) + `AddDictionaryEntrySheet` (two fields, used by both Settings and
   History).
 - **History affordance** — right-click any entry in HistoryView → *"Always
