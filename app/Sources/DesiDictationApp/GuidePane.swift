@@ -29,7 +29,9 @@ struct GuidePane: View {
 
             GuideFeature(
                 number: 3, title: "Teach it your words",
-                summary: "A name it keeps getting wrong? Add it once in Vocabulary → Your words (\"Saraswath\" → \"Saraswat\") and every dictation writes it your way, in every app. You can also right-click a dictation in History.")
+                summary: "A name it keeps getting wrong? Teach it once and every dictation writes it your way, in every app. There are two lists: Hinglish dictations use your Hinglish words, English dictations your English words, so a Hinglish spelling like \"nahi\" never touches English. हिन्दी uses neither.",
+                steps: ["**Fastest:** select the wrong word in any app, right-click → **Services → Always write as… (Desi Dictation)**, type the right spelling, Save.",
+                        "Or fix it in the text right after dictating (section 4), or add it in Vocabulary → Your words."])
 
             learnSection
 
@@ -72,7 +74,7 @@ struct GuidePane: View {
             summary: "Instead of typing a list, just fix mistakes where they land. It notices and offers to remember.",
             steps: ["Dictate as usual. Say it writes \"Call Rowan at 5\".",
                     "Within **30 seconds**, fix the word right there in the text: Rowan → Rohan.",
-                    "Stop typing for **2 seconds**. A small popup asks **Always write Rowan as Rohan?** Click **Add** and it's in Your words for good.",
+                    "Stop typing for **2 seconds** (or just press Enter). A small popup asks **Always write Rowan as Rohan in English?** Click **Add** and it's in that language's list for good.",
                     "Missed the popup? It waits in Vocabulary → Waiting for you. Say **Not now** twice and it stops asking.",
                     "Want proof it's working? Vocabulary → **What it's been doing** lists what it saw after each dictation, what it suggested and what it learned. Learned words appear under **Your words**."],
             turnOnIf: "it keeps mishearing the same names, brands or terms.",

@@ -28,13 +28,14 @@ public final class VocabularySession: @unchecked Sendable {
     }
 
     @MainActor
-    public static func plan(store: AutoVocabularyStore = .shared,
+    public static func plan(mode: LanguageMode? = nil, store: AutoVocabularyStore = .shared,
                             dictionary: PersonalDictionary = .shared) -> Plan {
-        Plan(readScreen: store.fixNearMisses && store.readScreen,
+        let words = mode.map { dictionary.entries(for: $0) } ?? dictionary.entries
+        return Plan(readScreen: store.fixNearMisses && store.readScreen,
              readField: store.needsFieldText,
              useVocabulary: store.fixNearMisses,
              hinglishSpelling: store.hinglishFieldSpelling,
-             dictionaryTerms: dictionary.entries.flatMap { WordTokens.words(in: $0.written) },
+             dictionaryTerms: words.flatMap { WordTokens.words(in: $0.written) },
              rejected: store.rejected)
     }
 

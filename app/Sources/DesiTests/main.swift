@@ -4,6 +4,7 @@
 import Foundation
 
 runDictionaryTests()
+runWordListTests()
 runStoreTests()
 runNumberTests()
 runModelRoutingTests()

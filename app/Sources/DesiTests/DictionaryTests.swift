@@ -47,3 +47,32 @@ func runDictionaryTests() {
     T.equal(PostProcessor.applyReplacements("a=b ignored", rules: "no-equals-line"),
             "a=b ignored", "malformed rule ignored")
 }
+
+/// Two word lists, chosen by the dictation language; हिन्दी uses neither.
+func runWordListTests() {
+    T.begin("Dictionary — English and Hinglish lists")
+    T.equal(WordScope(mode: .english), .english, "English dictations use the English list")
+    T.equal(WordScope(mode: .hinglish), .hinglish, "Hinglish dictations use the Hinglish list")
+    T.equal(WordScope(mode: .anyToEnglish), .hinglish, "English-from-any transcribes Hinglish first")
+    T.expect(WordScope(mode: .hindi) == nil, "हिन्दी has no list")
+
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("words-\(UUID()).json")
+    defer { try? FileManager.default.removeItem(at: url) }
+    let dictionary = PersonalDictionary(fileURL: url)
+    dictionary.add(heard: "nahin", written: "nahi", scope: .hinglish)
+    dictionary.add(heard: "Saraswath", written: "Saraswat", scope: .english)
+    T.equal(PersonalDictionary.apply("main nahin aaunga", entries: dictionary.entries(for: .hinglish)),
+            "main nahi aaunga", "Hinglish words apply in Hinglish")
+    T.equal(PersonalDictionary.apply("nahin is a word", entries: dictionary.entries(for: .english)),
+            "nahin is a word", "…and never touch English text")
+    T.equal(dictionary.entries(for: .hindi).count, 0, "हिन्दी gets no words")
+    dictionary.add(heard: "nahin", written: "nahin", scope: .english)
+    T.equal(dictionary.entries.count, 2, "a no-op rule isn't stored")
+    dictionary.add(heard: "Saraswath", written: "Saraswat", scope: .hinglish)
+    T.equal(dictionary.entries.count, 3, "the same word can live in both lists")
+
+    let legacy = #"[{"heard":"Samar","written":"Samarth","id":"6A55FE1A-7B24-491D-ABC5-2B58D7C38927"}]"#
+    try? legacy.data(using: .utf8)!.write(to: url)
+    T.equal(PersonalDictionary(fileURL: url).entries.first?.scope, .english,
+            "words saved before the two lists open in the English list")
+}

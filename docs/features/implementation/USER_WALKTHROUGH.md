@@ -115,6 +115,14 @@ menu items and right-click services are hidden (§3–§8).
 
 ## 1 · Personal dictionary — zero setup, works today
 
+> **Two lists, right-click anywhere (2026-10-28).** Your words are split by
+> the language you dictate in: Hinglish dictations use the Hinglish list,
+> English dictations the English list, हिन्दी neither. Words learned from a
+> fix go to the list of the language you were dictating in; the popup says
+> which ("…as Rohan in English?"). To teach a word without History: select it
+> in any app → right-click → **Services → Always write as… (Desi
+> Dictation)** → type the right spelling → Save.
+
 - **Discovery:** you notice a wrong spelling in a paste; you open menu bar
   mic → History and right-click the entry → **"Always write a word as…"**.
   Also listed in Settings → **Vocabulary → Your words** with "Add word…".

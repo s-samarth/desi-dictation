@@ -50,6 +50,23 @@ final class AppWindows {
         present(thoughts!)
     }
 
+    /// The right-click "Always write as…" window, prefilled with the word.
+    /// Rebuilt each time so it never shows the previous word.
+    private var addWord: NSWindow?
+
+    func showAddWord(heard: String) {
+        addWord?.close()
+        let scope = WordScope(mode: SettingsStore.shared.languageMode) ?? .english
+        let view = AddDictionaryEntrySheet(heard: heard, scope: scope) { [weak self] in
+            self?.addWord?.close()
+        }
+        let window = makeWindow(title: "Desi Dictation", content: NSHostingView(rootView: view),
+                                size: NSSize(width: 460, height: 190))
+        window.level = .floating
+        addWord = window
+        present(window)
+    }
+
     /// Dock/Spotlight re-open → show something useful.
     func handleReopen() {
         SettingsStore.shared.onboarded ? showMain() : showOnboarding()

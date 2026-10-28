@@ -49,12 +49,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Menu-bar-only app (no Dock icon), also when run via `swift run`.
         NSApp.setActivationPolicy(.accessory)
 
-        // Right-click → Services → Translate, from any app (Flow B). Only
-        // once AI ships; the Info.plist entries are gated the same way.
-        if SettingsStore.aiFeaturesReleased {
-            NSApp.servicesProvider = services
-            NSUpdateDynamicServices()
-        }
+        // Right-click → Services, from any app: "Always write as…" always;
+        // Translate (Flow B) only once AI ships — build_app.sh drops those
+        // Info.plist entries until then, and the handlers refuse anyway.
+        NSApp.servicesProvider = services
+        NSUpdateDynamicServices()
 
         // Surface permission prompts early instead of on first dictation.
         let status = Permissions.check()

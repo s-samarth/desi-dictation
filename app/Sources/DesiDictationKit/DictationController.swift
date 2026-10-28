@@ -343,7 +343,7 @@ public final class DictationController: ObservableObject {
         sessionAudioSeconds = Double(samples.count) / 16000.0
         let rules = settings.replacementRules
         // Snapshot on main; applied off-main via the pure static core.
-        let dictionary = PersonalDictionary.shared.entries
+        let dictionary = PersonalDictionary.shared.entries(for: mode)
         let vocabulary = vocabularyPlan()
         let useOllama = settings.aiFeaturesEnabled && settings.ollamaEnabled
             && LicenseManager.shared.isPro
