@@ -784,3 +784,36 @@ has its own keyboard-focus owner (menus, key thieves), and its log
 `destinations for kCGSEventKeyDown`) names the real recipient. Read it before
 theorising: it turned a "same bug again" report into a one-line diagnosis.
 Other apps' menus still steal the keystroke; we can't observe those.
+
+## 2026-10-28 — English A/B of Parakeet challengers (docs/ENGLISH_ASR_AB_2026-10.md)
+
+### Failure mode #33 — two silent traps when A/B-ing NeMo models
+
+**Symptom 1:** Parakeet TDT 0.6B **v2**, converted with whisper.cpp's
+`convert-parakeet-to-ggml.py` and quantized with `parakeet-quantize … q4_k`,
+gave **no output on 55 of 55 clips**. `desi-cli` printed only a Metal teardown
+abort at exit (FM#27), which hid the real line:
+`tensor 'decoder.prediction.embed.weight' has wrong size in model file: got
+2624000, expected 1312000`.
+**Cause 1:** v2's 1,024-token vocab gives a 1025×640 prediction embedding.
+`parakeet-quantize` writes that tensor in f32 while the header says f16 for
+q4_k (640 isn't a multiple of the 256-wide k-quant block). v3's 8,192-token
+vocab never hit it.
+**Fix 1:** quantize v2 to **q5_0 / q8_0** (32-wide blocks). Both load and
+score the same as f16.
+**Symptom 2:** NeMo 3.0.0 failed on both 2026 unified models:
+`parakeet-unified-en-0.6b` with `'NoneType' object has no attribute 'get'`,
+and `nemotron-labs-unified-asr-0.6b` with `Unknown prompt key: 'None'`, even
+though `target_lang="en"` was passed.
+**Cause 2:** unified-en ships `validation_ds: null`, which `transcribe()`
+reads. Nemotron-labs' prompt dataset reads the language from each cut, which
+is None for plain wavs, and ignores `target_lang`. Its default prompt mode
+also *randomizes* between auto and the language ID, a training setting that
+would make inference nondeterministic.
+**Fix 2:** set `cfg.validation_ds = {}` under `open_dict`, and pin
+`_get_prompt_index_for_cut` to the requested language for inference.
+**Lesson:** when a converted or reference model scores 0 or 100 %, read the
+loader's first error line before blaming the model. Calibrate every new
+runtime with the shipping model first: Parakeet v3 scored 14.9 / 14.8 / 15.6 %
+in desi-cli / NeMo / MLX, so the runtimes weren't the variable.
+||||||| b0d8a1b

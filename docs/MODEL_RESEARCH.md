@@ -124,6 +124,18 @@ only ~240 MB on English, while 8 GB-Mac memory pressure comes from the whisper
 models Redux doesn't replace. Revisit only if a GGUF appears **and** it matches
 the shipping model's accuracy on the Indian-English suites.
 
+**English scout, 2026-10-28 → [ENGLISH_ASR_SCOUT_2026-10.md](ENGLISH_ASR_SCOUT_2026-10.md).**
+Parakeet v3 is at the frontier for its speed class. On our Indian-English quick
+tier it beats turbo (14.9 % vs 16.4 % nWER, 0.14 s vs 1.44 s), and the
+leaderboard's Indian-accent set agrees. Worth an A/B: Parakeet **v2** (same
+engine, ~6 % better there), and Qwen3-ASR-1.7B or Cohere Transcribe as an
+opt-in "Accurate English" model (~15 % better, but ~2B parameters).
+**Measured the same day → [ENGLISH_ASR_AB_2026-10.md](ENGLISH_ASR_AB_2026-10.md):**
+v3 stays the default. On the full 278-clip tier, Qwen3-ASR-1.7B is the only
+model significantly better than v3 (−11 % clean, −9 % noisy), so it should
+replace Turbo as "Accurate English". Cohere only wins on clean short clips.
+v2 lost.
+
 ## Why so few open Hinglish models? (the bottleneck, as asked)
 
 1. **Economics.** Code-mixed Indian ASR monetizes as B2B voice-bot/call-center
