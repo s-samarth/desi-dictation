@@ -7,12 +7,24 @@ public struct VocabularySuggestion: Codable, Identifiable, Equatable {
     public let heard: String
     public let written: String
     public let date: Date
+    /// Where the word will apply once accepted (Hinglish spellings stay Hinglish).
+    public let scope: WordScope
 
-    public init(heard: String, written: String) {
+    public init(heard: String, written: String, scope: WordScope = .english) {
         id = UUID()
         self.heard = heard
         self.written = written
         date = Date()
+        self.scope = scope
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        heard = try c.decode(String.self, forKey: .heard)
+        written = try c.decode(String.self, forKey: .written)
+        date = try c.decode(Date.self, forKey: .date)
+        scope = try c.decodeIfPresent(WordScope.self, forKey: .scope) ?? .english
     }
 
     var pairKey: String { WordFix.pairKey(from: heard, to: written) }
@@ -62,8 +74,8 @@ public final class AutoVocabularyStore: ObservableObject {
     // MARK: - Proposals
 
     /// Queues a proposal; duplicates and rejected pairs are dropped.
-    public func propose(_ pair: EditPair) {
-        let suggestion = VocabularySuggestion(heard: pair.heard, written: pair.typed)
+    public func propose(_ pair: EditPair, scope: WordScope = .english) {
+        let suggestion = VocabularySuggestion(heard: pair.heard, written: pair.typed, scope: scope)
         guard !rejected.contains(suggestion.pairKey),
               !suggestions.contains(where: { $0.pairKey == suggestion.pairKey }) else { return }
         suggestions.insert(suggestion, at: 0)
@@ -73,7 +85,7 @@ public final class AutoVocabularyStore: ObservableObject {
 
     /// "Add": the pair becomes a normal PersonalDictionary entry.
     public func accept(_ suggestion: VocabularySuggestion, into dictionary: PersonalDictionary = .shared) {
-        dictionary.add(heard: suggestion.heard, written: suggestion.written)
+        dictionary.add(heard: suggestion.heard, written: suggestion.written, scope: suggestion.scope)
         remove(suggestion)
         let line = "Learned: \"\(suggestion.heard)\" is now always written \"\(suggestion.written)\""
         Task { @MainActor in VocabularyActivityLog.shared.add(.learned, line) }

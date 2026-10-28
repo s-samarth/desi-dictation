@@ -78,16 +78,25 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
             <key>NSSendTypes</key><array><string>NSStringPboardType</string></array>
             <key>NSReturnTypes</key><array><string>NSStringPboardType</string></array>
         </dict>
+        <!-- Not AI: select a misheard word anywhere → teach the right spelling. -->
+        <dict>
+            <key>NSMenuItem</key><dict><key>default</key><string>Always write as… (Desi Dictation)</string></dict>
+            <key>NSMessage</key><string>alwaysWriteAs</string>
+            <key>NSPortName</key><string>Desi Dictation</string>
+            <key>NSSendTypes</key><array><string>NSStringPboardType</string></array>
+            <key>NSRequiredContext</key><dict/>
+        </dict>
     </array>
 </dict>
 </plist>
 PLIST
 
-# The Translate services are AI features, which aren't released yet
+# The two Translate services are AI features, which aren't released yet
 # (SettingsStore.aiFeaturesReleased). Without this they'd show in every app's
 # Services menu and fail. Build with DESI_AI_FEATURES=1 to keep them.
 if [ "${DESI_AI_FEATURES:-0}" != "1" ]; then
-  /usr/libexec/PlistBuddy -c "Delete :NSServices" "$CONTENTS/Info.plist"
+  # Entries 0 and 1 are the two Translate services; "Always write as…" stays.
+  /usr/libexec/PlistBuddy -c "Delete :NSServices:1" -c "Delete :NSServices:0" "$CONTENTS/Info.plist"
 fi
 
 # Prefer a stable identity so TCC grants survive rebuilds (make_dev_cert.sh);

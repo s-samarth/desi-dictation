@@ -91,7 +91,8 @@ struct VocabularyPromptView: View {
             if let suggestion = store.liveSuggestion {
                 Image(systemName: "text.badge.plus").foregroundStyle(Color.accentColor)
                 (Text("Always write ") + Text(suggestion.heard).bold()
-                    + Text(" as ") + Text(suggestion.written).bold() + Text("?"))
+                    + Text(" as ") + Text(suggestion.written).bold()
+                    + Text(" in \(suggestion.scope.label)?"))
                     .font(.system(size: 13))
                     .lineLimit(1)
                 Button("Add") { store.accept(suggestion) }

@@ -12,6 +12,23 @@ import DesiDictationKit
 /// keeps a hung local model from freezing the calling app.
 final class ServiceProvider: NSObject {
 
+    /// Right-click → Services → "Always write as… (Desi Dictation)": select a
+    /// misheard word in any app and teach it right there, instead of hunting
+    /// for it in History. Opens a small window prefilled with the selection.
+    @objc func alwaysWriteAs(
+        _ pboard: NSPasteboard, userData: String?,
+        error: AutoreleasingUnsafeMutablePointer<NSString>
+    ) {
+        let selected = (pboard.string(forType: .string) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
+        // A word or a short name, not a paragraph.
+        guard !selected.isEmpty, selected.split(separator: " ").count <= 3 else {
+            error.pointee = "Select the misheard word (up to three words) first."
+            return
+        }
+        DispatchQueue.main.async { AppWindows.shared.showAddWord(heard: selected) }
+    }
+
     @objc func translateToEnglish(
         _ pboard: NSPasteboard, userData: String?,
         error: AutoreleasingUnsafeMutablePointer<NSString>

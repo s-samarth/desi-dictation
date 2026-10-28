@@ -8,13 +8,16 @@ extension DictationController {
     func beginVocabulary() {
         EditWatcher.shared.stop()
         AccessibilityPrimer.primeFrontmost()
-        VocabularySession.shared.begin(VocabularySession.plan())
+        VocabularySession.shared.begin(VocabularySession.plan(mode: vocabularyMode))
     }
 
     /// Release, on main: what the work queue may use.
     func vocabularyPlan() -> VocabularySession.Plan {
-        VocabularySession.plan()
+        VocabularySession.plan(mode: vocabularyMode)
     }
+
+    /// This dictation's language, so only its words are used.
+    private var vocabularyMode: LanguageMode { sessionLanguage?.mode ?? settingsMode }
 
     /// Work queue: near-miss names and Hinglish spellings, after the exact
     /// dictionary step. Returns the transcript unchanged when nothing applies.
@@ -48,8 +51,9 @@ extension DictationController {
         // Watch when there's something to learn, or a fix the user may undo.
         let log = VocabularyActivityLog.shared
         for fix in fixes { log.add(.fixed, "Fixed \"\(fix.from)\" → \"\(fix.to)\" (\(fix.source.label))") }
-        if store.learnFromEdits || !fixes.isEmpty {
-            let mode = sessionLanguage?.mode ?? settingsMode
+        let mode = vocabularyMode
+        // हिन्दी has no vocabulary list, so nothing to learn there.
+        if store.learnFromEdits || !fixes.isEmpty, WordScope(mode: mode) != nil {
             EditWatcher.shared.watch(inserted: text) { event in
                 Self.handle(event, fixes: fixes, mode: mode)
             }
@@ -72,15 +76,16 @@ extension DictationController {
             if pairs.isEmpty {
                 log.add(.info, "Saw your edit in \(app), but no misheard word was swapped (rewrites and new sentences are skipped).")
             }
-            let dictionary = PersonalDictionary.shared.entries
+            let dictionary = PersonalDictionary.shared.entries(for: mode)
             for pair in pairs {
                 if let undone = CorrectionLearner.revertedFix(pair, fixes: fixes) {
                     store.respect(undone)
                     log.add(.learned, "You changed \"\(undone.to)\" back, so it won't make that fix again.")
                 } else if store.learnFromEdits, let proposal = CorrectionLearner.proposal(
                     for: pair, mode: mode, dictionary: dictionary, rejected: store.rejected) {
-                    store.propose(proposal)
-                    log.add(.suggested, "Suggested: always write \"\(proposal.heard)\" as \"\(proposal.typed)\"")
+                    let scope = WordScope(mode: mode) ?? .english
+                    store.propose(proposal, scope: scope)
+                    log.add(.suggested, "Suggested for your \(scope.label) words: always write \"\(proposal.heard)\" as \"\(proposal.typed)\"")
                 } else {
                     log.add(.info, "Saw \"\(pair.heard)\" → \"\(pair.typed)\" in \(app). Not a sound-alike, so no suggestion.")
                 }

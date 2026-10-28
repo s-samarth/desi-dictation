@@ -1,19 +1,30 @@
 import SwiftUI
 import DesiDictationKit
 
-/// Personal dictionary management (P4-S1): the list of "always write it as"
-/// rules. Lives on the Vocabulary page; entries are also added from History.
+/// Personal dictionary management (P4-S1): two lists, picked by the language
+/// you dictate in. Hinglish dictations use the Hinglish words, English ones
+/// the English words; हिन्दी has none. Lives on the Vocabulary page.
 struct DictionarySettings: View {
     @ObservedObject var dictionary = PersonalDictionary.shared
+    @ObservedObject var settings = SettingsStore.shared
+    @State private var list: WordScope = WordScope(mode: SettingsStore.shared.languageMode) ?? .english
     @State private var showAdd = false
+
+    private var words: [DictionaryEntry] { dictionary.entries.filter { $0.scope == list } }
 
     var body: some View {
         Section {
-            if dictionary.entries.isEmpty {
-                Text("Names, brands, code terms. Add one here, or right-click a dictation in History.")
+            Picker("List", selection: $list) {
+                ForEach(WordScope.allCases, id: \.self) { scope in
+                    Text("\(scope.label) (\(dictionary.entries.filter { $0.scope == scope }.count))").tag(scope)
+                }
+            }
+            .pickerStyle(.segmented).labelsHidden()
+            if words.isEmpty {
+                Text("No \(list.label) words yet. Fix a misheard word right in the text after dictating, select it anywhere and right-click → Services → Always write as…, or add one here.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            ForEach(dictionary.entries) { entry in
+            ForEach(words) { entry in
                 HStack {
                     Text(entry.heard).strikethrough().foregroundStyle(.secondary)
                     Image(systemName: "arrow.right").font(.caption2)
@@ -26,25 +37,34 @@ struct DictionarySettings: View {
                         Image(systemName: "minus.circle")
                     }
                     .buttonStyle(.borderless)
-                    .help("Remove this rule")
+                    .help("Remove this word")
                 }
             }
-            Button("Add word…") { showAdd = true }
+            Button("Add \(list.label) word…") { showAdd = true }
         } header: {
             Text("Your words")
         } footer: {
-            Text("Applied to every dictation, whole words only.").footnote()
+            Text("\(list.label) dictations use the \(list.label) list, whole words only. हिन्दी dictations use neither.")
+                .footnote()
         }
-        .sheet(isPresented: $showAdd) { AddDictionaryEntrySheet() }
+        .sheet(isPresented: $showAdd) { AddDictionaryEntrySheet(scope: list) { showAdd = false } }
     }
 }
 
-/// Two fields, one job: "it wrote X → always write Y". Prefill `heard` when
-/// launched from a history entry so the user only types the correct form.
+/// Two fields, one job: "it wrote X → always write Y", into one list.
+/// Prefilled `heard` when it comes from a selection (right-click → Services)
+/// or History, so the user only types the correct form.
 struct AddDictionaryEntrySheet: View {
-    @Environment(\.dismiss) private var dismiss
     @State var heard: String = ""
     @State var written: String = ""
+    @State var scope: WordScope
+    var onDone: () -> Void
+
+    init(heard: String = "", scope: WordScope = .english, onDone: @escaping () -> Void) {
+        _heard = State(initialValue: heard)
+        _scope = State(initialValue: scope)
+        self.onDone = onDone
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -57,12 +77,17 @@ struct AddDictionaryEntrySheet: View {
                 TextField("Always write (e.g. Saraswat)", text: $written)
             }
             .textFieldStyle(.roundedBorder)
+            Picker("For", selection: $scope) {
+                ForEach(WordScope.allCases, id: \.self) { Text("\($0.label) dictations").tag($0) }
+            }
+            .pickerStyle(.segmented)
             HStack {
                 Spacer()
-                Button("Cancel") { dismiss() }
+                Button("Cancel") { onDone() }
+                    .keyboardShortcut(.cancelAction)
                 Button("Save") {
-                    PersonalDictionary.shared.add(heard: heard, written: written)
-                    dismiss()
+                    PersonalDictionary.shared.add(heard: heard, written: written, scope: scope)
+                    onDone()
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(heard.trimmingCharacters(in: .whitespaces).isEmpty
@@ -70,6 +95,7 @@ struct AddDictionaryEntrySheet: View {
             }
         }
         .padding(20)
-        .frame(width: 440)
+        .frame(width: 460)
+        .tint(Theme.accent)
     }
 }

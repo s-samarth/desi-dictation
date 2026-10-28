@@ -89,7 +89,11 @@ struct HistoryView: View {
                     }
                 }
                 .listStyle(.inset)
-                .sheet(item: $fixingEntry) { _ in AddDictionaryEntrySheet() }
+                .sheet(item: $fixingEntry) { entry in
+                    AddDictionaryEntrySheet(
+                        scope: LanguageMode(rawValue: entry.mode).flatMap(WordScope.init(mode:)) ?? .english
+                    ) { fixingEntry = nil }
+                }
             }
 
             Divider()

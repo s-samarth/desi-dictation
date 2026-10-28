@@ -16,6 +16,15 @@ competitors/PATTERNS.md §1 ("the only serious app without it — overdue").
   section "Your words" on the Vocabulary page: ~~heard~~ → written rows with remove
   buttons) + `AddDictionaryEntrySheet` (two fields, used by both Settings and
   History).
+- **Two lists (2026-10-28):** `DictionaryEntry.scope` is `WordScope`
+  `.english` / `.hinglish`, picked by the dictation language
+  (`WordScope(mode:)`; `anyToEnglish` → Hinglish; हिन्दी → none, so no
+  vocabulary at all). `entries(for: mode)` feeds the pipeline, the corrector's
+  terms and the learner's duplicate check. Older entries decode as English.
+- **Right-click anywhere:** a non-AI Services entry, "Always write as… (Desi
+  Dictation)" (`ServiceProvider.alwaysWriteAs`), opens `AddDictionaryEntrySheet`
+  prefilled with the selection in a small floating window. `build_app.sh`
+  keeps it when it drops the AI Translate services.
 - **History affordance** — right-click any entry in HistoryView → *"Always
   write a word as… (add to dictionary)"* opens the sheet. This is the intended
   main path: corrections come from real dictations.
