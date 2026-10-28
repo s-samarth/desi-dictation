@@ -5,7 +5,7 @@
 //   swift run desi-cli <model.bin> --batch <dir-with-wavs> [mode]   # JSONL out (evals)
 //   swift run desi-cli --translate "text" [english|hindi]           # LLM spike (TRANSLATION.md §5)
 //   swift run desi-cli --structure "text" [notes|actionList|emailDraft|outline]
-//   swift run desi-cli --fit <model.gguf> evals/context_fit/cases.tsv [--no-prefix]
+//   swift run desi-cli --fit <model.gguf> evals/context_fit/cases.tsv [--word-list]
 import DesiDictationKit
 import Foundation
 

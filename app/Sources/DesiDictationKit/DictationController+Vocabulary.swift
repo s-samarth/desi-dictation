@@ -44,7 +44,7 @@ extension DictationController {
                 corrected, entries: plan.fitEntries,
                 cues: FitCues(screenTerms: session.currentScreenTerms, appName: plan.appName),
                 scorer: ContextChecker.shared.loaded(),
-                prefix: ContextFit.prefix(terms: plan.prefixTerms), rejected: plan.rejected)
+                prefix: ContextFit.prompt, rejected: plan.rejected)
             corrected = fit.text
             fixes += fit.fixes
             let ms = Int(Date().timeIntervalSince(started) * 1000)

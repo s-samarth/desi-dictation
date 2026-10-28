@@ -44,9 +44,11 @@ public struct FitDecision: Equatable, Sendable {
 }
 
 public enum ContextFit {
-    /// A swap must beat keeping the word by this many nats (model + cues).
-    /// Starting value; tune with `desi-cli fit` on the Mac (handoff doc).
-    public static let margin = 0.0
+    /// Swap when Δ + cues beats this (nats). Measured 2026-10-28 with the
+    /// Base model and the neutral prompt (CONTEXT_FIT.md "Measured"): no
+    /// keep case scored above −5.2, so −1 swaps more while leaving 4 nats of
+    /// room before a wrong swap.
+    public static let margin = -1.0
     /// Nats added when the written form is on screen / is the app's name.
     public static let screenBonus = 3.0
     public static let appBonus = 3.0
@@ -55,12 +57,17 @@ public enum ContextFit {
     /// The prompt stays compact: at most this many of the user's words.
     public static let maxPrefixTerms = 10
 
-    /// The model's whole prompt: the user's own words, then the sentence.
-    /// "Words I use: Claude, Kavya, Tazapay.\n" — or a neutral header.
+    /// What the app puts before every sentence. Neutral on purpose: listing
+    /// the user's words ("Words I use: Claude…") made the Base model swap
+    /// "the cloud bill" (CONTEXT_FIT.md "Measured").
+    public static let prompt = "Message:\n"
+
+    /// The word-list prompt, kept for `desi-cli --fit --word-list` so a new
+    /// model can be compared both ways. Not used by the app.
     public static func prefix(terms: [String]) -> String {
         var seen = Set<String>()
         let unique = terms.filter { !$0.isEmpty && seen.insert($0.lowercased()).inserted }
-        guard !unique.isEmpty else { return "Message:\n" }
+        guard !unique.isEmpty else { return prompt }
         return "Words I use: " + unique.prefix(maxPrefixTerms).joined(separator: ", ") + ".\n"
     }
 

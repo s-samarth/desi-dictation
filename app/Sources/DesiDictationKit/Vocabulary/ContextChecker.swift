@@ -54,7 +54,7 @@ public final class LlamaContextScorer: ContextScorer {
 public final class ContextChecker: @unchecked Sendable {
     public static let shared = ContextChecker()
     /// Catalog id; the file is models/ggml-<id>.bin like every other model.
-    public static let modelID = "context-qwen3-0.6b-q4_k_m"
+    public static let modelID = "context-qwen3-0.6b-base-q4_k_m"
 
     public static var modelURL: URL {
         AppPaths.modelsDirectory.appendingPathComponent("ggml-\(modelID).bin")

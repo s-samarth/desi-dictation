@@ -9,13 +9,13 @@
 import PackageDescription
 import Foundation
 
-// llama.cpp context checker ("When it fits", CONTEXT_FIT.md). Linked only
-// once scripts/setup_llama.sh has produced the archive on a Mac; without it
-// the app builds as before and the feature stays hidden (DESI_LLAMA unset).
-let hasLlama = FileManager.default.fileExists(
-    atPath: "\(Context.packageDirectory)/Libraries/libllama-bundle.a")
-let llamaLinkerSettings: [LinkerSetting] = hasLlama ? [.linkedLibrary("llama-bundle")] : []
-let llamaSwiftSettings: [SwiftSetting] = hasLlama ? [.define("DESI_LLAMA")] : []
+// llama.cpp context checker ("When it fits", CONTEXT_FIT.md): the committed
+// archive from scripts/setup_llama.sh, linked like the others. Not a
+// fileExists check: SwiftPM caches the manifest's result by its contents, so
+// the answer went stale when the archive appeared (BUILD_LOG FM#38).
+// DESI_LLAMA stays so the scorer can be compiled out by deleting both lines.
+let llamaLinkerSettings: [LinkerSetting] = [.linkedLibrary("llama-bundle")]
+let llamaSwiftSettings: [SwiftSetting] = [.define("DESI_LLAMA")]
 
 let whisperLinkerSettings: [LinkerSetting] = [
     .unsafeFlags(["-L\(Context.packageDirectory)/Libraries"]),

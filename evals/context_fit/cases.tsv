@@ -39,5 +39,5 @@ keep	slack	Slack	There is some slack in the schedule, we can take a day off
 keep	slack	Slack	Cut him some slack, it is his first week
 swap	sonnet	Sonnet	Switch the model to sonnet, it is cheaper for this task
 keep	sonnet	Sonnet	She wrote a sonnet for her literature class
-swap	opus	Opus	Opus is slower but it handles long contexts better
+swap	opus	Opus	I think opus is slower but it handles long contexts better
 keep	opus	Opus	The album is considered his magnum opus

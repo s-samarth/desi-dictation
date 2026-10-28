@@ -25,10 +25,8 @@ public final class VocabularySession: @unchecked Sendable {
         var hinglishSpelling: Bool
         var dictionaryTerms: [String]
         var rejected: Set<String>
-        /// English "when it fits" pairs, the words for the model's prompt,
-        /// and the app being dictated into (ContextFit).
+        /// English "when it fits" pairs and the app being dictated into (ContextFit).
         var fitEntries: [DictionaryEntry] = []
-        var prefixTerms: [String] = []
         var appName: String?
     }
 
@@ -45,7 +43,6 @@ public final class VocabularySession: @unchecked Sendable {
              dictionaryTerms: words.flatMap { WordTokens.words(in: $0.written) },
              rejected: store.rejected,
              fitEntries: fit,
-             prefixTerms: (fit + words.reversed()).map(\.written),
              appName: NSWorkspace.shared.frontmostApplication?.localizedName)
     }
 
