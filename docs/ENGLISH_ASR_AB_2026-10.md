@@ -57,7 +57,54 @@ Peak memory: Cohere at bf16 reached 4.6 GB of MLX memory, Qwen3-ASR-1.7B at
 Note that MLX's own Parakeet run also reported 4.1 GB, so MLX peaks include
 caches and aren't a like-for-like footprint.
 
-## What it means
+## Full tier — 278 clips (supersedes the quick-tier ranking)
+
+The user approved the full `english` tier for the three finalists, clean and
+5 dB-pink-noise. The three ran in parallel, so accuracy comes from these runs
+and **latency from the uncontended quick-tier runs** above. Groups: **short**
+< 6 s (173 clips: xs + s), **medium** 6–35 s (89: m + l), **long** ≥ 35 s (16:
+xl, which the app always chunks). "Better/worse" is per clip vs v3, with a
+two-sided sign-test p.
+
+| Group | v3 | Cohere | Qwen3-ASR-1.7B | Cohere vs v3 | Qwen vs v3 |
+|---|---|---|---|---|---|
+| **Clean, short** | 12.8 % | **9.2 %** | 10.2 % | −28 %, 36/16, p 0.008 | −21 %, 37/17, p 0.009 |
+| Clean, medium | 10.3 % | 10.7 % | **9.0 %** | +4 %, 27/25, p 0.89 | −12 %, 38/15, p 0.002 |
+| Clean, long | 18.5 % | 20.5 % | **17.0 %** | +11 %, 6/9, n.s. | −8 %, 8/7, n.s. |
+| **Clean, overall** | 14.3 % | 14.6 % | **12.6 %** | +2 %, 69/50, p 0.10 | **−11 %, 83/39, p < 0.001** |
+| **Noisy, short** | 22.5 % | 20.1 % | **16.2 %** | −11 %, 50/30, p 0.03 | **−28 %, 59/30, p 0.003** |
+| Noisy, medium | 13.5 % | **12.4 %** | 12.9 % | −8 %, 37/25, n.s. | −5 %, 36/24, n.s. |
+| Noisy, long | 23.6 % | 23.7 % | **22.8 %** | 0 %, 9/6, n.s. | −4 %, 9/5, n.s. |
+| **Noisy, overall** | 19.5 % | 18.6 % | **17.7 %** | −4 %, 96/61, p 0.006 | **−9 %, 104/59, p 0.001** |
+
+Head to head on all 278 clips, Qwen beats Cohere 70/42 clean and 80/65
+noisy. Cohere's weak spot is very short noisy clips, where it scored 44.9 % on
+xs vs v3's 39.1 %. That is its card's warning that it is "eager to transcribe"
+non-speech. It was also worse than v3 on EdAcc conversation.
+
+**Latency** (uncontended, median / p90 per clip):
+
+| Group | v3 | Cohere (bf16) | Qwen (8-bit) |
+|---|---|---|---|
+| Short | 0.09 / 0.12 s | 0.23 / 0.29 s | 0.39 / 0.55 s |
+| Medium | 0.20 / 0.43 s | 0.48 / 0.88 s | 0.94 / 1.71 s |
+| Long (one call) | 1.87 / 2.65 s | 3.49 / 4.92 s | 7.10 / 10.3 s |
+
+In the app, long dictations are chunked while the user talks, so the wait
+after release is roughly the "medium" row, not the "long" one.
+
+**Revised verdict:** the quick tier's "Cohere is best in noise" was sample
+noise. Across 278 clips:
+- **Qwen3-ASR-1.7B is the only model that beats v3 significantly overall**,
+  both clean and noisy, and it gains most on short noisy dictations (−28 %).
+- **Cohere only clearly wins on clean short clips.**
+
+**Recommendation:** replace Turbo with **Qwen3-ASR-1.7B** as the opt-in
+"Accurate English" model. It also takes `hotwords`, which the auto-vocabulary
+work can feed. **Parakeet v3 stays the default**: it is 4× faster on short
+dictations (0.09 s vs 0.39 s).
+
+## What it means (quick tier — see the full-tier verdict above)
 
 1. **Parakeet v3 stays the default.** No challenger beats it on both clean and
    noisy speech at its speed (0.14 s). That includes NVIDIA's newer models.
