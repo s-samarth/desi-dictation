@@ -43,6 +43,7 @@ Everything written about Desi Dictation — engineering, product, strategy, and 
 | [MONETIZATION.md](MONETIZATION.md) | Every monetization model, comparables, pricing, the plan |
 | [MODEL_RESEARCH.md](MODEL_RESEARCH.md) | Model landscape & selection research |
 | [ENGLISH_ASR_SCOUT_2026-10.md](ENGLISH_ASR_SCOUT_2026-10.md) | Can anything beat Parakeet for English? Leaderboard + on-device scout, Oct 2026 |
+| [ENGLISH_ASR_AB_2026-10.md](ENGLISH_ASR_AB_2026-10.md) | The measured A/B: Parakeet v3 vs v2, Qwen3-ASR, NVIDIA unified, Turbo — clean + noisy Indian English |
 | [FINETUNING.md](FINETUNING.md) | Fine-tuning deep-dive (when/how/cost/data) |
 | [LAUNCH.md](LAUNCH.md) | Launch/distribution plan |
 | [competitors/](competitors/) | Standalone deep-dives per competitor across all layers + [PATTERNS.md](competitors/PATTERNS.md) synthesis |

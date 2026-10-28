@@ -12,6 +12,9 @@ are 2–3× bigger LLM- or encoder-decoder models that would cost several times
 Parakeet's latency and memory. Two bounded A/Bs are worth running (below).
 Nothing ships from this doc.
 
+**Measured follow-up:** [ENGLISH_ASR_AB_2026-10.md](ENGLISH_ASR_AB_2026-10.md)
+has the A/B results on our Indian-English clips (clean and noisy).
+
 ## What we ship (unchanged)
 
 | | Parakeet TDT 0.6B v3 q4_k | Whisper large-v3-turbo q5_0 |

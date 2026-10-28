@@ -130,6 +130,10 @@ tier it beats turbo (14.9 % vs 16.4 % nWER, 0.14 s vs 1.44 s), and the
 leaderboard's Indian-accent set agrees. Worth an A/B: Parakeet **v2** (same
 engine, ~6 % better there), and Qwen3-ASR-1.7B or Cohere Transcribe as an
 opt-in "Accurate English" model (~15 % better, but ~2B parameters).
+**Measured the same day → [ENGLISH_ASR_AB_2026-10.md](ENGLISH_ASR_AB_2026-10.md):**
+v3 stays the default. Qwen3-ASR-1.7B was 11 % more accurate on clean Indian
+English but no better in noise, at 4.5× the latency. Parakeet unified-EN edged
+v3 on dictation-length clips. v2 and Nemotron-labs lost.
 
 ## Why so few open Hinglish models? (the bottleneck, as asked)
 
