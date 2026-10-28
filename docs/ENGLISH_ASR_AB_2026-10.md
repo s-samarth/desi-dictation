@@ -18,7 +18,8 @@ and to focus on Indian accents. Nothing shipped changes from this doc.
   - **Shipping engine** (`desi-cli` → whisper.cpp): Parakeet v3, Turbo, and
     Parakeet v2, which was converted with whisper.cpp's own
     `convert-parakeet-to-ggml.py`.
-  - **MLX** (`mlx-audio` 0.6.2, 8-bit weights, Metal): Qwen3-ASR.
+  - **MLX** (`mlx-audio` 0.6.2, Metal): Qwen3-ASR (8-bit) and Cohere
+    Transcribe (bf16, unquantized; the user accepted its HF gate).
   - **NeMo 3.0.0** (NVIDIA's reference, CPU): the two unified models.
 - **Calibration**, the same Parakeet v3 through each runtime: shipping 14.9 %,
   NeMo 14.8 %, MLX 15.6 %. The runtimes agree within ~1 point, and our q4_k
@@ -42,48 +43,71 @@ dictations best.
 | Qwen3-ASR-0.6B (MLX 8-bit) | 0.9B | 15.3 % | 25.1 % | 10.7 % | 16.4 % | 14 / 15 | 0.25 s |
 | **Parakeet unified-EN 0.6B** (NeMo, CPU) | 0.6B | 17.8 % | 24.2 % | 10.1 % | **13.4 %** | 11 / 12 | (CPU) |
 | Nemotron-labs unified 0.6B (NeMo, CPU) | 0.6B | 16.5 % | 22.7 % | 10.9 % | 17.4 % | 8 / 10 | (CPU) |
-| Cohere Transcribe 03-2026 | 2B | — | — | — | — | — | not run (gated) |
+| **Cohere Transcribe 03-2026** (MLX bf16) | 2B | 15.9 % | 20.7 % | 9.1 % | **11.9 %** | 15 / 12 | 0.38 s |
 
-Noisy paired counts against v3: Qwen3-ASR-1.7B 16 / 15, unified-EN 14 / 14,
+Noisy paired counts against v3: Cohere 16 / 13, Qwen3-ASR-1.7B 16 / 15, unified-EN 14 / 14,
 v2 10 / 14, Turbo 13 / 25, Qwen3-ASR-0.6B 13 / 24, Nemotron-labs 8 / 17.
 
-Peak memory: Qwen3-ASR-1.7B at 8-bit reached 4.3 GB of MLX memory, and 0.6B
-reached 2.8 GB. Parakeet v3 in our engine peaks around 0.7 GB (2026-09-22).
+Cohere vs Qwen3-ASR-1.7B head to head: Qwen wins clean (18 / 13), Cohere wins
+noisy (19 / 14). On the read-speech Svarah clips Cohere was the best model
+tested (4.1 % clean, 5.9 % noisy, vs v3's 8.6 % / 14.8 %).
+
+Peak memory: Cohere at bf16 reached 4.6 GB of MLX memory, Qwen3-ASR-1.7B at
+8-bit reached 4.3 GB, and 0.6B reached 2.8 GB. Parakeet v3 in our engine peaks around 0.7 GB (2026-09-22).
 Note that MLX's own Parakeet run also reported 4.1 GB, so MLX peaks include
 caches and aren't a like-for-like footprint.
 
 ## What it means
 
 1. **Parakeet v3 stays the default.** No challenger beats it on both clean and
-   noisy speech at its speed. That includes NVIDIA's newer models.
-2. **Qwen3-ASR-1.7B is the accuracy winner on clean Indian English.** Its
-   errors are 11 % lower than Parakeet's on everything, and 17 % lower on
-   dictation-length clips. It is better on 19 clips and worse on 9. The costs:
-   - it is ~4.5× slower (0.64 s median, 1.95 s p90);
-   - it holds ~2B parameters in memory;
-   - in noise it is no better than Parakeet (16 better / 15 worse). The
-     aggregate is worse, because a few EdAcc clips fell apart.
+   noisy speech at its speed (0.14 s). That includes NVIDIA's newer models.
+2. **Turbo has no job left in English.** It is less accurate than v3 in quiet
+   and much worse in noise (18.5 % vs 14.5 %), at 10× the latency. The user
+   uses it for English only, so its slot is free.
+3. **Cohere Transcribe is the best "Accurate English" candidate.** On
+   dictation-length clips:
+   - it is close to Qwen in quiet (9.1 % vs 8.9 %);
+   - it is the best of every model in noise: 11.9 %, 18 % fewer errors than
+     v3;
+   - it is ~2× faster than Qwen (0.38 s median, 0.98 s p90), even
+     unquantized.
 
-   That makes it a fit for an opt-in **"Accurate English"** mode for quiet
-   rooms, not for the default.
-3. **Parakeet unified-EN is the interesting same-size model.** On
-   dictation-length clips it beat v3 clean (10.1 vs 10.7) and noisy (13.4 vs
-   14.5), and it adds streaming. On 45–110 s clips it collapsed (27 % vs 20 %),
-   but the app never feeds it those. Per clip it is still a tie (11 / 12). It
-   needs an RNNT decode path, which `libparakeet` doesn't have.
-4. **Rejected on our clips:**
-   - **Parakeet v2:** worse than v3 on clean and noisy speech, despite its
-     leaderboard edge.
+   Its all-clips number (15.9 %) is dragged down by the 45–110 s clips, which
+   the app never decodes whole. It needs about 2.4 GB at 8-bit. It covers 14
+   languages but not Hindi, which is fine for an English-only slot.
+4. **Qwen3-ASR-1.7B is the runner-up.** It has the fewest errors in quiet
+   (19 better / 9 worse than v3), but in noise it is no better than v3, and it
+   is the slowest of the three (0.64 s median, 1.95 s p90). Its edge is
+   `hotwords` context biasing, which could feed the Personal Dictionary.
+5. **Parakeet unified-EN is the likely successor to v3 as the default.** It is
+   the same size as v3 and adds streaming. On dictation-length clips it beat
+   v3 in quiet (10.1 vs 10.7) and in noise (13.4 vs 14.5), but per clip it is
+   a tie (11 / 12). It collapsed on 45–110 s clips. It needs an RNNT decode
+   path, and its speed on Metal is unmeasured.
+6. **Rejected on our clips:**
+   - **Parakeet v2:** worse than v3 clean and noisy, despite its leaderboard
+     edge.
    - **Qwen3-ASR-0.6B:** no better clean, much worse noisy.
    - **Nemotron-labs unified:** worse clean and noisy.
-   - **Turbo:** 33 % in noise. This also confirms v3 over Turbo as the default.
-5. **Our suite and the leaderboard disagree on v2 and Nemotron-labs.** That is
+7. **Our suite and the leaderboard disagree on v2 and Nemotron-labs.** That is
    the reason we measure on our own clips.
+
+**Suggested next steps** (not done; each needs the user's go-ahead):
+1. Replace Turbo with **Cohere Transcribe** as the opt-in "Accurate English"
+   model.
+2. Confirm it first on the full `english` tier (278 clips) against Qwen and v3.
+3. Test 8-bit Cohere for speed and size.
+4. Shipping it means a third engine. The most likely runtime is
+   `transcribe.cpp` (MIT, ggml + Metal, C API). It also runs Qwen3-ASR and
+   unified-EN, so one integration covers all three. Building it needs the
+   user's permission, and its vendored ggml must not clash with whisper.cpp's.
+5. The Cohere repo is gated, so the app would download a converted copy from
+   our own HF repo. Apache-2.0 allows that redistribution.
 
 ## Caveats
 
 - 55 clips (51 ≤ 35 s) is a quick tier. Differences of about 1 point are
-  within noise. The two leads worth confirming, Qwen3-ASR-1.7B and unified-EN,
+  within noise. The leads worth confirming, Cohere, Qwen3-ASR-1.7B and unified-EN,
   should go on the full `english` tier (278 clips) before any engine work.
   That run needs the user's OK (CLAUDE.md rule 8).
 - Unified-EN and Nemotron-labs were scored in NeMo's offline mode. Their
@@ -91,8 +115,8 @@ caches and aren't a like-for-like footprint.
 - NeMo 3.0.0 prints an OpenTelemetry line ("no exporters… no telemetry data
   will be collected"). It sent nothing, but it would need auditing before any
   NeMo code went near the app.
-- **Cohere Transcribe was not run.** The repo is gated, and accepting
-  Cohere's terms on Hugging Face is the user's decision.
+- Cohere ran unquantized (bf16) and Qwen at 8-bit. An 8-bit Cohere may be
+  faster, with a small accuracy change to measure.
 
 ## How to reproduce
 
