@@ -1,11 +1,11 @@
 import SwiftUI
 import DesiDictationKit
 
-/// The app's one window (menu bar → Open Desi Dictation…). Four pages, always reachable
+/// The app's one window (menu bar → Open Desi Dictation…). Five pages, always reachable
 /// from the sidebar. Unreleased features stay out of the list entirely rather
 /// than showing up as a dead page.
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case dictation, vocabulary, history, models, ai, license
+    case guide, dictation, vocabulary, history, models, ai, license
     var id: String { rawValue }
 
     /// What the sidebar shows today.
@@ -21,6 +21,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
+        case .guide: return "Guide"
         case .dictation: return "Dictation"
         case .vocabulary: return "Vocabulary"
         case .history: return "History"
@@ -32,6 +33,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
+        case .guide: return "lightbulb"
         case .dictation: return "mic"
         case .vocabulary: return "text.book.closed"
         case .history: return "clock.arrow.circlepath"
@@ -47,7 +49,10 @@ enum SidebarItem: String, CaseIterable, Identifiable {
 @MainActor
 final class MainNav: ObservableObject {
     static let shared = MainNav()
-    @Published var selection: SidebarItem = .dictation
+    /// The Guide opens first until it has been seen once.
+    @Published var selection: SidebarItem =
+        UserDefaults.standard.bool(forKey: MainNav.guideSeenKey) ? .dictation : .guide
+    static let guideSeenKey = "guideSeen"
 }
 
 struct MainWindow: View {
@@ -58,7 +63,7 @@ struct MainWindow: View {
         NavigationSplitView {
             List(SidebarItem.visible, selection: Binding(
                 get: { Optional(nav.selection) },
-                set: { nav.selection = $0 ?? .dictation })) { item in
+                set: { nav.selection = $0 ?? .guide })) { item in
                 Label { Text(item.title) } icon: { IconTile(symbol: item.icon, color: item.tint) }
                     .tag(item)
             }
@@ -69,6 +74,7 @@ struct MainWindow: View {
             // the sidebar — no way back (BUILD_LOG FM#35).
             Group {
                 switch nav.selection {
+                case .guide: GuidePane()
                 case .dictation: DictationPane()
                 case .vocabulary: VocabularyPane()
                 case .history: HistoryView()

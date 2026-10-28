@@ -48,7 +48,7 @@ Hinglish has no standard spelling, and each person is self-consistent
 | Post-paste watch (1 Hz, 30 s, settles after 2 s) | `EditWatcher.swift` | diff ✓, AX live only |
 | One dictation's state (screen terms, hotwords, fixes) | `VocabularySession.swift` | — |
 | Pipeline hooks | `DictationController+Vocabulary.swift` | — |
-| UI: Vocabulary page (switches, waiting suggestions, your words), popup, History rows | `SmartVocabularyView.swift` (`VocabularyPane`), `VocabularyPromptPanel.swift`, `HistoryView.swift` | — |
+| UI: Vocabulary page (switches, waiting suggestions, your words), popup, History rows | `SmartVocabularyView.swift` (`VocabularyPane`), `GuidePane.swift` (plain-words explainer, sections 4–7), `VocabularyPromptPanel.swift`, `HistoryView.swift` | — |
 
 Tests: `DesiTests/VocabularyCorrectorTests.swift`, `VocabularyLearningTests.swift`.
 

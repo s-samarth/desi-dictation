@@ -25,6 +25,7 @@ enum Theme {
 extension SidebarItem {
     var tint: Color {
         switch self {
+        case .guide: return Color(red: 0.95, green: 0.68, blue: 0.10)
         case .dictation: return Theme.accent
         case .vocabulary: return Color(red: 0.56, green: 0.33, blue: 0.86)
         case .history: return Theme.english

@@ -13,7 +13,6 @@ struct MenuContent: View {
 
         // The way into the app's window: first item, named after the app.
         Button("Open Desi Dictation…") {
-            MainNav.shared.selection = .dictation
             AppWindows.shared.showMain()
         }
         .keyboardShortcut(",")
