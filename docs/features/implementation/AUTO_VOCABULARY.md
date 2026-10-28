@@ -88,12 +88,18 @@ terms whose phonetic key is close, then decide with the rules in §3.
 confidence is the min of `parakeet_full_get_token_p` over its sub-tokens.
 Whisper's comes from `whisper_full_get_token_p`.
 
-**Future Qwen3-ASR → hotwords.** A protocol
+The English A/B (PR #5, `ENGLISH_ASR_AB_2026-10.md`) now recommends
+**Qwen3-ASR-1.7B** as the opt-in "Accurate English" model, replacing Turbo.
+Parakeet v3 stays the default. So (c) has two real paths: post-correction
+(always, Parakeet) and hotwords (Accurate model).
+
+**Qwen3-ASR (Accurate English) → hotwords.** A protocol
 `HotwordBiasing { func setHotwords(_: [String]) }`. `EngineRouter` passes ≤ 30
 terms when the active engine conforms. Since there's no transcript yet,
 `HotwordSelector` ranks them: screen terms (focused field first) →
 dictionary → contacts that are also on screen. Post-correction still runs
-after (idempotent). **Cohere Transcribe:** no biasing, so post-correction only.
+after (idempotent). The Qwen engine itself is not in this PR. **Cohere
+Transcribe** (unlikely to ship): no biasing, so post-correction only.
 
 ### Settings and onboarding (all **off** by default)
 In Settings → Dictionary, a new **"Smart vocabulary"** section:
