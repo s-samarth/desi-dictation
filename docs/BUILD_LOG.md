@@ -836,4 +836,3 @@ would make inference nondeterministic.
 loader's first error line before blaming the model. Calibrate every new
 runtime with the shipping model first: Parakeet v3 scored 14.9 / 14.8 / 15.6 %
 in desi-cli / NeMo / MLX, so the runtimes weren't the variable.
-||||||| b0d8a1b
