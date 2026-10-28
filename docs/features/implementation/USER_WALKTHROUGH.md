@@ -85,9 +85,15 @@ The menu bar mic holds what you change daily, nothing else: status,
 
 **Open Desi Dictation…** opens the app's one window, and so does opening the
 app from Applications, Spotlight or Launchpad (at login it stays in the menu
-bar). Its sidebar has four pages, each
+bar). Its sidebar has five pages, each
 with its own colored icon, and the sidebar never goes away:
 
+- **Guide** (first, until you've opened it once): every feature in plain
+  words, numbered in the order you meet them. Each optional feature says
+  what it does, how it plays out step by step, **Turn on if / Leave off
+  if**, and has its switch right there. Learn-from-corrections is drawn as
+  "Call Rowan at 5" → you fix it to "Rohan" → *Always write Rowan as
+  Rohan?*. Vocabulary's "How does this work?" link opens it.
 - **Dictation**: on/off with a status dot ("Ready, hold ⌥ and speak"), the
   key and mode, language (the footer names the model it uses), three
   everyday options. VAD, quick restart, flash attention and per-app rules

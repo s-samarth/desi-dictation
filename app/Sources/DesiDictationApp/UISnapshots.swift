@@ -23,6 +23,8 @@ enum UISnapshots {
                 return AnyView(MainWindow())
             }, MainWindow.size)
         }
+        // Long pages, whole: what a reader scrolls through.
+        shots.append(("guide-full", { AnyView(GuidePane()) }, NSSize(width: 560, height: 2300)))
         shots.append(("onboarding", { AnyView(OnboardingView()) }, NSSize(width: 560, height: 640)))
         render(shots, into: directory)
     }

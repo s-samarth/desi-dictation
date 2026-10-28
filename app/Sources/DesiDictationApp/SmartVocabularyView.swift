@@ -47,7 +47,12 @@ struct VocabularyPane: View {
             Section {
                 SmartVocabularyToggles()
             } header: {
-                Text("Learn automatically")
+                HStack {
+                    Text("Learn automatically")
+                    Spacer()
+                    Button("How does this work?") { MainNav.shared.selection = .guide }
+                        .buttonStyle(.link).font(.callout)
+                }
             } footer: {
                 Text("Off until you turn them on. Nothing leaves your Mac, and every automatic fix shows in History.")
                     .footnote()

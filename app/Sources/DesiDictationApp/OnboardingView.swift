@@ -84,7 +84,7 @@ struct OnboardingView: View {
                     .font(.caption)
 
                 step(4, "Teach it your names (optional)")
-                Text("Fixes names it keeps getting wrong, and learns from the words you correct. All off until you turn them on; change them anytime in Settings → Vocabulary.")
+                Text("Fixes names it keeps getting wrong, and learns from the words you correct. All off until you turn them on. The Guide page (opens after setup) explains each one.")
                     .font(.caption).foregroundStyle(.secondary)
                 Form { SmartVocabularyToggles() }
                     .formStyle(.grouped)
