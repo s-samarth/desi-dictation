@@ -116,7 +116,7 @@ public final class DictationController: ObservableObject {
     }
 
     /// Best model for a mode — the language's own pin, or Auto if it has none.
-    private func resolvedModelPath(for mode: LanguageMode) -> String? {
+    func resolvedModelPath(for mode: LanguageMode) -> String? {
         ModelManager.shared.resolveModel(
             for: mode, pinnedPath: settings.modelPath(for: mode))?.path
     }
@@ -241,6 +241,10 @@ public final class DictationController: ObservableObject {
 
     /// Accessed only on workQueue (serial) — safe despite nonisolated access.
     private nonisolated(unsafe) var pendingParts: [String] = []
+    /// Scored words of this session's engine calls (worker queue only), then
+    /// handed to main for Review before paste.
+    nonisolated(unsafe) var sessionWords: [ScoredWord] = []
+    var reviewWords: [ScoredWord] = []
     private var chunkedUpToSample = 0
     private var chunkTicker: Task<Void, Never>?
 
@@ -289,6 +293,7 @@ public final class DictationController: ObservableObject {
         try loadModel(path: path)
         Self.applyHotwords(to: engine)
         let result = try engine.transcribe(samples: samples, mode: mode)
+        sessionWords += result.words
         engineCalls += 1
         engineSeconds += result.duration
         return result.text
@@ -373,6 +378,8 @@ public final class DictationController: ObservableObject {
                         parts.append(text)
                     }
                 }
+                let words = self.sessionWords
+                self.sessionWords = []
                 var text = parts.joined(separator: " ")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 text = PostProcessor.applyReplacements(text, rules: rules)
@@ -387,11 +394,15 @@ public final class DictationController: ObservableObject {
                     }
                     semaphore.wait()
                 }
-                Task { @MainActor in self.finishPipeline(text: text, mode: mode, copyOnly: copyOnly) }
+                Task { @MainActor in
+                    self.reviewWords = words
+                    self.finishPipeline(text: text, mode: mode, copyOnly: copyOnly)
+                }
             } catch {
                 // Nothing usable came out: say so explicitly (and that nothing
                 // was copied), then auto-reset. State is never stuck.
                 self.pendingParts = []
+                self.sessionWords = []
                 Task { @MainActor in
                     self.transientError(
                         "Couldn't transcribe (\(error.localizedDescription)) — nothing inserted or copied.")
@@ -407,6 +418,8 @@ public final class DictationController: ObservableObject {
     /// the kit stays UI-free. Armed per-session, disarmed on delivery/cancel.
     public var thinkingSessionArmed = false
     public var onThinkingTranscript: ((String) -> Void)?
+    /// Review before paste: the app shows the panel (DictationController+Review).
+    public var onReview: ((ReviewRequest) -> Void)?
 
     /// Runs after transcription+replacements: routes thinking sessions, runs
     /// the anyToEnglish translation stage, applies the tone mode — then
@@ -486,9 +499,18 @@ public final class DictationController: ObservableObject {
             return
         }
         controllerLog.info("deliver: \(text.count, privacy: .public) chars, copyOnly=\(copyOnly, privacy: .public)")
+        recordTimings(llmStage: raw != nil)   // before any review: time spent reading isn't latency
+        if review(text: text, mode: mode, copyOnly: copyOnly, raw: raw) {
+            phase = .idle   // the panel has it; a new dictation may start (it copies the old one)
+            return
+        }
+        commit(text: text, mode: mode, copyOnly: copyOnly, raw: raw)
+    }
+
+    /// History, then the paste. Review before paste calls this when it closes.
+    func commit(text: String, mode: LanguageMode, copyOnly: Bool, raw: String? = nil) {
         // The transcript is sacred: even if pasting into the target app fails,
         // it's in lastTranscript ("Copy Last" in the menu) and History.
-        recordTimings(llmStage: raw != nil)
         lastTranscript = text
         let vocabulary = VocabularySession.shared.takeFixes()
         HistoryStore.shared.add(text: text, mode: mode, raw: raw,
@@ -543,7 +565,7 @@ public final class DictationController: ObservableObject {
         stopChunkTicker()
         audio.cancelSession()
         scheduleCoolDown()
-        workQueue.async { [weak self] in self?.pendingParts = [] }
+        workQueue.async { [weak self] in self?.pendingParts = []; self?.sessionWords = [] }
         VocabularySession.shared.end()
         chunkedUpToSample = 0
         thinkingSessionArmed = false

@@ -106,6 +106,8 @@ public final class SettingsStore: ObservableObject {
     }
     @Published public var soundsEnabled: Bool { didSet { d.set(soundsEnabled, forKey: "soundsEnabled") } }
     @Published public var copyInsteadOfPaste: Bool { didSet { d.set(copyInsteadOfPaste, forKey: "copyInsteadOfPaste") } }
+    /// Review before paste (REVIEW_BEFORE_PASTE.md); Off by default.
+    @Published public var reviewMode: ReviewMode { didSet { d.set(reviewMode.rawValue, forKey: "reviewMode") } }
     @Published public var replacementRules: String { didSet { d.set(replacementRules, forKey: "replacementRules") } }
     @Published public var ollamaEnabled: Bool { didSet { d.set(ollamaEnabled, forKey: "ollamaEnabled") } }
     @Published public var ollamaModel: String { didSet { d.set(ollamaModel, forKey: "ollamaModel") } }
@@ -174,6 +176,7 @@ public final class SettingsStore: ObservableObject {
         }
         soundsEnabled = d.object(forKey: "soundsEnabled") as? Bool ?? true
         copyInsteadOfPaste = d.object(forKey: "copyInsteadOfPaste") as? Bool ?? false
+        reviewMode = ReviewMode(rawValue: d.string(forKey: "reviewMode") ?? "") ?? .off
         replacementRules = d.string(forKey: "replacementRules") ?? ""
         ollamaEnabled = d.object(forKey: "ollamaEnabled") as? Bool ?? false
         ollamaModel = d.string(forKey: "ollamaModel") ?? "llama3.2"

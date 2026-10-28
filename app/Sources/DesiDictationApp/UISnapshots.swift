@@ -1,6 +1,7 @@
 #if DEBUG
 import AppKit
 import SwiftUI
+import DesiDictationKit
 
 /// Debug-only UI review: renders every window and tab to PNGs, then quits.
 ///
@@ -26,10 +27,28 @@ enum UISnapshots {
         // Long pages, whole: what a reader scrolls through.
         shots.append(("guide-full", { AnyView(GuidePane()) }, NSSize(width: 560, height: 2300)))
         shots.append(("onboarding", { AnyView(OnboardingView()) }, NSSize(width: 560, height: 640)))
+        shots.append(("review", { AnyView(ReviewView(model: sampleReview())) }, NSSize(width: ReviewView.width, height: 330)))
         render(shots, into: directory)
     }
 
     typealias Shot = (String, () -> AnyView, NSSize)
+
+    /// A dictation with one low-confidence word and one sound-alike, and a fix already made.
+    private static func sampleReview() -> ReviewModel {
+        let text = "Ask cloud to send the deck to Cavya before the hakka review"
+        let unsure = ReviewPlanner.unsure(
+            in: text,
+            words: text.split(separator: " ").map {
+                ScoredWord(text: String($0), confidence: $0 == "hakka" ? 0.31 : 0.95) },
+            threshold: 0.61,
+            sources: .init(entries: [DictionaryEntry(heard: "cloud", written: "Claude")],
+                           screenTerms: ["Kavya", "Haka", "Hakka"]))
+        let model = ReviewModel(request: ReviewRequest(text: text, unsure: unsure, scope: .english,
+                                                       offerWhenItFits: true) { _ in })
+        model.textChanged(text.replacingOccurrences(of: "Cavya", with: "Kavya"))
+        model.currentIndex = 0
+        return model
+    }
 
     private static func render(_ shots: [Shot], into directory: URL) {
         guard let (name, makeView, size) = shots.first else {

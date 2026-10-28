@@ -67,6 +67,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         VocabularyPromptCoordinator.shared.start()
         // Electron apps hide their text fields until asked (FM#37).
         AccessibilityPrimer.start()
+        // Review before paste: the panel between transcription and ⌘V.
+        ReviewCoordinator.shared.start()
 
         // Thinking sessions route their transcript to the review window
         // instead of pasting (STRUCTURE_THOUGHTS.md) — wired here because the
