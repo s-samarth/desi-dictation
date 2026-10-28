@@ -55,6 +55,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Overlay follows the dictation phase for its whole lifetime.
         OverlayCoordinator.shared.start()
+        // "Always write X as Y?" popup above it (AUTO_VOCABULARY.md).
+        VocabularyPromptCoordinator.shared.start()
 
         // Thinking sessions route their transcript to the review window
         // instead of pasting (STRUCTURE_THOUGHTS.md) — wired here because the

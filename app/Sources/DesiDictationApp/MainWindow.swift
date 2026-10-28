@@ -5,7 +5,7 @@ import DesiDictationKit
 /// for quick toggles; this window is where users actually configure things —
 /// added after v0.1 feedback that a bare menu bar icon felt undiscoverable.
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case dictation, history, models, text, ai, license
+    case dictation, history, models, text, vocabulary, ai, license
     var id: String { rawValue }
 
     var title: String {
@@ -14,6 +14,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .history: return "History"
         case .models: return "Models"
         case .text: return "Text"
+        case .vocabulary: return "Vocabulary"
         case .ai: return "AI"
         case .license: return "License"
         }
@@ -25,6 +26,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .history: return "clock.arrow.circlepath"
         case .models: return "cpu"
         case .text: return "character.cursor.ibeam"
+        case .vocabulary: return "text.badge.star"
         case .ai: return "sparkles"
         case .license: return "key"
         }
@@ -56,6 +58,7 @@ struct MainWindow: View {
             case .history: HistoryView()
             case .models: ModelsSettings()
             case .text: TextSettings()
+            case .vocabulary: SmartVocabularyView()
             case .ai: AISettings()
             case .license: LicenseSettings()
             }

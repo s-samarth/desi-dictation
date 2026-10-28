@@ -7,6 +7,7 @@ struct SettingsView: View {
             GeneralSettings().tabItem { Label("General", systemImage: "gear") }
             ModelsSettings().tabItem { Label("Models", systemImage: "cpu") }
             TextSettings().tabItem { Label("Text", systemImage: "character.cursor.ibeam") }
+            SmartVocabularyView().tabItem { Label("Vocabulary", systemImage: "text.badge.star") }
             AISettings().tabItem { Label("AI", systemImage: "sparkles") }
             LicenseSettings().tabItem { Label("License", systemImage: "key") }
         }

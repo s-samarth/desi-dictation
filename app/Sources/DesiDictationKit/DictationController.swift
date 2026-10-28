@@ -285,6 +285,7 @@ public final class DictationController: ObservableObject {
         _ samples: [Float], path: String, mode: LanguageMode
     ) throws -> String {
         try loadModel(path: path)
+        Self.applyHotwords(to: engine)
         let result = try engine.transcribe(samples: samples, mode: mode)
         engineCalls += 1
         engineSeconds += result.duration
@@ -314,6 +315,7 @@ public final class DictationController: ObservableObject {
             sessionMode = mode
             sessionLanguage = language
             phase = .recording
+            beginVocabulary()
             if wasWarm { Sounds.start.play() }   // cold path: onFirstAudio plays it
             startChunkTicker(modelPath: modelPath, mode: mode)
         } catch {
@@ -342,6 +344,7 @@ public final class DictationController: ObservableObject {
         let rules = settings.replacementRules
         // Snapshot on main; applied off-main via the pure static core.
         let dictionary = PersonalDictionary.shared.entries
+        let vocabulary = vocabularyPlan()
         let useOllama = settings.ollamaEnabled && LicenseManager.shared.isPro
         let ollamaModel = settings.ollamaModel
         let prompt = settings.cleanupPrompt
@@ -371,6 +374,7 @@ public final class DictationController: ObservableObject {
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 text = PostProcessor.applyReplacements(text, rules: rules)
                 text = PersonalDictionary.apply(text, entries: dictionary)
+                text = Self.applyVocabulary(text, mode: mode, plan: vocabulary)
                 if useOllama, !text.isEmpty {
                     let semaphore = DispatchSemaphore(value: 0)
                     Task { [t = text] in
@@ -483,17 +487,19 @@ public final class DictationController: ObservableObject {
         // it's in lastTranscript ("Copy Last" in the menu) and History.
         recordTimings(llmStage: raw != nil)
         lastTranscript = text
-        HistoryStore.shared.add(text: text, mode: mode, raw: raw)
+        let vocabulary = VocabularySession.shared.takeFixes()
+        HistoryStore.shared.add(text: text, mode: mode, raw: raw,
+                                fixes: vocabulary?.fixes ?? [], unfixed: vocabulary?.unfixed)
         // Async: the paste waits for the hotkey's modifier to come up (FM#31).
         Task { @MainActor [weak self] in
             let outcome = await TextInserter.insert(text, copyOnly: copyOnly)
-            self?.delivered(outcome)
+            self?.delivered(outcome, text: text, fixes: vocabulary?.fixes ?? [])
         }
     }
 
     /// Ends the session once the paste ran. A skipped paste says so — the
     /// words are on the clipboard, the user must know to press ⌘V.
-    private func delivered(_ outcome: InsertOutcome) {
+    private func delivered(_ outcome: InsertOutcome, text: String, fixes: [WordFix]) {
         controllerLog.info("insert outcome: \(String(describing: outcome), privacy: .public)")
         // Only leave the pipeline's own phases: a fallback error message, or a
         // session the user already started again, must survive.
@@ -501,11 +507,13 @@ public final class DictationController: ObservableObject {
         case .transcribing, .translating, .polishing: phase = .idle
         default: break
         }
+        let fixed = vocabularyDelivered(outcome, text: text, fixes: fixes)
         if let notice = DictationNotice.forOutcome(outcome) {
             Sounds.error.play()
             show(notice)
         } else {
             Sounds.finish.play()
+            if let fixed { show(fixed) }
         }
     }
 
@@ -533,6 +541,7 @@ public final class DictationController: ObservableObject {
         audio.cancelSession()
         scheduleCoolDown()
         workQueue.async { [weak self] in self?.pendingParts = [] }
+        VocabularySession.shared.end()
         chunkedUpToSample = 0
         thinkingSessionArmed = false
         if phase != .disabled { phase = .idle }
