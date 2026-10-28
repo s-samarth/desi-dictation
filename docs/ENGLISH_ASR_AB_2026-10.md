@@ -96,12 +96,12 @@ caches and aren't a like-for-like footprint.
 
 ## How to reproduce
 
-The scripts live outside the repo (scratchpad), and BUILD_LOG FM#32 records
+The scripts live outside the repo (scratchpad), and BUILD_LOG FM#33 records
 the two traps. The steps:
 
 1. Convert v2 with
    `vendor/whisper.cpp/models/convert-parakeet-to-ggml.py --model … --out-dir …`.
-2. Quantize it with `parakeet-quantize … q5_0`. Use q5_0, **not q4_k** (FM#32).
+2. Quantize it with `parakeet-quantize … q5_0`. Use q5_0, **not q4_k** (FM#33).
 3. Run the converted models with `desi-cli <model> --batch <dir> english`.
 4. Run the others through `mlx_audio.stt.utils.load(...).generate(audio, language="English")`
    or NeMo's `ASRModel.restore_from(...).transcribe(...)`.

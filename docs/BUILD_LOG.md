@@ -757,9 +757,36 @@ chunking, Parakeet) shrinks the gap until it isn't. Every ending that isn't
 the happy path has to be visible where the user is looking, the overlay, not
 only in the menu.
 
+### Failure mode #32 — our own open menu swallowed the paste
+
+**Symptom:** 2026-10-28, right after the FM#31 fix shipped. Toggle mode:
+the user "clicked somewhere else" while talking, came back to the text box,
+tapped Right ⌥, and nothing pasted. The app log said `insert outcome: pasted`
+after a 108 ms wait for ⌥, so the FM#31 guard did its job.
+**Cause:** WindowServer's log for that second shows where the keystroke went:
+`destinations for kCGSEventKeyDown event: <keyboardFocus; pid: <Desi>>`, via
+"active key thief". The Desi menu-bar menu had been opened at 09:25:36
+(`StealKeyFocusReturningID … keyThief … Desi Dictation`), *before* recording
+started at 09:25:45. It stayed open, with submenus opening and closing as the
+pointer crossed it, until a click at 09:27:11.6 closed it
+(`+[NSRemoteView _menuDidEndTracking:]`). The stop was at 09:27:09. An open
+menu holds keyboard focus even though the frontmost app (here Claude) never
+changes, so our ⌘V went into the menu and vanished. FM#31's checks
+(modifiers, Accessibility) couldn't see it.
+**Fix:** `MenuTracker` follows `NSMenu.didBegin/EndTrackingNotification` for
+every menu in our process. `PasteGate` gained `menuOpen`: an open menu means
+`.closeMenu` (`cancelTracking()`, wait for didEndTracking, +80 ms) and then
+the paste. If it's still open at 1.5 s, the step is `.skip(.menuOpen)` and
+the overlay says "Copied — press ⌘V to paste". Tests in `PasteTests.swift`.
+**Lesson:** "frontmost app" is not "where keystrokes go". The window server
+has its own keyboard-focus owner (menus, key thieves), and its log
+(`log show --predicate 'process == "WindowServer"'`, look for
+`destinations for kCGSEventKeyDown`) names the real recipient. Read it before
+theorising: it turned a "same bug again" report into a one-line diagnosis.
+Other apps' menus still steal the keystroke; we can't observe those.
 ## 2026-10-28 — English A/B of Parakeet challengers (docs/ENGLISH_ASR_AB_2026-10.md)
 
-### Failure mode #32 — two silent traps when A/B-ing NeMo models
+### Failure mode #33 — two silent traps when A/B-ing NeMo models
 
 **Symptom 1:** Parakeet TDT 0.6B **v2**, converted with whisper.cpp's
 `convert-parakeet-to-ggml.py` and quantized with `parakeet-quantize … q4_k`,
@@ -788,3 +815,4 @@ would make inference nondeterministic.
 loader's first error line before blaming the model. Calibrate every new
 runtime with the shipping model first: Parakeet v3 scored 14.9 / 14.8 / 15.6 %
 in desi-cli / NeMo / MLX, so the runtimes weren't the variable.
+||||||| b0d8a1b

@@ -87,6 +87,7 @@ public final class DictationController: ObservableObject {
         hotkeys.onDictateDown = { [weak self] in self?.hotkeyDown() }
         hotkeys.onDictateUp = { [weak self] in self?.hotkeyUp() }
         hotkeys.onCancel = { [weak self] in self?.cancel() }
+        MenuTracker.shared.start()   // an open menu of ours swallows ⌘V (FM#32)
 
         // Start cue plays when the mic is ACTUALLY capturing (not at keypress) —
         // "speak after the tink" then never loses first words.
