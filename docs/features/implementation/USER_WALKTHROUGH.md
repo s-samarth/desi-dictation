@@ -85,8 +85,35 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 - **Flow:** type `Saraswath → Saraswat` once. Done forever, all apps.
 - **Why:** names/brands/jargon are the #1 repeated annoyance; no model fixes
   YOUR words.
-- **Friction:** you must notice + act once per word (no auto-learn, by trust
-  design). The sheet doesn't pre-fill the word you right-clicked from.
+- **Friction:** the sheet doesn't pre-fill the word you right-clicked from.
+  Smart vocabulary (§1b) removes most of the manual step.
+
+## 1b · Smart vocabulary — it learns from your edits (opt-in)
+
+- **Discovery:** onboarding step 4, or Open Desi Dictation → **Vocabulary**
+  (also Settings → Vocabulary). Four switches, all off, each with a one-line
+  privacy note.
+- **Learn from corrections:** dictate, then fix a word in the field
+  ("Rowan" → "Rohan"). About 2 s after you stop typing, a small popup above
+  the overlay asks **"Always write Rowan as Rohan?"** with **Add** / **Not now**.
+  It never steals the caret. Ignore it and the proposal waits under
+  Vocabulary → Suggestions. "Add" puts the pair in your Personal dictionary.
+- **Your edit wins:** if it auto-fixed a word and you change it back, the
+  popup says "Got it" and that fix is never made again.
+- **Near-miss fixes:** "Saraswath" becomes "Saraswat" when the dictionary
+  already has Saraswat. With "Read names from the window" on, a name visible
+  in the chat or document fixes a sound-alike ("Rowan" → "Rohan"). The
+  overlay says **"Fixed: Rowan → Rohan"**. History shows a green "fixed:"
+  line; right-click it for "Don't change … again" or "Copy as heard".
+- **Hinglish:** fix *nahin* → *nahi* once and it proposes the style rule.
+  With "match the spelling already in the text" on, the field's own spelling
+  wins for that dictation.
+- **Never touched:** everyday words (the, there, hai, kya), anything inside
+  an email or URL, हिन्दी mode.
+- **Friction:** Chrome and Electron apps (Slack) expose page text only when
+  their accessibility mode is on, so screen names there come from the field
+  and window title. The edit watch needs a field that exposes its text to
+  Accessibility; most native apps and Safari do.
 
 ## 2 · Per-app language — one click per app, then invisible
 
