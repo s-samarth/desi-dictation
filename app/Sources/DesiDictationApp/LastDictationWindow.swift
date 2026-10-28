@@ -57,11 +57,11 @@ struct LastDictationView: View {
                 HStack {
                     Spacer()
                     Button("Copy") {
-                        TextInserter.insert(translation, copyOnly: true)
+                        TextInserter.copy(translation)
                         notice = "On your clipboard — ⌘V anywhere."
                     }
                     Button("Copy & close") {
-                        TextInserter.insert(translation, copyOnly: true)
+                        TextInserter.copy(translation)
                         NSApp.keyWindow?.close()
                     }
                     .keyboardShortcut(.defaultAction)

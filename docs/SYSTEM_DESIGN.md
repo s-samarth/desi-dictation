@@ -116,8 +116,12 @@ stereo downmixed rather than dropping a channel. The speaker can no longer
 touch the words (BUILD_LOG FM#22).
 
 ### Pasteboard-swap insertion
-1. Save current clipboard string → 2. set transcript → 3. synthesize ⌘V via
-`CGEvent` at the HID tap → 4. restore old clipboard after 400 ms.
+1. Set transcript on the clipboard → 2. wait until ⌥/⇧/⌃ are physically up
+(≤ 1.5 s, else skip and tell the user — FM#31) → 3. synthesize ⌘V via
+`CGEvent` at the HID tap. The clipboard is **not** restored: the transcript
+stays there so a rejected paste is one ⌘V away. ⌘V goes to whatever field is
+focused at stop; nothing is captured at start
+([PASTE_AND_FEEDBACK.md](features/implementation/PASTE_AND_FEEDBACK.md)).
 - Works in native apps, Electron, browsers, terminals — the widest single
   strategy. Known gaps (apps that block programmatic paste, non-string
   clipboard content is not restored) get the AX-API fallback in a later rev.

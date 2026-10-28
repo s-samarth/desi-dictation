@@ -102,11 +102,11 @@ struct ThoughtsView: View {
                     .help("Opens a pre-filled email — you see everything before sending")
                 Spacer()
                 Button("Copy structured") {
-                    TextInserter.insert(session.structured, copyOnly: true)
+                    TextInserter.copy(session.structured)
                 }
                 .disabled(session.structured.isEmpty)
                 Button("Copy raw") {
-                    TextInserter.insert(session.transcript, copyOnly: true)
+                    TextInserter.copy(session.transcript)
                 }
             }
         }
