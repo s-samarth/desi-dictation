@@ -41,7 +41,10 @@ public enum CorrectionLearner {
         let sound = IndicPhonetics.distance(IndicPhonetics.key(x), IndicPhonetics.key(y))
         let spelling = IndicPhonetics.spellingSimilarity(x, y)
         // Looser than auto-correction (0.2 / 0.5): the user confirms these.
-        let similar = (sound <= 0.35 && spelling >= 0.4) || spelling >= 0.6
+        // Same first sound, like the corrector: Sharma → Verma is a different
+        // name, not a mishearing.
+        let similar = IndicPhonetics.sameOnset(x.lowercased(), y.lowercased())
+            && ((sound <= 0.35 && spelling >= 0.4) || spelling >= 0.6)
         return similar ? pair : nil
     }
 

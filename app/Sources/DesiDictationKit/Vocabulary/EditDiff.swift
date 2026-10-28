@@ -55,8 +55,12 @@ public enum EditDiff {
         func flush() {
             changed += max(runX.count, runY.count)
             // Only substitutions; words the user just added or deleted aren't fixes.
-            if (1...2).contains(runX.count), (1...2).contains(runY.count),
-               !(runX.count == 2 && runY.count == 2) {
+            if runX.count == 2, runY.count == 2 {
+                // Two neighbours both retyped — a first name and surname
+                // ("Samar Saraswath" → "Samarth Saraswat"): word by word.
+                // Treating it as a rewrite missed every full-name fix (FM#37).
+                pairs += zip(runX, runY).map { EditPair(heard: $0, typed: $1) }
+            } else if (1...2).contains(runX.count), (1...2).contains(runY.count) {
                 pairs.append(EditPair(heard: runX.joined(separator: " "), typed: runY.joined(separator: " ")))
             } else if !runX.isEmpty && !runY.isEmpty {
                 changed += maxChangedWords   // a rewritten phrase: give up

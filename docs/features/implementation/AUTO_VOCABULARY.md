@@ -45,7 +45,9 @@ Hinglish has no standard spelling, and each person is self-consistent
 | Qwen3-ASR seam + ≤ 30-term selection | `HotwordSelector.swift` | ✓ |
 | Switches, proposals, reject list (`autovocab.json`) | `AutoVocabularyStore.swift` | ✓ |
 | AX reads (timeout-bounded, no secure fields, not our app) | `AXReader.swift`, `ScreenContextReader.swift` | live only |
-| Post-paste watch (1 Hz, 30 s, settles after 2 s) | `EditWatcher.swift` | diff ✓, AX live only |
+| Post-paste watch (every 0.3 s, 30 s, settles after 2 s or on send) | `EditWatcher.swift`, `EditTracker.swift` (pure timing) | tracker ✓, AX live only |
+| Electron accessibility switch (`AXManualAccessibility`) | `AccessibilityPrimer.swift` | live only (FM#37) |
+| "What it's been doing" list (memory only) | `VocabularyActivity.swift`, `VocabularyActivityView.swift` | — |
 | One dictation's state (screen terms, hotwords, fixes) | `VocabularySession.swift` | — |
 | Pipeline hooks | `DictationController+Vocabulary.swift` | — |
 | UI: Vocabulary page (switches, waiting suggestions, your words), popup, History rows | `SmartVocabularyView.swift` (`VocabularyPane`), `GuidePane.swift` (plain-words explainer, sections 4–7), `VocabularyPromptPanel.swift`, `HistoryView.swift` | — |
@@ -150,8 +152,17 @@ field's spelling wins for this dictation. It's never learned.
   If `/usr/share/dict/words` is missing, every word counts as real, which is
   the safe direction.
 - **Polling over AXObserver:** no per-app run loop, and delivery varies by
-  app. Chrome/Electron web text is visible only when their accessibility mode
-  is already on; we don't force it (it slows those apps).
+  app. Every 0.3 s, so a chat edit sent with Enter is still caught: when the
+  field empties, the last text before it is judged (`EditTracker`).
+- **Electron is switched on, browsers aren't (FM#37):** Electron apps report
+  no focused element at all until `AXManualAccessibility` is set, which made
+  the whole feature dead in Claude, Slack, VS Code. We set it when such an
+  app comes to the front (a little memory for that app). Chrome would need
+  `AXEnhancedUserInterface`, which upsets window managers, so not yet.
+- **Two neighbouring words fixed** ("Samar Saraswath" → "Samarth
+  Saraswat") are judged word by word; before FM#37 they counted as a rewrite
+  and nothing was proposed. Proposals also need the same first sound, like
+  the corrector (Sharma → Verma is a different name).
 - **Never silent learning** (PERSONAL_DICTIONARY.md rule). Screen terms fix
   words but are never stored. The one automatic write is a *rejection* after
   an undo: it only stops a change.

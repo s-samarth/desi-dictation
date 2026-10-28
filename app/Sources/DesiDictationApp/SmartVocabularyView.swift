@@ -42,6 +42,8 @@ struct VocabularyPane: View {
                 }
             }
 
+            VocabularyActivitySection()
+
             DictionarySettings()
 
             Section {
