@@ -32,12 +32,13 @@ fi
 
 # mode:model:suite:budget — the app's default model for each language.
 # english  Parakeet TDT — no 30 s padding, so it is an order faster.
-# hinglish Apex q5_0 — one full whisper window.
+# hinglish Prime q5_0 — one full whisper window (replaced Apex 2026-10-28:
+#          1.82 s vs Apex's 1.42 s on this clip, M3, still inside 2.0 s).
 # hindi    Vaani q5_0 is a 1.06 GB large-v3: the slowest path we ship, and the
 #          reason CoreML/ANE (PERFORMANCE.md deferred #1) matters most here.
 CASES=(
   "english:ggml-parakeet-tdt-0.6b-v3-q4_k.bin:english:0.75"
-  "hinglish:ggml-hinglish-apex-q5_0.bin:hinglish:2.0"
+  "hinglish:ggml-hinglish-prime-q5_0.bin:hinglish:2.0"
   "hindi:ggml-vaani-hindi-q5_0.bin:hindi:4.0"
 )
 

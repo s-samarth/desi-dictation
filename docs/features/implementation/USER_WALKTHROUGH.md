@@ -219,13 +219,13 @@ instead of Whisper — about **0.2 s** for a short dictation on an M3 Air (it wa
 ~1.9 s), with equal-or-better accuracy in our English tests. Download it
 from **Models** (416 MB) or take it during onboarding.
 
-**Long Hinglish takes? Try Prime.** **Models → Downloads** now lists *Hinglish
-Prime* (about 1 GB) next to Apex. It makes about 30 % fewer mistakes on long,
-conversational Hinglish (a joke, a voice-note-style rant) but takes roughly
-twice as long, ~3.5 s instead of ~2 s. Apex stays the default. To use Prime,
-download it, then pick it under **Settings → Models → Default model per
-language → Hinglish**. For one-word replies ("haan", "theek hai"), Apex is
-still better.
+**Hinglish runs on Prime (since 2026-10-28).** Onboarding and **Models →
+Downloads** offer *Hinglish Prime* (about 1 GB). It replaced Apex: about 30 %
+fewer mistakes on long, conversational Hinglish (a joke, a voice-note-style
+rant). It's a little slower: 1.8 s instead of 1.4 s on a short dictation,
+and roughly twice as long on long ones. Apex is no longer offered. If you
+already have it and pinned it, it keeps working until you pick Prime under
+**Settings → Models → Default model per language → Hinglish**.
 **Want the most accurate English? Qwen3-ASR (v0.6.3).** It replaced Whisper
 Turbo under **Settings → Models → English** (2.08 GB). On Indian-accented
 English it makes about 11 % fewer errors than Parakeet in quiet rooms and 9 %

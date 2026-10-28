@@ -25,18 +25,15 @@ extension ModelManager {
         ?? "https://huggingface.co/SamarthBuilds/desi-dictation-models/resolve/main"
 
     // One ⭐ model per language + the VAD add-on. Deliberately minimal (v0.5
-    // pilot feedback: base/small/swift variants just confused people). Prime is
-    // the one un-starred extra: the 2026-10 bake-off (MODEL_RESEARCH.md §F)
-    // found it more accurate than Apex on long, conversational Hinglish at
-    // ~1.8x the time — a real choice for people who don't mind waiting.
+    // pilot feedback: base/small/swift variants just confused people).
+    // Prime replaced Apex as the Hinglish model (2026-10-28): the bake-off
+    // (MODEL_RESEARCH.md §F) found it more accurate on long, conversational
+    // Hinglish. Apex is no longer offered; an installed Apex file still works
+    // when pinned (ModelScoring keeps it below Prime).
     public static let catalog: [DownloadableModel] = [
-        .init(id: "hinglish-apex-q5_0", label: "Hinglish Apex — our specialty",
-              url: URL(string: "\(hinglishRepoBase)/ggml-hinglish-apex-q5_0.bin")!,
-              approxMB: 547, pro: true, recommended: true, category: "Hinglish",
-              sha256: "9d877151b15cec1feb9110cfbc0a3162cf377bcc0ab1935174226f461cf60f13"),
-        .init(id: "hinglish-prime-q5_0", label: "Hinglish Prime — more accurate on long takes, ~2x slower",
+        .init(id: "hinglish-prime-q5_0", label: "Hinglish Prime — our specialty",
               url: URL(string: "\(hinglishRepoBase)/ggml-hinglish-prime-q5_0.bin")!,
-              approxMB: 1031, pro: true, recommended: false, category: "Hinglish",
+              approxMB: 1031, pro: true, recommended: true, category: "Hinglish",
               sha256: "ccd4e5e48de189f9be887007f96744cb51a3ee086d97ab8787b132f94055fda3"),
         .init(id: "parakeet-tdt-0.6b-v3-q4_k", label: "Parakeet — fastest English",
               url: URL(string: "https://huggingface.co/ggml-org/parakeet-GGUF/resolve/main/ggml-parakeet-tdt-0.6b-v3-q4_k.bin")!,
@@ -63,7 +60,7 @@ extension ModelManager {
     /// never by index — a new catalog entry must not silently re-point these.
     public static func catalogEntry(for mode: LanguageMode) -> DownloadableModel {
         switch mode {
-        case .hinglish, .anyToEnglish: return entry("hinglish-apex-q5_0")
+        case .hinglish, .anyToEnglish: return entry("hinglish-prime-q5_0")
         case .english: return entry("parakeet-tdt-0.6b-v3-q4_k")
         case .hindi: return entry("vaani-hindi-q5_0")
         }

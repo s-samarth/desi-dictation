@@ -55,6 +55,6 @@ func runCombinationTests() async {
     store.set(.anyToEnglish, bundleID: "com.apple.mail", appName: "Mail")
     let mode = store.mode(for: "com.apple.mail") ?? .hinglish
     T.expect(mode.needsLLM, "Mail rule routes into the translation stage")
-    T.equal(ModelManager.catalogEntry(for: mode).id, "hinglish-apex-q5_0",
-            "…while transcribing with Apex")
+    T.equal(ModelManager.catalogEntry(for: mode).id, "hinglish-prime-q5_0",
+            "…while transcribing with Prime")
 }
