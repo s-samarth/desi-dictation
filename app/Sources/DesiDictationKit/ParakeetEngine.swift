@@ -87,7 +87,8 @@ public final class ParakeetEngine: TranscriptionEngine {
         return TranscriptionResult(
             text: text.trimmingCharacters(in: .whitespacesAndNewlines),
             duration: Date().timeIntervalSince(start),
-            audioSeconds: Double(samples.count) / 16000.0
+            audioSeconds: Double(samples.count) / 16000.0,
+            words: EngineWords.parakeet(ctx)
         )
     }
 }

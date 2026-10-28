@@ -53,6 +53,9 @@ public struct TranscriptionResult: Sendable {
     public let text: String
     public let duration: TimeInterval   // wall-clock transcription time
     public let audioSeconds: Double
+    /// Words with confidence, in order (ScoredWords.swift). Empty when the
+    /// engine can't say; the text is still right.
+    public var words: [ScoredWord] = []
 }
 
 public enum EngineError: LocalizedError {
