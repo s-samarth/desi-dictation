@@ -7,6 +7,15 @@
 // whisper.cpp is linked as prebuilt static libs staged by scripts/setup_whisper.sh
 // into ./Libraries and ./Sources/CWhisper/include.
 import PackageDescription
+import Foundation
+
+// llama.cpp context checker ("When it fits", CONTEXT_FIT.md). Linked only
+// once scripts/setup_llama.sh has produced the archive on a Mac; without it
+// the app builds as before and the feature stays hidden (DESI_LLAMA unset).
+let hasLlama = FileManager.default.fileExists(
+    atPath: "\(Context.packageDirectory)/Libraries/libllama-bundle.a")
+let llamaLinkerSettings: [LinkerSetting] = hasLlama ? [.linkedLibrary("llama-bundle")] : []
+let llamaSwiftSettings: [SwiftSetting] = hasLlama ? [.define("DESI_LLAMA")] : []
 
 let whisperLinkerSettings: [LinkerSetting] = [
     .unsafeFlags(["-L\(Context.packageDirectory)/Libraries"]),
@@ -37,14 +46,16 @@ let package = Package(
         .systemLibrary(name: "CWhisper", path: "Sources/CWhisper"),
         // C shim exposing transcribe.h (Qwen3-ASR runtime) to Swift
         .systemLibrary(name: "CTranscribe", path: "Sources/CTranscribe"),
+        // C shim exposing desi_lm.h (llama.cpp scorer, native/desi_lm)
+        .systemLibrary(name: "CLlamaScore", path: "Sources/CLlamaScore"),
 
         // Core logic: audio, engine, hotkeys, insertion, settings, licensing
         .target(
             name: "DesiDictationKit",
-            dependencies: ["CWhisper", "CTranscribe"],
+            dependencies: ["CWhisper", "CTranscribe", "CLlamaScore"],
             path: "Sources/DesiDictationKit",
-            swiftSettings: [.unsafeFlags(["-swift-version", "5"])],
-            linkerSettings: whisperLinkerSettings
+            swiftSettings: [.unsafeFlags(["-swift-version", "5"])] + llamaSwiftSettings,
+            linkerSettings: whisperLinkerSettings + llamaLinkerSettings
         ),
 
         // The menu bar app

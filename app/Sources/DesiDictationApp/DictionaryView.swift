@@ -31,6 +31,14 @@ struct DictionarySettings: View {
                         .foregroundStyle(.tertiary)
                     Text(entry.written).fontWeight(.medium)
                     Spacer()
+                    if entry.scope == .english, ContextChecker.isReady || entry.mode == .whenItFits {
+                        Picker("", selection: Binding(get: { entry.mode },
+                                                      set: { dictionary.setMode($0, for: entry) })) {
+                            ForEach(EntryMode.allCases, id: \.self) { Text($0.label).tag($0) }
+                        }
+                        .labelsHidden().fixedSize()
+                        .help("When it fits: written only when the sentence is about it")
+                    }
                     Button {
                         dictionary.remove(entry)
                     } label: {

@@ -8,7 +8,9 @@ extension DictationController {
     func beginVocabulary() {
         EditWatcher.shared.stop()
         AccessibilityPrimer.primeFrontmost()
-        VocabularySession.shared.begin(VocabularySession.plan(mode: vocabularyMode))
+        let plan = VocabularySession.plan(mode: vocabularyMode)
+        VocabularySession.shared.begin(plan)
+        if !plan.fitEntries.isEmpty { ContextChecker.shared.warmUp() }
     }
 
     /// Release, on main: what the work queue may use.
@@ -20,19 +22,51 @@ extension DictationController {
     private var vocabularyMode: LanguageMode { sessionLanguage?.mode ?? settingsMode }
 
     /// Work queue: near-miss names and Hinglish spellings, after the exact
-    /// dictionary step. Returns the transcript unchanged when nothing applies.
+    /// dictionary step, then "when it fits" pairs (English). Returns the
+    /// transcript unchanged when nothing applies.
     nonisolated static func applyVocabulary(
         _ text: String, mode: LanguageMode, plan: VocabularySession.Plan
     ) -> String {
-        let snapshot = VocabularySession.shared.snapshot(plan, mode: mode)
-        guard !snapshot.isEmpty, !text.isEmpty else { return text }
-        let result = VocabularyCorrector.correct(text, mode: mode, snapshot: snapshot)
-        VocabularySession.shared.recordFixes(result.fixes, unfixed: text)
-        if !result.fixes.isEmpty {
-            // Counts only: the words themselves never reach the log.
-            controllerLog.info("vocabulary: \(result.fixes.count, privacy: .public) fixes")
+        let session = VocabularySession.shared
+        let snapshot = session.snapshot(plan, mode: mode)
+        let runFit = mode == .english && !plan.fitEntries.isEmpty
+        guard !text.isEmpty, !snapshot.isEmpty || runFit else { return text }
+        var corrected = text
+        var fixes: [WordFix] = []
+        if !snapshot.isEmpty {
+            let result = VocabularyCorrector.correct(text, mode: mode, snapshot: snapshot)
+            corrected = result.text
+            fixes = result.fixes
         }
-        return result.text
+        if runFit {
+            let started = Date()
+            let fit = ContextFit.apply(
+                corrected, entries: plan.fitEntries,
+                cues: FitCues(screenTerms: session.currentScreenTerms, appName: plan.appName),
+                scorer: ContextChecker.shared.loaded(),
+                prefix: ContextFit.prefix(terms: plan.prefixTerms), rejected: plan.rejected)
+            corrected = fit.text
+            fixes += fit.fixes
+            let ms = Int(Date().timeIntervalSince(started) * 1000)
+            controllerLog.info("context fit: \(fit.decisions.count, privacy: .public) checked in \(ms, privacy: .public) ms")
+            Task { @MainActor in logFitDecisions(fit.decisions, ms: ms) }
+        }
+        session.recordFixes(fixes, unfixed: text)
+        if !fixes.isEmpty {
+            // Counts only: the words themselves never reach the log.
+            controllerLog.info("vocabulary: \(fixes.count, privacy: .public) fixes")
+        }
+        return corrected
+    }
+
+    /// Kept words are said too, so "why didn't it write Claude?" has an answer.
+    @MainActor private static func logFitDecisions(_ decisions: [FitDecision], ms: Int) {
+        for decision in decisions where !decision.swapped {
+            let why = decision.modelDelta == nil
+                ? "no context checker loaded and no on-screen hint"
+                : "the sentence reads better as \"\(decision.heard)\""
+            VocabularyActivityLog.shared.add(.info, "Kept \"\(decision.heard)\" (not \"\(decision.written)\"): \(why). \(ms) ms.")
+        }
     }
 
     /// Before an engine call: a biasable engine (Qwen3-ASR) gets this
@@ -78,7 +112,10 @@ extension DictationController {
             }
             let dictionary = PersonalDictionary.shared.entries(for: mode)
             for pair in pairs {
-                if let undone = CorrectionLearner.revertedFix(pair, fixes: fixes) {
+                if let undone = CorrectionLearner.revertedFix(pair, fixes: fixes), undone.source == .context {
+                    // A context fix depends on the sentence: one undo isn't "never".
+                    log.add(.info, "You changed \"\(undone.to)\" back to \"\(undone.from)\" here. \"When it fits\" still decides per sentence; switch it to Always or remove it in Your words.")
+                } else if let undone = CorrectionLearner.revertedFix(pair, fixes: fixes) {
                     store.respect(undone)
                     log.add(.learned, "You changed \"\(undone.to)\" back, so it won't make that fix again.")
                 } else if store.learnFromEdits, let proposal = CorrectionLearner.proposal(

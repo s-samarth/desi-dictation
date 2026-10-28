@@ -21,6 +21,11 @@ competitors/PATTERNS.md §1 ("the only serious app without it — overdue").
   (`WordScope(mode:)`; `anyToEnglish` → Hinglish; हिन्दी → none, so no
   vocabulary at all). `entries(for: mode)` feeds the pipeline, the corrector's
   terms and the learner's duplicate check. Older entries decode as English.
+- **Always / When it fits (2026-10-28):** `DictionaryEntry.mode`
+  (`EntryMode`, older entries decode as `.always`). `apply` only runs
+  Always entries; When it fits entries (English) are judged per sentence by
+  [CONTEXT_FIT.md](CONTEXT_FIT.md). The picker shows on English rows once the
+  context checker is downloaded.
 - **Right-click anywhere:** a non-AI Services entry, "Always write as… (Desi
   Dictation)" (`ServiceProvider.alwaysWriteAs`), opens `AddDictionaryEntrySheet`
   prefilled with the selection in a small floating window. `build_app.sh`

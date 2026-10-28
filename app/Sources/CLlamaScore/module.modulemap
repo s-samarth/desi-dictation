@@ -1,0 +1,4 @@
+module CLlamaScore [system] {
+    header "include/desi_lm.h"
+    export *
+}

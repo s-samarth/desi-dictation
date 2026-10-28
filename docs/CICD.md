@@ -86,10 +86,16 @@ Verified live 2026-07-14: the first ci.yml run completed green on GitHub's
 runners (app ✓ · web ✓ · deploy-web correctly skipped while dormant).
 Everything the workflows execute is byte-identical to the local preflight.
 
-**Native libs (v0.6.3).** `app/Libraries` holds two committed sets, so
+**Native libs (v0.6.3).** `app/Libraries` holds committed sets, so
 `ci.yml` needs no vendor setup:
 - whisper.cpp's static libs, from `scripts/setup_whisper.sh`;
-- `libtranscribe-bundle.a`, from `scripts/setup_transcribe.sh`.
+- `libtranscribe-bundle.a`, from `scripts/setup_transcribe.sh`;
+- `libllama-bundle.a` (context checker, CONTEXT_FIT.md), from
+  `scripts/setup_llama.sh`: llama.cpp tag `b11900` + `native/desi_lm`, only
+  `desi_lm_*` exported. **Optional:** `Package.swift` links it and defines
+  `DESI_LLAMA` only if the file exists, so a checkout without it builds with
+  the feature compiled out (`LlamaContextScorer.isAvailable == false`).
+  `release.yml` rebuilds it, so releases always include it.
 
 The transcribe bundle is transcribe.cpp at pinned commit `5700f12`, pre-linked
 with its own ggml hidden so it can't clash with whisper.cpp's (BUILD_LOG

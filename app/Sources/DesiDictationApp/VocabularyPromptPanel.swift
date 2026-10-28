@@ -68,7 +68,7 @@ final class VocabularyPromptCoordinator {
                                      y: frame.minY + 52 + OverlayView.height + 6))
     }
 
-    static let width: CGFloat = 460
+    static let width: CGFloat = 580
 }
 
 /// Clicks work, focus never moves.
@@ -97,6 +97,11 @@ struct VocabularyPromptView: View {
                     .lineLimit(1)
                 Button("Add") { store.accept(suggestion) }
                     .buttonStyle(.borderedProminent).controlSize(.small)
+                if AutoVocabularyStore.canOfferWhenItFits(suggestion) {
+                    Button("Only when it fits") { store.acceptWhenItFits(suggestion) }
+                        .controlSize(.small)
+                        .help("Write it only when the sentence is about it (checked on your Mac)")
+                }
                 Button("Not now") { store.dismiss(suggestion) }
                     .controlSize(.small)
             } else if let note = store.liveAcknowledgement {

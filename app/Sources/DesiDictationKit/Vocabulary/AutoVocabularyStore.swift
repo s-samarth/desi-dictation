@@ -151,7 +151,7 @@ public final class AutoVocabularyStore: ObservableObject {
         save()
     }
 
-    private func remove(_ suggestion: VocabularySuggestion) {
+    func remove(_ suggestion: VocabularySuggestion) {
         suggestions.removeAll { $0.id == suggestion.id }
         if liveSuggestion?.id == suggestion.id { liveSuggestion = nil }
         save()

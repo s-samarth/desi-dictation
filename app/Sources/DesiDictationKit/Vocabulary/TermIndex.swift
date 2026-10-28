@@ -39,6 +39,7 @@ struct TermIndex {
         switch source {
         case .screen, .fieldSpelling: return 3
         case .dictionary: return 2
+        case .context: return 1   // never indexed; fixes only
         }
     }
 }

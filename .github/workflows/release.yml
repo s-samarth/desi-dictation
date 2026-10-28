@@ -44,6 +44,9 @@ jobs:
       - name: Build transcribe.cpp bundle (Qwen3-ASR, pinned commit)
         run: ./scripts/setup_transcribe.sh
 
+      - name: Build llama.cpp bundle (context checker, pinned tag)
+        run: ./scripts/setup_llama.sh
+
       - name: Preflight — tests + app↔web parity (same gate as CI)
         run: |
           (cd app && swift build)

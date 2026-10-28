@@ -173,7 +173,8 @@ field's spelling wins for this dictation. It's never learned.
   milliseconds. Everything is off by default, so the latency gate is
   unaffected.
 - **Next (decided 2026-10-28):** context scorer for sound-alike real words
-  (cloud/Claude) and Review before paste. Plan: [VOCABULARY_NEXT.md](../VOCABULARY_NEXT.md).
+  (cloud/Claude), built as [CONTEXT_FIT.md](CONTEXT_FIT.md) ("When it fits"),
+  and Review before paste. Plan: [VOCABULARY_NEXT.md](../VOCABULARY_NEXT.md).
 - **Deferred:**
   - per-word ASR confidence: needs `TranscriptionResult` and engine changes,
     left until the Qwen PR lands. Until then a dictionary term alone can't

@@ -1,7 +1,8 @@
 # Vocabulary — what's next (decided 2026-10-28)
 
 Follows [implementation/AUTO_VOCABULARY.md](implementation/AUTO_VOCABULARY.md).
-Not built yet. Order: 1 → 2 → 3.
+Order: 1 → 2. §1 is built (code), pending its first Mac run:
+[implementation/CONTEXT_FIT.md](implementation/CONTEXT_FIT.md). §2 is not built.
 
 ## 1 · Context scorer: "cloud" or "Claude"? (English only)
 

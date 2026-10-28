@@ -5,6 +5,7 @@
 //   swift run desi-cli <model.bin> --batch <dir-with-wavs> [mode]   # JSONL out (evals)
 //   swift run desi-cli --translate "text" [english|hindi]           # LLM spike (TRANSLATION.md §5)
 //   swift run desi-cli --structure "text" [notes|actionList|emailDraft|outline]
+//   swift run desi-cli --fit <model.gguf> evals/context_fit/cases.tsv [--no-prefix]
 import DesiDictationKit
 import Foundation
 
@@ -28,6 +29,9 @@ if args.contains("--novad") {
     argDomain["vadEnabled"] = false
     UserDefaults.standard.setVolatileDomain(argDomain, forName: UserDefaults.argumentDomain)
 }
+// Context checker eval ("When it fits"): desi-cli --fit <model.gguf> <cases.tsv>
+if args.count >= 2, args[1] == "--fit" { runFitEval(Array(args.dropFirst(2))) }
+
 guard args.count >= 3 else {
     print("""
     usage: desi-cli <model.bin> <audio file | --batch dir> [hinglish|english|hindi] [--hotwords "A,B"]
