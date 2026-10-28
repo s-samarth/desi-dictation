@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # run_demo.sh — start the whole demo on this machine.
-#   whisper-server :8081 (Apex — English + Hinglish, model stays resident)
+#   whisper-server :8081 (Prime — English + Hinglish, model stays resident)
 #   whisper-server :8082 (Vaani — हिन्दी, only if the model exists)
 #   FastAPI        :8080 (the site + API gateway)
 #
@@ -31,8 +31,8 @@ sleep 1
 VAD_FLAGS=()
 [ -f "$VAD" ] && VAD_FLAGS=(--vad --vad-model "$VAD")
 
-echo "==> ASR :8081 (Apex — English/Hinglish)"
-"$SERVER" -m "$MODELS/ggml-hinglish-apex-q5_0.bin" --port 8081 --host 127.0.0.1 \
+echo "==> ASR :8081 (Prime — English/Hinglish)"
+"$SERVER" -m "$MODELS/ggml-hinglish-prime-q5_0.bin" --port 8081 --host 127.0.0.1 \
   -t 6 "${VAD_FLAGS[@]}" >/tmp/desi-asr-en.log 2>&1 &
 PIDS+=($!)
 
