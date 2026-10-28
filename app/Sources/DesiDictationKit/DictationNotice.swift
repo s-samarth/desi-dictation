@@ -33,7 +33,7 @@ public struct DictationNotice: Equatable {
         switch outcome {
         case .pasted, .copied:
             return nil
-        case .pasteSkipped(.modifiersHeld):
+        case .pasteSkipped(.modifiersHeld), .pasteSkipped(.menuOpen):
             return DictationNotice(kind: .copied, message: "Copied — press ⌘V to paste")
         case .pasteSkipped(.noAccessibility):
             return DictationNotice(

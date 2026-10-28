@@ -61,6 +61,10 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
   clipboard without pasting, so you had to press ⌘V. The paste could fire
   while Right ⌥ was still held, and apps saw ⌥⌘V (BUILD_LOG FM#31). The app
   now waits for you to let go first. You won't notice the wait.
+- **Menu left open (fixed after v0.6.2):** if you open the Desi menu-bar menu
+  and then dictate, the open menu used to swallow the paste (FM#32). The app
+  now closes its own menu before pasting. Another app's open menu (Spotlight,
+  another menu-bar icon) still swallows it. Close it, then stop.
 - **No more silent failures:** when a dictation doesn't end in a paste, the
   overlay stays up for a few seconds and says why, with the error sound:
   - ⚠️ *"Didn't catch that — nothing pasted. Try again."*: no speech was
