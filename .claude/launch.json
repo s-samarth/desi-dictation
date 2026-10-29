@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "launch-video",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "launch-video", "run", "dev", "--", "--no-open", "--port", "3123"],
+      "port": 3123
+    }
+  ]
+}

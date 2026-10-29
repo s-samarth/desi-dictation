@@ -86,7 +86,14 @@ enum UISnapshots {
         // (toggles, pickers) need a beat longer to draw.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             host.layoutSubtreeIfNeeded()
-            if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
+            // DESI_UI_SCALE=2 for sharp pictures (launch-video/); the window is
+            // off-screen, so it would otherwise render at 1x.
+            let scale = ProcessInfo.processInfo.environment["DESI_UI_SCALE"].flatMap(Double.init) ?? 1
+            if let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(host.bounds.width * scale),
+                                          pixelsHigh: Int(host.bounds.height * scale), bitsPerSample: 8,
+                                          samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                          colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0) {
+                rep.size = host.bounds.size
                 host.cacheDisplay(in: host.bounds, to: rep)
                 let url = directory.appendingPathComponent("\(name).png")
                 try? rep.representation(using: .png, properties: [:])?.write(to: url)
