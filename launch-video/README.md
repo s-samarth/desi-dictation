@@ -1,6 +1,6 @@
 # Launch video
 
-A ~65 s product launch video for Desi Dictation, built with
+A ~66 s product launch video for Desi Dictation, built with
 [Remotion](https://www.remotion.dev): React components rendered frame by frame
 into an MP4. It sits apart from `app/` and `web/` and shares nothing with them
 except pictures of the app.
@@ -35,7 +35,7 @@ differentiator.
 
 | # | Scene | File | Shows |
 |---|---|---|---|
-| 1 | Hook | `scenes/Opening.tsx` | "Most dictation apps guess. And you find out after you hit send." |
+| 1 | Hook | `scenes/Opening.tsx` | Stock clip: a woman talking to her laptop. "Most dictation apps guess. And you find out after you hit send." |
 | 2 | Title | `scenes/Opening.tsx` | Icon, name, "Dictation you can trust" |
 | 3 | Dictate (English) | `scenes/Dictate.tsx` | Hold Right ⌥ → overlay listens → an email lands in Mail |
 | 4 | Smart review | `scenes/SmartReview.tsx` | Sure → pasted, no pop-up; unsure → only 2 words to check |
@@ -76,9 +76,13 @@ Keep each one 5–10 s: start just before the key goes down, stop a second
 after the text lands. Use made-up names and messages only. Hide notifications
 (Focus → Do Not Disturb) and anything personal in the menu bar.
 
-## Still to add
+## Stock media
 
-- **Stock footage** for the hook (someone speaking into a mic). Use
-  Pexels/Pixabay, whose licenses allow free commercial use. Ask the owner
-  before downloading each clip.
-- **Music:** none yet. The video is silent.
+| File | Source | License |
+|---|---|---|
+| `public/clips/hook-woman-laptop.mp4` | [Pexels 7251216](https://www.pexels.com/video/woman-in-a-video-call-indoors-7251216/), re-encoded to 30 fps with no sound | Pexels license: free, commercial use OK, no credit needed |
+
+**Music:** not chosen yet, so the video is silent. Pixabay tracks are free
+for commercial use without credit
+([license](https://pixabay.com/service/license-summary/)). Once one is
+picked, line the scene cuts up with its beat.

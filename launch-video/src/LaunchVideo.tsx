@@ -13,7 +13,7 @@ import { FPS } from "./theme";
 
 /** The scenes in order, with their lengths in seconds. The pitch: dictation you can trust. */
 const SCENES: { name: string; seconds: number; push?: boolean; Scene: React.FC }[] = [
-  { name: "Hook", seconds: 4, Scene: Hook },
+  { name: "Hook", seconds: 5, Scene: Hook },
   { name: "Title", seconds: 3.5, Scene: TitleCard },
   { name: "Dictate (English)", seconds: 7, Scene: Dictate },
   { name: "Smart review", seconds: 7, push: true, Scene: SmartReview },

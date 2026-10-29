@@ -1,23 +1,36 @@
 import React from "react";
-import { Img, interpolate, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { Video } from "@remotion/media";
+import { AbsoluteFill, Img, interpolate, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { Backdrop } from "../components/Backdrop";
 import { Accent, Caption } from "../components/Caption";
-import { SoundBars } from "../components/Typed";
 import { color, font } from "../theme";
 
-/** The hook: the problem with dictation, in two lines. A stock clip can go behind it later. */
+/**
+ * The hook: someone talking to their laptop (Pexels 7251216, free license),
+ * and the problem with dictation beside her.
+ */
 export const Hook: React.FC = () => {
   const { fps } = useVideoConfig();
   return (
-    <Backdrop>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 50 }}>
-        <SoundBars from={0} to={10} />
-        <Caption title={<>Most dictation apps <Accent>guess</Accent>.</>} />
-        <Sequence from={1.6 * fps} layout="none">
-          <Caption title="And you find out after you hit send." style={{ color: color.dim }} />
-        </Sequence>
-      </div>
-    </Backdrop>
+    <AbsoluteFill style={{ backgroundColor: color.bg }}>
+      {/* She sits in the middle of the shot: move her into the left third, clear of the text. */}
+      <AbsoluteFill style={{ translate: "-460px 0px" }}>
+        <Video src={staticFile("clips/hook-woman-laptop.mp4")} muted objectFit="cover" style={{ width: "100%", height: "100%" }} />
+      </AbsoluteFill>
+      <AbsoluteFill
+        style={{
+          background: "linear-gradient(90deg, rgba(11,15,26,0.1) 25%, rgba(11,15,26,0.8) 48%, rgba(11,15,26,1) 62%)",
+        }}
+      />
+      <AbsoluteFill style={{ justifyContent: "center", alignItems: "flex-end", paddingRight: 120 }}>
+        <div style={{ width: 860, display: "flex", flexDirection: "column", gap: 34 }}>
+          <Caption align="left" title={<>Most dictation apps <Accent>guess</Accent>.</>} />
+          <Sequence from={1.6 * fps} layout="none">
+            <Caption align="left" title="And you find out after you hit send." style={{ color: color.dim }} />
+          </Sequence>
+        </div>
+      </AbsoluteFill>
+    </AbsoluteFill>
   );
 };
 
