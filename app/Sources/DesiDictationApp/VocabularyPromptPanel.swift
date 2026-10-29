@@ -18,7 +18,7 @@ final class VocabularyPromptCoordinator {
     private var hideTask: Task<Void, Never>?
 
     /// How long each kind of message stays up.
-    static let suggestionSeconds: Double = 12
+    static let suggestionSeconds: Double = 25
     static let acknowledgementSeconds: Double = 4
 
     func start() {
@@ -36,6 +36,13 @@ final class VocabularyPromptCoordinator {
         hideTask?.cancel()
         guard showing else { panel?.orderOut(nil); return }
         if panel == nil { panel = makePanel() }
+        // As wide as this message and its buttons (a fixed 580 pt cut off the
+        // third button on longer words).
+        if let host = panel!.contentView {
+            host.layoutSubtreeIfNeeded()
+            let maxWidth = (NSScreen.main?.visibleFrame.width ?? 1200) - 40
+            panel!.setContentSize(NSSize(width: min(host.fittingSize.width, maxWidth), height: 56))
+        }
         position(panel!)
         panel!.orderFrontRegardless()
         hideTask = Task { @MainActor in
@@ -68,6 +75,7 @@ final class VocabularyPromptCoordinator {
                                      y: frame.minY + 52 + OverlayView.height + 6))
     }
 
+    /// Starting width; each message resizes the panel to fit.
     static let width: CGFloat = 580
 }
 
@@ -98,7 +106,7 @@ struct VocabularyPromptView: View {
                 Button("Add") { store.accept(suggestion) }
                     .buttonStyle(.borderedProminent).controlSize(.small)
                 if AutoVocabularyStore.canOfferWhenItFits(suggestion) {
-                    Button("Only when it fits") { store.acceptWhenItFits(suggestion) }
+                    Button("When it fits") { store.acceptWhenItFits(suggestion) }
                         .controlSize(.small)
                         .help("Write it only when the sentence is about it (checked on your Mac)")
                 }
@@ -115,6 +123,7 @@ struct VocabularyPromptView: View {
             Capsule().fill(.ultraThinMaterial)
                 .overlay(Capsule().strokeBorder(.white.opacity(0.12), lineWidth: 0.5)))
         .fixedSize()
-        .frame(width: VocabularyPromptCoordinator.width, height: 56)
+        .padding(.horizontal, 8)
+        .frame(height: 56)
     }
 }

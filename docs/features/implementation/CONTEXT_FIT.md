@@ -53,7 +53,7 @@ keeps it testable for the next model.
 | Pipeline hook + logging | `DictationController+Vocabulary.swift`, `VocabularySession.Plan` |
 | C scorer over llama.cpp (tokenize, one decode, log-softmax) | `native/desi_lm/desi_lm.cpp`, header `app/Sources/CLlamaScore/include/desi_lm.h` |
 | Build: llama.cpp `b11900` + desi_lm, ggml hidden | `scripts/setup_llama.sh` → `app/Libraries/libllama-bundle.a` |
-| UI: popup "Only when it fits", row "When it fits", per-word Always/When it fits picker, download row | `VocabularyPromptPanel.swift`, `SmartVocabularyView.swift`, `DictionaryView.swift`, `ContextCheckerView.swift` |
+| UI: popup "When it fits" (English words, offered before the checker is downloaded too; 2026-10-29), row "When it fits", per-word Always/When it fits picker, download row | `VocabularyPromptPanel.swift`, `SmartVocabularyView.swift`, `DictionaryView.swift`, `ContextCheckerView.swift` |
 | Model download entry (outside the ASR catalog) | `ModelCatalog.swift` `contextCheckerEntry` |
 | Eval | `desi-cli --fit <model.gguf> evals/context_fit/cases.tsv [--word-list] [--cpu]` |
 | Tests (fake scorer) | `DesiTests/ContextFitTests.swift` |

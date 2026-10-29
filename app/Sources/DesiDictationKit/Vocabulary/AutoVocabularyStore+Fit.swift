@@ -5,7 +5,10 @@ extension AutoVocabularyStore {
     /// English words only (small models are weak on Roman Hinglish), and
     /// only once the context checker is built in and downloaded.
     public static func canOfferWhenItFits(_ suggestion: VocabularySuggestion) -> Bool {
-        suggestion.scope == .english && ContextChecker.isReady
+        // Offered whether or not the checker is downloaded yet: the choice is
+        // the user's to make now; without the checker only on-screen and
+        // app-name cues decide, and the popup says how to get it.
+        suggestion.scope == .english && LlamaContextScorer.isAvailable
     }
 
     /// The pair joins Your words as "When it fits": each sentence decides.
@@ -17,5 +20,8 @@ extension AutoVocabularyStore {
         ContextChecker.shared.warmUp()
         let line = "Learned: \"\(suggestion.heard)\" becomes \"\(suggestion.written)\" when the sentence fits"
         Task { @MainActor in VocabularyActivityLog.shared.add(.learned, line) }
+        if !ContextChecker.isReady {
+            liveAcknowledgement = "Added. Get the context checker on the Models page so each sentence can decide."
+        }
     }
 }

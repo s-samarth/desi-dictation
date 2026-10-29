@@ -104,7 +104,7 @@ extension DictationController {
             log.add(.problem, "Couldn't read the text in \(app) after pasting, so edits there can't be learned. Try again in a moment; some apps need a few seconds the first time.")
         case .watching(let app):
             if store.learnFromEdits {
-                log.add(.info, "Watching your text in \(app) for 30 s. Fix a misheard word to teach it.")
+                log.add(.info, "Watching your text in \(app) for 2 minutes. Fix a misheard word to teach it.")
             }
         case .edited(let pairs, let app):
             if pairs.isEmpty {

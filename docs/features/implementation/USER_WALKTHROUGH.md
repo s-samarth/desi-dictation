@@ -138,14 +138,19 @@ menu items and right-click services are hidden (§3–§8).
 - **Discovery:** onboarding step 4, or menu bar → Open Desi Dictation… → **Vocabulary →
   Learn automatically**. Four switches, all off, each with a one-line note.
 - **Learn from corrections:** dictate, then fix a word in the field
-  ("Rowan" → "Rohan"). About 2 s after you stop typing, a small popup above
-  the overlay asks **"Always write Rowan as Rohan?"** with **Add** / **Not now**.
+  ("Rowan" → "Rohan") within **2 minutes** (30 s until 2026-10-29: too
+  short to read and edit). About 2 s after you stop typing, a small popup
+  above the overlay asks **"Always write Rowan as Rohan?"** with **Add** /
+  **When it fits** (English words) / **Not now**, for 25 s. The popup is as
+  wide as its words, so no button is cut off.
   It never steals the caret. Ignore it and the proposal waits under
   Vocabulary → **Waiting for you**. "Add" puts the pair in your Personal dictionary.
   **Not now** only snoozes it: make the same fix a few more times and it
   asks again. Only **Never** stops it for good.
-- **When it fits (English):** Vocabulary → **When it fits** → Get (397 MB).
-  From then on the popup has a third button, **Only when it fits**, and each
+- **When it fits (English):** the popup always offers **When it fits** for
+  English words. To have each sentence decide, get the context checker
+  (Models or Vocabulary page, 397 MB); choosing it without the checker
+  says so, and only on-screen / app-name cues decide until then. Each
   English word in Your words has an *Always / When it fits* picker. Set
   *cloud → Claude* to When it fits: "I asked cloud to fix this" becomes
   "I asked Claude to fix this", "our data is in the cloud" stays. Fixes say

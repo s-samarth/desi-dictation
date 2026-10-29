@@ -77,7 +77,7 @@ struct GuidePane: View {
             number: 4, title: "Learn from my corrections",
             summary: "Instead of typing a list, just fix mistakes where they land. It notices and offers to remember.",
             steps: ["Dictate as usual. Say it writes \"Call Rowan at 5\".",
-                    "Within **30 seconds**, fix the word right there in the text: Rowan → Rohan.",
+                    "Within **2 minutes**, fix the word right there in the text: Rowan → Rohan.",
                     "Stop typing for **2 seconds** (or just press Enter). A small popup asks **Always write Rowan as Rohan in English?** Click **Add** and it's in that language's list for good.",
                     "Missed the popup? It waits in Vocabulary → Waiting for you. **Not now** waits until you make the same fix a few more times; only **Never** stops it for good.",
                     "Right only sometimes, like Claude vs cloud? Get the small model under Vocabulary → **When it fits**, then pick **Only when it fits**: each English sentence decides.",

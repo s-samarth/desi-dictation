@@ -91,8 +91,8 @@ func runContextFitTests() {
     let english = VocabularySuggestion(heard: "cloud", written: "Claude", scope: .english)
     let hinglish = VocabularySuggestion(heard: "nahin", written: "nahi", scope: .hinglish)
     T.expect(!AutoVocabularyStore.canOfferWhenItFits(hinglish), "never for Hinglish words")
-    T.equal(AutoVocabularyStore.canOfferWhenItFits(english), ContextChecker.isReady,
-            "English words, only once the checker is downloaded")
+    T.equal(AutoVocabularyStore.canOfferWhenItFits(english), LlamaContextScorer.isAvailable,
+            "English words, even before the checker is downloaded")
     let store = AutoVocabularyStore(fileURL: T.tempFile("autovocab-fit.json"),
                                     defaults: UserDefaults(suiteName: "desi-tests-\(UUID().uuidString)")!)
     let dict = PersonalDictionary(fileURL: T.tempFile("dict-fit.json"))

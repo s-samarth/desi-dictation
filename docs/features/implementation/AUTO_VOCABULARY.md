@@ -52,7 +52,7 @@ Hinglish has no standard spelling, and each person is self-consistent
 | Qwen3-ASR seam + ≤ 30-term selection | `HotwordSelector.swift` | ✓ |
 | Switches, proposals, reject list (`autovocab.json`) | `AutoVocabularyStore.swift` | ✓ |
 | AX reads (timeout-bounded, no secure fields, not our app) | `AXReader.swift`, `ScreenContextReader.swift` | live only |
-| Post-paste watch (every 0.3 s, 30 s, settles after 2 s or on send) | `EditWatcher.swift`, `EditTracker.swift` (pure timing) | tracker ✓, AX live only |
+| Post-paste watch (every 0.3 s, 2 min, settles after 2 s or on send) | `EditWatcher.swift`, `EditTracker.swift` (pure timing) | tracker ✓, AX live only |
 | Electron accessibility switch (`AXManualAccessibility`) | `AccessibilityPrimer.swift` | live only (FM#37) |
 | "What it's been doing" list (memory only) | `VocabularyActivity.swift`, `VocabularyActivityView.swift` | — |
 | One dictation's state (screen terms, hotwords, fixes) | `VocabularySession.swift` | — |
