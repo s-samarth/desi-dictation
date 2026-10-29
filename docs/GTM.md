@@ -77,9 +77,11 @@ background telemetry; nothing sent without an explicit user action. Within
 that, four layers:
 
 ### 4.1 Explicit feedback (user-initiated, ships in-app)
-- **"Send Feedback…" in the menu bar + main window**: opens a pre-filled email
-  (app version, macOS version, selected model/mode — all visible to the user
-  in the draft they're sending; no hidden payload).
+- **"Send Feedback…" in the menu bar** (built 2026-10-30, FEEDBACK.md): a
+  window that posts the message, plus the parts the user ticks (app info on,
+  last dictation off; both shown as sent), to samarthsaraswat.com/api/feedback
+  only on Send. It's forwarded by email and not stored. Copy and "Email
+  instead" (the original pre-filled draft) remain.
 - **"Report last transcription"**: puts the last transcript + what-you-expected
   template into the same email draft. Audio attach = manual, user's choice,
   never automatic.
@@ -99,7 +101,9 @@ tools like Obsidian gather insight — ask, don't siphon.)
   (Apex vs Swift vs Vaani = language-mode demand mix!).
 - **Gumroad**: free-tier downloads, later sales/refunds/geo mix.
 - **GitHub**: release download counts per version = adoption + upgrade rate;
-  stars/issues = engagement.
+  stars/issues = engagement. Since v0.7.0 each route has its own DMG copy
+  (website `DesiDictation-mac.dmg`, installer `DesiDictation.dmg`), so
+  `scripts/download_counts.sh` splits downloads by route with no tracking.
 - **Sparkle appcast hits** (once auto-update ships): rough weekly-active proxy
   from standard webserver logs, IP-truncated, no client code needed. Disclose
   it in the privacy note anyway.

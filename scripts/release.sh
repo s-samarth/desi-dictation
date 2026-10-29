@@ -80,16 +80,23 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 Install guide: [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)
 EOF
 
-# Stable-named copy + checksums: install.sh fetches
-# releases/latest/download/DesiDictation.dmg, so the newest release is always
-# one fixed URL, and it verifies the .sha256 before installing.
+# Two stable-named copies + checksums, one per route, so GitHub's per-file
+# download counts tell the routes apart with no tracking
+# (scripts/download_counts.sh adds them up across releases):
+#   DesiDictation.dmg      install.sh (releases/latest/download/…; it
+#                          verifies the .sha256 before installing)
+#   DesiDictation-mac.dmg  the website's Download button (same URL shape)
+#   DesiDictation-<v>.dmg  the releases page
 STABLE="$ROOT/app/dist/DesiDictation.dmg"
+WEB="$ROOT/app/dist/DesiDictation-mac.dmg"
 cp "$DMG" "$STABLE"
-for f in "$DMG" "$STABLE"; do
+cp "$DMG" "$WEB"
+for f in "$DMG" "$STABLE" "$WEB"; do
   (cd "$(dirname "$f")" && shasum -a 256 "$(basename "$f")" > "$(basename "$f").sha256")
 done
 
-gh release create "$TAG" "$DMG" "$DMG.sha256" "$STABLE" "$STABLE.sha256" --title "Desi Dictation $VERSION" \
+gh release create "$TAG" "$DMG" "$DMG.sha256" "$STABLE" "$STABLE.sha256" "$WEB" "$WEB.sha256" \
+  --title "Desi Dictation $VERSION" \
   --notes-file "$NOTES" --generate-notes $DRAFT
 rm -f "$NOTES"
 echo "✅ released $TAG"

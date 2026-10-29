@@ -102,11 +102,15 @@ jobs:
           xcrun stapler staple app/dist/DesiDictation-*.dmg
 
       # install.sh pulls releases/latest/download/DesiDictation.dmg and checks
-      # its .sha256 — keep a stable-named copy next to the versioned one.
-      - name: Stable-named DMG + checksums
+      # its .sha256; the website's button pulls DesiDictation-mac.dmg. Same
+      # file, two stable names, so GitHub counts each route on its own
+      # (scripts/download_counts.sh; matches scripts/release.sh).
+      - name: Stable-named DMGs + checksums
         run: |
           cd app/dist
-          cp DesiDictation-*.dmg DesiDictation.dmg
+          VERSIONED=$(ls DesiDictation-[0-9]*.dmg)
+          cp "$VERSIONED" DesiDictation.dmg
+          cp "$VERSIONED" DesiDictation-mac.dmg
           for f in DesiDictation*.dmg; do shasum -a 256 "$f" > "$f.sha256"; done
 
       # Say plainly what the user is downloading: an unsigned/ad-hoc DMG needs a

@@ -81,7 +81,7 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 
 The menu bar mic holds what you change daily, nothing else: status,
 **Open Desi Dictation… (⌘,)** right under it, **Enable Dictation**, **Language**, **Model** (when the language has more than one installed: English → Parakeet (fastest) / Qwen (most accurate)), "For <app>", **Copy Last**, **History**
-(last 10, plus **Show All…**), **Send Feedback…**, **Quit**.
+(last 10, plus **Show All…**), **Send Feedback…** (a window: your message, an optional reply address, "Include app info" shown as sent, "Include my last dictation" off; **Send** posts it to samarthsaraswat.com only on click, or **Copy** / **Email instead**), **Quit**.
 
 **Open Desi Dictation…** opens the app's one window. Opening the app from
 Spotlight (⌘Space), Applications or Launchpad starts it quietly in the menu

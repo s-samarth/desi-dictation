@@ -139,7 +139,7 @@ struct MenuContent: View {
 
         Divider()
 
-        Button("Send Feedback…") { Feedback.compose() }
+        Button("Send Feedback…") { AppWindows.shared.showFeedback() }
 
         Divider()
         Button("Quit Desi Dictation") { NSApp.terminate(nil) }
