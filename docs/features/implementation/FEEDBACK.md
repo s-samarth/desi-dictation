@@ -2,8 +2,9 @@
 
 **Status:** built 2026-10-30 (`feat/feedback-and-download-counts`, with
 s-samarth/s-samarth `feat/desi-dictation-downloads-feedback`). Tests ran on
-a Mac (M3); the window was checked as a rendered picture. **Not checked
-live:** a real send, which needs the EmailJS setting below.
+a Mac (M3); the window was checked as a rendered picture. **Checked live
+2026-10-30:** a report sent to the endpoint as the app sends it arrived
+through EmailJS (history: OK). Ships in v0.7.1.
 
 **Problem.** Feedback meant writing an email, which few people do. And there
 was no way to know how many people download the app.
@@ -33,13 +34,15 @@ Copy and Email instead. It never queues and never retries in the background.
 
 **The endpoint** (`api/feedback.ts` in the website repo) checks the report,
 rate-limits each address to 5 per 10 minutes (in memory), and forwards it to
-Samarth's inbox through the contact form's EmailJS service. It stores
-nothing, and logs only the mail service's status, never the report.
+samarthsaraswat13@gmail.com through its own EmailJS account (not the contact
+form's). It stores nothing, and logs only the mail service's status, never
+the report. The EmailJS template has "Do not save private data" on, so its
+history keeps only that a mail went out.
 
-**Setup, once:** in EmailJS, Account → Security, allow API calls from
-non-browser applications. If "Use Private Key" is on, set
-`EMAILJS_PRIVATE_KEY` in the Vercel project. Until then sends fail with
-"Couldn't send it right now", and Copy and Email instead still work.
+**Setup (done):** the samarthsaraswat13 EmailJS account allows API calls
+from non-browser applications with "Use Private Key" on, and the key is
+`EMAILJS_PRIVATE_KEY` in the Vercel project. If sends start failing ("Couldn't
+send it right now"), check those two first; Copy and Email instead still work.
 
 ## Download counts, without tracking
 
