@@ -51,8 +51,8 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
     <key>CFBundleDisplayName</key>       <string>Desi Dictation</string>
     <key>CFBundleIdentifier</key>        <string>com.desi.dictation</string>
     <key>CFBundleExecutable</key>        <string>Desi Dictation</string>
-    <key>CFBundleShortVersionString</key><string>0.7.0</string>
-    <key>CFBundleVersion</key>           <string>5</string>
+    <key>CFBundleShortVersionString</key><string>0.7.1</string>
+    <key>CFBundleVersion</key>           <string>6</string>
     <key>CFBundlePackageType</key>       <string>APPL</string>
     <key>LSMinimumSystemVersion</key>    <string>14.0</string>
     <key>LSUIElement</key>               <true/>
