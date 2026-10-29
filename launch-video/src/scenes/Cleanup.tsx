@@ -7,9 +7,9 @@ import { spokenBy } from "../voiceover";
 
 // You say the whole sentence first; the cleanup starts just after.
 const S = spokenBy("fillers") + 0.2;
-const UMS_GONE = S + 0.8;
-const SUGGEST = S + 1.2;
-const ACCEPTED = S + 3.4;
+const UMS_GONE = S + 0.7;
+const SUGGEST = S + 1.0;
+const ACCEPTED = S + 2.6;
 
 /** A span that is struck through at `strikeAt` s and folds away by `goneAt` s. */
 const Fold: React.FC<{ children: string; strikeAt: number; goneAt: number; c?: string }> = ({
