@@ -60,3 +60,5 @@ Audio never leaves the Mac. No accounts. No telemetry. Transcripts stored
 locally only, deletable, optional. The only outbound traffic is model downloads
 the user clicks, and (post-launch) a single license verification to Gumroad.
 Any future change to this list must be release-noted loudly.
+The user-facing version is [legal/PRIVACY_POLICY.md](legal/PRIVACY_POLICY.md):
+update it in the same change.
