@@ -88,12 +88,17 @@ pasteboard-swap ⌘V insertion → non-activating overlay for state. SwiftUI
 
 ## Status
 
-**v0.6.3 — free beta.** Feature-complete for the dictation wedge: first-launch
+**v0.7.0 — free beta.** Feature-complete for the dictation wedge: first-launch
 onboarding and an in-app Guide, 5 curated models (Prime/Parakeet/Qwen3-ASR/Vaani + VAD)
 with per-language defaults, smart vocabulary (learns names from your fixes, separate
 English and Hinglish word lists, right-click "Always write as…" in any app),
 VAD pause handling, chunked transcription while you speak, 24h local history,
-in-app feedback, launch-at-login. Install with the one-liner
+in-app feedback, launch-at-login. New in 0.7: **Review before paste** (underlines
+only the words it's unsure of, Conservative / Moderate / Liberal), the optional
+**context checker** (a 397 MB local model for "When it fits" words and odd-word
+underlines), um/uh removal with likely fillers and spoken corrections ("no, make
+it 3", "scratch that") offered in review and never applied on their own, and a
+model picker in the menu bar. Install with the one-liner
 above (or the DMG from [Releases](../../releases)) and follow [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
 Roadmap highlights: on-device LLM layer (translate-to-English, structuring),
 own fine-tuned Hinglish model, more Indic languages, Windows/Android.
