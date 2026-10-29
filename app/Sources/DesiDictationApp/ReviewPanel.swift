@@ -16,6 +16,7 @@ final class ReviewCoordinator {
     private var panel: ReviewPanel?
     private var model: ReviewModel?
     private var phaseWatch: AnyCancellable?
+    private var resizeWatch: AnyCancellable?
 
     func start() {
         DictationController.shared.onReview = { [weak self] request in self?.show(request) }
@@ -30,25 +31,35 @@ final class ReviewCoordinator {
         let model = ReviewModel(request: request)
         model.onClose = { [weak self] in self?.close() }
         self.model = model
-        let panel = ReviewPanel(content: ReviewView(model: model))
-        position(panel)
+        let screen = currentScreen()?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
+        let size = ReviewLayout.size(for: request.text, on: screen)
+        let panel = ReviewPanel(content: ReviewView(model: model, size: size))
+        position(panel, in: screen)
+        // A width the user drags to is kept for the next review.
+        resizeWatch = NotificationCenter.default
+            .publisher(for: NSWindow.didEndLiveResizeNotification, object: panel)
+            .sink { _ in ReviewLayout.remember(width: panel.frame.width) }
         self.panel = panel
         panel.makeKeyAndOrderFront(nil)
     }
 
     private func close() {
+        resizeWatch = nil
         panel?.orderOut(nil)
         panel = nil
         model = nil
     }
 
-    /// Upper third of the screen the user is on, clear of the overlay at the bottom.
-    private func position(_ panel: NSPanel) {
-        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) })
-                ?? NSScreen.main else { return }
-        let frame = screen.visibleFrame
+    private func currentScreen() -> NSScreen? {
+        NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
+    }
+
+    /// Near the top of the screen the user is on, clear of the overlay at the
+    /// bottom; a tall panel grows downward and never runs off either edge.
+    private func position(_ panel: NSPanel, in frame: NSRect) {
+        let top = frame.maxY - frame.height * 0.08
         panel.setFrameOrigin(NSPoint(x: frame.midX - panel.frame.width / 2,
-                                     y: frame.minY + frame.height * 0.62))
+                                     y: max(frame.minY + 20, top - panel.frame.height)))
     }
 }
 
@@ -56,9 +67,11 @@ final class ReviewCoordinator {
 final class ReviewPanel: NSPanel {
     init<Content: View>(content: Content) {
         let host = NSHostingView(rootView: content)
+        // Opens at the view's ideal size; only the minimum binds, so it can be dragged bigger.
+        host.sizingOptions = [.minSize]
         host.layout()
         super.init(contentRect: NSRect(origin: .zero, size: host.fittingSize),
-                   styleMask: [.titled, .nonactivatingPanel, .fullSizeContentView],
+                   styleMask: [.titled, .resizable, .nonactivatingPanel, .fullSizeContentView],
                    backing: .buffered, defer: false)
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
