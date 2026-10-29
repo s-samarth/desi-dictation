@@ -10,6 +10,7 @@ Everything written about Desi Dictation — engineering, product, strategy, and 
 | [PERF_RCA_2026-08.md](PERF_RCA_2026-08.md) | **Why dictation got slow** — the root-cause analysis behind the v0.6.1 speed work |
 | [BUILD_LOG.md](BUILD_LOG.md) | Chronological build steps + every failure mode (FM#1–16) |
 | [SECURITY_AUDIT.md](SECURITY_AUDIT.md) | Privacy/security posture, verified |
+| [legal/](legal/) | **Privacy Policy** and **Terms of Service** for release (fill the bracketed date, city and website line first) |
 | [SETUP_GUIDE.md](SETUP_GUIDE.md) | End-user install guide (start here to *use* it) |
 | [USAGE.md](USAGE.md) | Developer usage — precise build/run steps |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | **Making a change, end to end** — edit loop, tests, docs checklist, how each surface updates |
