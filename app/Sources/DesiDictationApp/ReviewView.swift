@@ -5,14 +5,15 @@ import DesiDictationKit
 /// choices for the word at the caret, and what to remember.
 struct ReviewView: View {
     @ObservedObject var model: ReviewModel
-
-    static let width: CGFloat = 560
+    /// Opening size, from ReviewLayout. It is the panel's minimum, so the
+    /// panel can't open smaller than the text needs; it can be dragged bigger.
+    var size = ReviewLayout.Size(width: 680, editorHeight: 140)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
             ReviewTextEditor(model: model)
-                .frame(minHeight: 70, maxHeight: 160)
+                .frame(minHeight: size.editorHeight, maxHeight: .infinity)
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.neutral.opacity(0.25)))
             alternatives
@@ -20,7 +21,7 @@ struct ReviewView: View {
             footer
         }
         .padding(16)
-        .frame(width: Self.width)
+        .frame(minWidth: size.width, maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .tint(Theme.accent)
     }
 
@@ -29,15 +30,16 @@ struct ReviewView: View {
             Text("Check before pasting").font(.headline)
             Spacer()
             Text(model.request.unsure.isEmpty ? "Nothing looked unsure"
-                 : "\(model.request.unsure.count) unsure \(model.request.unsure.count == 1 ? "word" : "words")")
-                .font(.caption).foregroundStyle(model.request.unsure.isEmpty ? Theme.hindi : Theme.accent)
+                 : model.remaining == 0 ? "All checked"
+                 : "\(model.remaining) unsure \(model.remaining == 1 ? "word" : "words")")
+                .font(.caption).foregroundStyle(model.remaining == 0 ? Theme.hindi : Theme.accent)
         }
     }
 
     @ViewBuilder private var alternatives: some View {
         if let current = model.current {
             HStack(spacing: 6) {
-                Text(current.confidence == nil ? "Sounds like:" : "Maybe:")
+                Text(Self.because(current.reason))
                     .font(.caption).foregroundStyle(.secondary)
                 if current.alternatives.isEmpty {
                     Text("no suggestions; type the right word")
@@ -52,12 +54,29 @@ struct ReviewView: View {
                     }
                     .buttonStyle(.bordered).controlSize(.small)
                 }
+                Button { model.looksRight?() } label: {
+                    HStack(spacing: 4) {
+                        Keycap(label: "0")
+                        Text("Looks right")
+                    }
+                }
+                .buttonStyle(.bordered).controlSize(.small)
                 Spacer()
             }
         } else {
             Text(model.request.unsure.isEmpty ? "Edit anything, then press Enter."
                  : "Tab goes to the next underlined word.")
                 .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    /// Why the word at the caret is underlined, leading into its suggestions.
+    static func because(_ reason: UnsureWord.Reason) -> String {
+        switch reason {
+        case .unclear: return "Hard to hear. Maybe:"
+        case .odd: return "Odd here. Maybe:"
+        case .soundsLike: return "Sounds like:"
+        case .suggested: return "Did you mean:"
         }
     }
 
@@ -76,12 +95,16 @@ struct ReviewView: View {
                     .pickerStyle(.segmented).labelsHidden().frame(width: 290)
                 }
             }
+            if !ContextChecker.isReady, model.fixes.contains(where: { $0.keep == .whenItFits }) {
+                Text("When it fits needs the context checker (Models page, 397 MB) to judge each sentence. Until then, only names on screen decide.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
         }
     }
 
     private var footer: some View {
         HStack(spacing: 8) {
-            Text("Tab next · 1–\(ReviewAlternatives.limit) pick · Esc copies instead")
+            Text("Tab next · 1–\(ReviewAlternatives.limit) pick · 0 looks right · Esc copies instead")
                 .font(.caption).foregroundStyle(.secondary)
             Spacer()
             Button("Copy") { model.finish(paste: false) }

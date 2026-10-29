@@ -76,30 +76,17 @@ struct DictationPane: View {
             Section {
                 Toggle("Play sounds", isOn: $settings.soundsEnabled)
                 Toggle("Copy to clipboard instead of pasting", isOn: $settings.copyInsteadOfPaste)
-                Picker("Review before paste", selection: $settings.reviewMode) {
-                    ForEach(ReviewMode.allCases, id: \.self) { Text($0.label).tag($0) }
-                }
                 Toggle("Start at login", isOn: $settings.launchAtLogin)
                     .onChange(of: settings.launchAtLogin) { LoginItem.apply() }
             } header: {
                 Text("Options")
-            } footer: {
-                Text(reviewLine).footnote()
             }
 
+            ReviewSection()
             AdvancedDictationSettings()
             PermissionsSection()
         }
         .formStyle(.grouped)
-    }
-
-    /// What Review before paste does at the chosen setting.
-    private var reviewLine: String {
-        switch settings.reviewMode {
-        case .off: return "Review before paste: off. Words go straight into your app."
-        case .unsure: return "A small panel opens only when a word looks unsure. Tab jumps to it, 1–5 picks a suggestion, Enter pastes."
-        case .always: return "Every dictation opens a small panel first. Edit anything, then Enter pastes and Esc copies."
-        }
     }
 
     /// Which model the language resolves to, or what's missing.

@@ -80,12 +80,13 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 ## 0d · The menu and the window (2026-10-28)
 
 The menu bar mic holds what you change daily, nothing else: status,
-**Open Desi Dictation… (⌘,)** right under it, **Enable Dictation**, **Language**, "For <app>", **Copy Last**, **History**
+**Open Desi Dictation… (⌘,)** right under it, **Enable Dictation**, **Language**, **Model** (when the language has more than one installed: English → Parakeet (fastest) / Qwen (most accurate)), "For <app>", **Copy Last**, **History**
 (last 10, plus **Show All…**), **Send Feedback…**, **Quit**.
 
-**Open Desi Dictation…** opens the app's one window, and so does opening the
-app from Applications, Spotlight or Launchpad (at login it stays in the menu
-bar). Its sidebar has five pages, each
+**Open Desi Dictation…** opens the app's one window. Opening the app from
+Spotlight (⌘Space), Applications or Launchpad starts it quietly in the menu
+bar, like at login, and never pops the window (2026-10-29; only an
+unfinished first-run setup comes back). Its sidebar has five pages, each
 with its own colored icon, and the sidebar never goes away:
 
 - **Guide** (first, until you've opened it once): every feature in plain
@@ -137,41 +138,64 @@ menu items and right-click services are hidden (§3–§8).
 - **Discovery:** onboarding step 4, or menu bar → Open Desi Dictation… → **Vocabulary →
   Learn automatically**. Four switches, all off, each with a one-line note.
 - **Learn from corrections:** dictate, then fix a word in the field
-  ("Rowan" → "Rohan"). About 2 s after you stop typing, a small popup above
-  the overlay asks **"Always write Rowan as Rohan?"** with **Add** / **Not now**.
+  ("Rowan" → "Rohan") within **2 minutes** (30 s until 2026-10-29: too
+  short to read and edit). About 2 s after you stop typing, a small popup
+  above the overlay asks **"Always write Rowan as Rohan?"** with **Add** /
+  **When it fits** (English words) / **Not now**, for 25 s. The popup is as
+  wide as its words, so no button is cut off.
   It never steals the caret. Ignore it and the proposal waits under
   Vocabulary → **Waiting for you**. "Add" puts the pair in your Personal dictionary.
   **Not now** only snoozes it: make the same fix a few more times and it
   asks again. Only **Never** stops it for good.
-- **When it fits (English):** Vocabulary → **When it fits** → Get (397 MB).
-  From then on the popup has a third button, **Only when it fits**, and each
+- **When it fits (English):** the popup always offers **When it fits** for
+  English words. To have each sentence decide, get the context checker
+  (Models or Vocabulary page, 397 MB); choosing it without the checker
+  says so, and only on-screen / app-name cues decide until then. Each
   English word in Your words has an *Always / When it fits* picker. Set
   *cloud → Claude* to When it fits: "I asked cloud to fix this" becomes
   "I asked Claude to fix this", "our data is in the cloud" stays. Fixes say
   "fits the sentence" in History; kept words say why under **What it's been
   doing**. Undoing one of these fixes doesn't ban it: the next sentence
   decides again.
-- **Review before paste:** Dictation → Options → **Review before paste**:
-  Off (default), **Only when unsure**, or **Always**. When it opens, a small
-  panel shows the text before it's pasted, with shaky words underlined in
-  orange dots. **Tab** jumps to the next one and shows suggestions
-  ("Maybe: 1 Saraswat"); **1–5** picks one, or just type. **Enter** pastes
-  into the app you were in, **Esc** copies instead. Under "Remember your
-  fixes?" each word you changed can be kept **Just this once** (default),
-  **Always**, or **When it fits**. Starting a new dictation while the panel
-  is open copies the waiting text. With Qwen3-ASR (Accurate English) only
-  sound-alikes of your words are underlined: that model reports no
-  per-word confidence.
+- **Review before paste:** Dictation → **Review**: **Review before paste**
+  Off (default), **Only when unsure**, or **Always**, and **Underline
+  words** Conservative / **Moderate** (default) / Liberal: how readily
+  words get underlined (about 1 in 7, 1 in 12, 1 in 25). Onboarding offers
+  both as step 5. When it opens, a panel sized to the text (6 to 20 lines
+  without scrolling; it can be dragged bigger) shows the dictation before
+  it's pasted. Words the speech
+  model wasn't sure of are underlined in orange ("Hard to hear. Maybe:");
+  with the context checker installed, English and हिन्दी words that are
+  clear but odd in their sentence ("watch one **PC** Luffy", unusual names)
+  are underlined in purple ("Odd here."). Everyday words said casually
+  ("I would want you to…") are left alone unless they're very odd, and
+  never underlined just for sounding like a word on screen. Nothing is
+  changed for you.
+  **Tab** jumps to the next one and shows suggestions; **1–5** picks one,
+  **0** says it looks right (the underline goes, the word stays), or just
+  type. The "N unsure words" count drops as you fix, delete or clear them.
+  **Enter** pastes into the app you were in, **Esc** copies instead. Under
+  "Remember your fixes?" each word you changed is kept **When it fits** by
+  default (English; **Just this once** for Hinglish), or pick **Always** /
+  **Just this once**. Purple underlines and When it fits judging need the
+  optional context checker: its row, with a Get button, sits under the
+  Review settings and on the Vocabulary page. Starting a
+  new dictation while the panel is open copies the waiting text. With
+  Qwen3-ASR (Accurate English), which reports no per-word confidence, only
+  odd-in-context words (checker installed) and sound-alikes of your words
+  are underlined.
 - **Your edit wins:** if it auto-fixed a word and you change it back, the
   popup says "Got it" and that fix is never made again.
-- **Near-miss fixes:** "Saraswath" becomes "Saraswat" when the dictionary
-  already has Saraswat. With "Read names from the window" on, a name visible
-  in the chat or document fixes a sound-alike ("Rowan" → "Rohan"). The
-  overlay says **"Fixed: Rowan → Rohan"**. History shows a green "fixed:"
-  line; right-click it for "Don't change … again" or "Copy as heard".
+- **Near-miss suggestions, never fixes (2026-10-29):** "Saraswath" when the
+  dictionary has Saraswat, or "Rowan" when Rohan is on screen, is
+  **underlined in the review panel** with the likely word as choice 1. It's
+  never changed for you: only words you told it to write (Your words,
+  Always; or When it fits) are written automatically. Before this, "plus"
+  became "PRs" because "PRs" was on screen. Without Review before paste,
+  near-misses are simply left alone.
 - **Hinglish:** fix *nahin* → *nahi* once and it proposes the style rule.
-  With "match the spelling already in the text" on, the field's own spelling
-  wins for that dictation.
+  With "suggest my spelling in the field" on, the field's own spelling is
+  suggested in the review panel for that dictation.
 - **Never touched:** everyday words (the, there, hai, kya), anything inside
   an email or URL, हिन्दी mode.
 - **Seeing it work (2026-10-28):** Vocabulary → **What it's been doing**
@@ -284,8 +308,10 @@ Skip AI entirely → 0 extra.
 ## Picking a language (v0.6.1)
 
 Menu bar → **Language** → English / Hinglish / हिन्दी. That is the whole
-decision — the model for that language loads itself, and the **Model** picker
-for it is picked for you. The Dictation page names it ("Uses Hinglish Prime").
+decision — the model for that language loads itself. To switch model without
+opening the window, the menu's **Model** item lists the installed ones for
+the current language (English: **Parakeet (fastest)** or **Qwen (most
+accurate)**). The Dictation page names it ("Uses Hinglish Prime").
 
 Want a specific model for one language and a different one for another?
 **Open Desi Dictation… → Models → Model for each language**. "Auto" names what it

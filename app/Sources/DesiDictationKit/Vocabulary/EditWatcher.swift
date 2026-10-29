@@ -2,15 +2,17 @@ import ApplicationServices
 import Foundation
 
 /// Watches the field we just pasted into, so a retyped word can become an
-/// "Always write X as Y?" proposal (§2a). Polls the same AX element once a
-/// second for 30 s instead of using AXObserver: no run loop per app, nothing
-/// measurable at 1 Hz, and AXObserver delivery varies by app.
+/// "Always write X as Y?" proposal (§2a). Polls the same AX element every
+/// 0.3 s for 2 minutes instead of using AXObserver: no run loop per app,
+/// nothing measurable, and AXObserver delivery varies by app.
 ///
 /// The field text lives only in this object and is dropped when the watch ends.
 public final class EditWatcher: @unchecked Sendable {
     public static let shared = EditWatcher()
 
-    public static let window: TimeInterval = 30
+    /// Long enough to read what was pasted, then fix it (30 s was too short
+    /// to read and edit, user feedback 2026-10-29).
+    public static let window: TimeInterval = 120
     /// Unchanged this long → the user finished that edit.
     public static let settle: TimeInterval = 2
 

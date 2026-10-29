@@ -16,6 +16,7 @@ runVocabularyLearningTests()
 runEditTrackerTests()
 runContextFitTests()
 runReviewTests()
+runStrictnessTests()
 
 let group = DispatchGroup()
 group.enter()

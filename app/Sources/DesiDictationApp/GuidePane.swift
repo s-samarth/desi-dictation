@@ -11,7 +11,7 @@ struct GuidePane: View {
     var body: some View {
         Form {
             Section {
-                Text("Desi Dictation types what you say into any app. Everything runs on this Mac. The extras below are all optional: read what each does and switch on only what helps you.")
+                Text("Desi Dictation types what you say into any app. Everything runs on this Mac. Sections 1 and 2 are all you need. Everything after them is optional and **off until you turn it on**: read what each does and switch on only what helps you. Nothing changes your words unless you told it to (your own word list).")
             }
 
             GuideFeature(
@@ -25,7 +25,7 @@ struct GuidePane: View {
 
             GuideFeature(
                 number: 2, title: "Pick your language",
-                summary: "Menu bar mic → Language: Hinglish, English or हिन्दी. The right model loads by itself; you never pick a model unless you want to (Models page).")
+                summary: "Menu bar mic → Language: Hinglish, English or हिन्दी. The right model loads by itself. For English you can pick Parakeet (fastest) or Qwen (most accurate) from the menu bar's Model item or the Models page.")
 
             GuideFeature(
                 number: 3, title: "Teach it your words",
@@ -36,26 +36,26 @@ struct GuidePane: View {
             learnSection
 
             GuideFeature(
-                number: 5, title: "Fix near-misses automatically",
-                summary: "When a dictated word sounds and looks almost like one of your words, it swaps it in: \"Saraswath\" becomes \"Saraswat\" without you asking.",
-                steps: ["Each swap flashes on screen as **Fixed: Saraswath → Saraswat** and is listed in History.",
-                        "Disagree? Change it back in the text. It notices and never makes that swap again."],
+                number: 5, title: "Suggest near-misses of your words",
+                summary: "When a dictated word sounds and looks almost like one of your words, it's underlined in the review panel with your word as choice 1: \"Saraswath\" → 1 Saraswat. It's never changed for you; only words you've told it to always write are written automatically.",
+                steps: ["Needs **Review before paste** on (section 9). Press 1 to take the suggestion, or just carry on.",
+                        "Want it written every time? Keep the fix as **Always** in the panel."],
                 turnOnIf: "you've added names to Your words (or let it learn some) and want them right the first time.",
-                skipIf: "you'd rather it never changed a word on its own. Everyday words like \"there\" or \"hai\" are never touched either way.",
+                skipIf: "you don't use Review before paste. Everyday words like \"there\" or \"hai\" are never suggested either way.",
                 isOn: $vocab.fixNearMisses)
 
             GuideFeature(
                 number: 6, title: "Use names on screen",
-                summary: "When you start dictating, it reads the names visible in that window (the chat, the email thread) so a reply to Rohan doesn't come out as \"Rowan\".",
+                summary: "When you start dictating, it reads the names visible in that window (the chat, the email thread), so \"Rowan\" in a reply to Rohan is underlined with \"Rohan\" in the review panel. Never changed for you.",
                 steps: ["The text is kept in memory for that one dictation, then dropped. Never saved, never sent anywhere."],
                 turnOnIf: "you mostly dictate replies in chats and email, where the names are already on screen.",
                 skipIf: "you don't want any window text read, even locally.",
                 isOn: $vocab.readScreen,
-                disabledNote: vocab.fixNearMisses ? nil : "Needs “Fix near-misses” (5) on.")
+                disabledNote: vocab.fixNearMisses ? nil : "Needs “Suggest near-misses” (5) on.")
 
             GuideFeature(
                 number: 7, title: "Hinglish: match my spelling",
-                summary: "Hinglish has no fixed spelling. If the text you're writing in already uses \"nahi\" (twice or more), a dictated \"nahin\" becomes \"nahi\" so the message stays consistent. Only for that dictation.",
+                summary: "Hinglish has no fixed spelling. If the text you're writing in already uses \"nahi\" (twice or more), a dictated \"nahin\" is underlined with \"nahi\" in the review panel, so the message can stay consistent. Only for that dictation.",
                 turnOnIf: "you dictate Hinglish into ongoing chats or notes.",
                 skipIf: "you only dictate English or हिन्दी.",
                 isOn: $vocab.hinglishFieldSpelling)
@@ -66,7 +66,21 @@ struct GuidePane: View {
 
             GuideFeature(
                 number: 9, title: "Check before pasting",
-                summary: "Dictation → Review before paste. \"Only when unsure\" opens a small panel when a word looks shaky: the speech model wasn't sure of it, or it sounds like one of your words. Tab jumps to it, 1–5 picks a suggestion, or just type. Enter pastes, Esc copies. A word you fix there can be remembered: Always, When it fits, or Just this once. Off by default.")
+                summary: "Off by default. Dictation → Review. \"Only when unsure\" opens a panel before pasting when a word looks wrong. Nothing is changed for you.",
+                steps: ["**Orange:** the speech model wasn't sure what it heard, or the word sounds like one of your words or a name on screen.",
+                        "**Purple:** heard clearly but odd in its sentence (\"one PC Luffy\", a misheard name). Only with the context checker (section 10).",
+                        "**Tab** jumps to an underline, **1–5** picks a suggestion, **0** says it looks right, or just type. **Enter** pastes, **Esc** copies.",
+                        "A word you fix is remembered **When it fits** unless you pick **Always** or **Just this once**.",
+                        "\"Underline words\": **Moderate** (default) suits most people; Liberal marks only likely mistakes; Conservative marks more. Everyday words said casually are left alone."],
+                turnOnIf: "you want to check names and odd words before they're sent.",
+                skipIf: "you'd rather fix things after pasting; section 4 still learns from that.")
+
+            GuideFeature(
+                number: 10, title: "Context checker (optional download)",
+                summary: "A small language model (397 MB) that reads your sentence on this Mac and scores how expected each word is. It never writes words or sends anything. Get it on the Models page, or from the Context checker rows on Dictation and Vocabulary.",
+                steps: ["**Needs it:** purple underlines in Review (English, हिन्दी), and **When it fits** words judged by the sentence (English).",
+                        "**Works without it:** everything else. A When it fits word without the checker changes only when its written form is on screen or is the app you're in.",
+                        "Uses about 0.4 GB of memory while a feature that needs it is on."])
         }
         .formStyle(.grouped)
         .onAppear { UserDefaults.standard.set(true, forKey: MainNav.guideSeenKey) }
@@ -77,13 +91,13 @@ struct GuidePane: View {
             number: 4, title: "Learn from my corrections",
             summary: "Instead of typing a list, just fix mistakes where they land. It notices and offers to remember.",
             steps: ["Dictate as usual. Say it writes \"Call Rowan at 5\".",
-                    "Within **30 seconds**, fix the word right there in the text: Rowan → Rohan.",
+                    "Within **2 minutes**, fix the word right there in the text: Rowan → Rohan.",
                     "Stop typing for **2 seconds** (or just press Enter). A small popup asks **Always write Rowan as Rohan in English?** Click **Add** and it's in that language's list for good.",
                     "Missed the popup? It waits in Vocabulary → Waiting for you. **Not now** waits until you make the same fix a few more times; only **Never** stops it for good.",
-                    "Right only sometimes, like Claude vs cloud? Get the small model under Vocabulary → **When it fits**, then pick **Only when it fits**: each English sentence decides.",
+                    "Right only sometimes, like Claude vs cloud? Pick **When it fits** in the popup: each English sentence decides, using the context checker (section 10).",
                     "Want proof it's working? Vocabulary → **What it's been doing** lists what it saw after each dictation, what it suggested and what it learned. Learned words appear under **Your words**."],
             turnOnIf: "it keeps mishearing the same names, brands or terms.",
-            skipIf: "you'd rather add words yourself. It only ever asks; nothing is learned without your yes. It watches just the field you dictated into, for 30 seconds, and ignores rewrites and grammar fixes like their → there.",
+            skipIf: "you'd rather add words yourself. It only ever asks; nothing is learned without your yes. It watches just the field you dictated into, for 2 minutes, and ignores rewrites and grammar fixes like their → there.",
             isOn: $vocab.learnFromEdits,
             example: AnyView(LearnExample()))
     }

@@ -66,9 +66,11 @@ extern "C" void desi_lm_free(desi_lm * lm) {
     delete lm;
 }
 
-extern "C" int desi_lm_score(desi_lm * lm, const char * prefix, const char * text,
-                             double * out_logprob, int * out_tokens) {
-    if (!lm || !prefix || !text || !out_logprob || !out_tokens) return -1;
+// Log-probability of every text token after `prefix`, and where each token
+// ends in `text` (bytes). Shared by the two exported scorers below.
+static int token_logprobs(desi_lm * lm, const char * prefix, const char * text,
+                          std::vector<double> & logprobs, std::vector<int> & ends) {
+    if (!lm || !prefix || !text) return -1;
     const std::string               pre = prefix;
     const std::vector<llama_token>  head = tokenize(lm->vocab, pre);
     const std::vector<llama_token>  all  = tokenize(lm->vocab, pre + text);
@@ -97,18 +99,58 @@ extern "C" int desi_lm_score(desi_lm * lm, const char * prefix, const char * tex
         return -4;
     }
 
+    // Byte end of each token in pre + text, from the token pieces.
+    int  at = 0;
+    char piece[256];
+    std::vector<int> end_of(all.size());
+    for (size_t i = 0; i < all.size(); i++) {
+        const int32_t n = llama_token_to_piece(lm->vocab, all[i], piece, sizeof piece, 0, false);
+        at += n > 0 ? n : 0;
+        end_of[i] = at;
+    }
+
     const int n_vocab = llama_vocab_n_tokens(lm->vocab);
-    double    sum     = 0.0;
+    logprobs.clear();
+    ends.clear();
     for (size_t i = start; i < all.size(); i++) {
         const float * logits = llama_get_logits_ith(lm->ctx, (int32_t) (i - 1));
         float         peak   = logits[0];
         for (int v = 1; v < n_vocab; v++) peak = std::max(peak, logits[v]);
         double total = 0.0;
         for (int v = 0; v < n_vocab; v++) total += std::exp((double) (logits[v] - peak));
-        sum += (double) (logits[all[i]] - peak) - std::log(total);
+        logprobs.push_back((double) (logits[all[i]] - peak) - std::log(total));
+        ends.push_back(std::max(0, end_of[i] - (int) pre.size()));
     }
     llama_batch_free(batch);
+    return 0;
+}
+
+extern "C" int desi_lm_score(desi_lm * lm, const char * prefix, const char * text,
+                             double * out_logprob, int * out_tokens) {
+    if (!out_logprob || !out_tokens) return -1;
+    std::vector<double> logprobs;
+    std::vector<int>    ends;
+    const int status = token_logprobs(lm, prefix, text, logprobs, ends);
+    if (status != 0) return status;
+    double sum = 0.0;
+    for (double lp : logprobs) sum += lp;
     *out_logprob = sum;
-    *out_tokens  = (int) (all.size() - start);
+    *out_tokens  = (int) logprobs.size();
+    return 0;
+}
+
+extern "C" int desi_lm_token_scores(desi_lm * lm, const char * prefix, const char * text,
+                                    double * out_logprobs, int * out_ends, int capacity, int * out_count) {
+    if (!out_logprobs || !out_ends || !out_count || capacity <= 0) return -1;
+    std::vector<double> logprobs;
+    std::vector<int>    ends;
+    const int status = token_logprobs(lm, prefix, text, logprobs, ends);
+    if (status != 0) return status;
+    const int n = std::min(capacity, (int) logprobs.size());
+    for (int i = 0; i < n; i++) {
+        out_logprobs[i] = logprobs[i];
+        out_ends[i]     = ends[i];
+    }
+    *out_count = n;
     return 0;
 }

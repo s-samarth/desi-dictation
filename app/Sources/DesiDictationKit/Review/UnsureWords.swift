@@ -15,9 +15,23 @@ public enum ReviewMode: String, CaseIterable, Codable, Sendable {
 
 /// A word of the final text the panel underlines, with what it could be instead.
 public struct UnsureWord: Equatable, Sendable {
+    /// Why it's underlined; the panel says so.
+    public enum Reason: Sendable {
+        /// The speech model wasn't sure what it heard.
+        case unclear
+        /// Heard clearly, but odd in its sentence (the context checker).
+        case odd
+        /// Sounds like one of the user's words.
+        case soundsLike
+        /// The vocabulary corrector would have changed it (a name on screen,
+        /// a near-miss of a dictionary word); it's offered, never applied.
+        case suggested
+    }
+
     public let range: Range<String.Index>
     public let word: String
-    /// The engine's confidence; nil when the word is flagged for a sound-alike only.
+    public let reason: Reason
+    /// The engine's confidence; nil when the word is flagged for another reason.
     public let confidence: Float?
     public var alternatives: [String]
 }
@@ -28,18 +42,6 @@ public struct UnsureWord: Equatable, Sendable {
 /// words by an alignment; words our own rules wrote match nothing and are
 /// never flagged (we chose them on purpose).
 public enum UnsureWords {
-    /// A word below this confidence is underlined. Per engine, from
-    /// `evals/word_confidence.py` on the 2026-10-28 quick tier
-    /// (REVIEW_BEFORE_PASTE.md "Measured"): the value that flags ~10 % of
-    /// words, where 36–48 % of underlined words were real errors.
-    public static func threshold(forModel path: String) -> Float? {
-        let name = path.lowercased()
-        if name.contains("qwen3-asr") { return nil }    // transcribe.cpp gives it no token rows
-        if name.contains("parakeet") { return 0.61 }
-        if name.contains("vaani") { return 0.75 }
-        return 0.71                                     // whisper: measured on Hinglish Prime
-    }
-
     /// A word of `text` with its range, split at whitespace.
     struct Piece {
         let range: Range<String.Index>
@@ -93,7 +95,7 @@ public enum UnsureWords {
             let confidence = model[m].confidence
             guard confidence.isFinite, confidence < threshold else { continue }
             let range = final[f].range
-            flagged.append(UnsureWord(range: range, word: String(text[range]),
+            flagged.append(UnsureWord(range: range, word: String(text[range]), reason: .unclear,
                                       confidence: confidence, alternatives: []))
         }
         return flagged

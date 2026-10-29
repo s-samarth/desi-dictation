@@ -35,16 +35,22 @@ final class ReviewModel: ObservableObject {
     @Published private(set) var text: String
     /// Index into `request.unsure` of the word at the caret, if any.
     @Published var currentIndex: Int?
+    /// Underlines still in the text: a word fixed, deleted or marked
+    /// "looks right" no longer counts.
+    @Published var remaining: Int
     @Published var fixes: [Fix] = []
     private var finished = false
     /// Set by the panel: hides it before the paste goes out.
     var onClose: (() -> Void)?
     /// Set by the text view: replace the selected unsure word with alternative n.
     var pick: ((Int) -> Void)?
+    /// Set by the text view: drop the underline of the selected word, unchanged.
+    var looksRight: (() -> Void)?
 
     init(request: ReviewRequest) {
         self.request = request
         self.text = request.text
+        self.remaining = request.unsure.count
     }
 
     var current: UnsureWord? { currentIndex.map { request.unsure[$0] } }
@@ -56,12 +62,17 @@ final class ReviewModel: ObservableObject {
         request.offerWhenItFits ? Keep.allCases : [.once, .always]
     }
 
+    /// A fix is kept "When it fits" unless changed (user decision 2026-10-29):
+    /// right in this sentence, judged again in the next. Where that isn't
+    /// offered (हिन्दी, Hinglish), it's kept just this once.
+    var defaultKeep: Keep { request.offerWhenItFits ? .whenItFits : .once }
+
     func textChanged(_ new: String) {
         text = new
         let previous = Dictionary(fixes.map { ($0.id, $0.keep) }, uniquingKeysWith: { a, _ in a })
         fixes = ReviewPlanner.fixes(from: request.text, to: new).map { pair in
-            var fix = Fix(pair: pair, keep: .once)
-            fix.keep = previous[fix.id] ?? .once
+            var fix = Fix(pair: pair, keep: defaultKeep)
+            fix.keep = previous[fix.id] ?? defaultKeep
             return fix
         }
     }

@@ -47,6 +47,21 @@ public final class LlamaContextScorer: ContextScorer {
         return nil
         #endif
     }
+
+    public func tokenLogProbabilities(of text: String, after prefix: String) -> [(end: Int, logprob: Double)]? {
+        #if DESI_LLAMA
+        lock.lock(); defer { lock.unlock() }
+        let capacity = 512
+        var logprobs = [Double](repeating: 0, count: capacity)
+        var ends = [Int32](repeating: 0, count: capacity)
+        var count: Int32 = 0
+        guard desi_lm_token_scores(handle, prefix, text, &logprobs, &ends, Int32(capacity), &count) == 0
+        else { return nil }
+        return (0..<Int(count)).map { (Int(ends[$0]), logprobs[$0]) }
+        #else
+        return nil
+        #endif
+    }
 }
 
 /// The app's one context checker: the model file, loading it off the main

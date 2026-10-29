@@ -60,22 +60,34 @@ def align(hyp: list[str], ref: list[str]) -> list[bool]:
     return wrong
 
 
-def score_clip(suite: str, words: list, ref: str) -> list[tuple[float, bool]]:
-    """(confidence, wrong) per hypothesis word with a known confidence."""
+def score_clip(suite: str, words: list, ref: str) -> list[dict]:
+    """One row per hypothesis word that survives normalization: its confidence
+    and surprise (None when unknown), whether it opens a sentence, and whether
+    it is wrong. Rows are [text, conf] from older CLIs, [text, conf, surprise,
+    peak] from ones that ran the context checker (desi-cli --words)."""
     pieces, owner = [], []
-    for k, (text, _) in enumerate(words):
-        for token in normalize(suite, text):
+    for k, row in enumerate(words):
+        for token in normalize(suite, row[0]):
             pieces.append(token)
             owner.append(k)
     wrong_tokens = align(pieces, normalize(suite, ref))
     wrong = [False] * len(words)
     for k, bad in zip(owner, wrong_tokens):
         wrong[k] = wrong[k] or bad
-    return [(conf, wrong[k]) for k, (_, conf) in enumerate(words)
-            if conf is not None and any(o == k for o in owner)]
+    kept = set(owner)
+    rows = []
+    for k, row in enumerate(words):
+        if k not in kept:
+            continue
+        opens = k == 0 or words[k - 1][0].rstrip().endswith((".", "?", "!", "।"))
+        rows.append({"text": row[0], "conf": row[1], "surprise": row[2] if len(row) > 2 else None,
+                     "peak": row[3] if len(row) > 3 else None,
+                     "opens": opens, "wrong": wrong[k]})
+    return rows
 
 
-def run(cli: Path, model: Path, suite: str) -> list[tuple[float, bool]]:
+def run(cli: Path, model: Path, suite: str) -> list[list[dict]]:
+    """Rows per clip (see score_clip)."""
     entries = manifest(suite, "quick")
     folder = tier_dir(suite, "quick", entries)
     proc = subprocess.run([str(cli), str(model), "--batch", str(folder),
@@ -88,14 +100,12 @@ def run(cli: Path, model: Path, suite: str) -> list[tuple[float, bool]]:
             outputs[rec["file"]] = rec
         except json.JSONDecodeError:
             continue
-    rows = []
-    for e in entries:
-        if e["file"] in outputs:
-            rows += score_clip(suite, outputs[e["file"]].get("words", []), e["ref"])
-    return rows
+    return [score_clip(suite, outputs[e["file"]].get("words", []), e["ref"])
+            for e in entries if e["file"] in outputs]
 
 
-def report(suite: str, model: str, rows: list[tuple[float, bool]]) -> dict:
+def report(suite: str, model: str, clips: list[list[dict]]) -> dict:
+    rows = [(r["conf"], r["wrong"]) for clip in clips for r in clip if r["conf"] is not None]
     if not rows:
         return {"suite": suite, "model": model, "words": 0}
     rows = sorted(rows, key=lambda r: r[0])

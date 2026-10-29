@@ -43,7 +43,7 @@ public enum ReviewAlternatives {
         guard !key.isEmpty else { return unique(out) }
         // Onsets compared on the keys, where "Cavya" and "Kavya" both start with k.
         let sounding = sources.terms
-            .filter { $0.lowercased() != lower }
+            .filter { !OrdinaryWords.sameWord($0, lower) }     // "Models" isn't another word for "model"
             .map { (term: $0, key: IndicPhonetics.key($0)) }
             .filter { IndicPhonetics.sameOnset(key, $0.key) }
             .map { (term: $0.term, distance: IndicPhonetics.distance(key, $0.key)) }
@@ -55,16 +55,18 @@ public enum ReviewAlternatives {
 
     /// Words with a sound-alike in the user's words, for engines that give no
     /// confidence (Qwen3-ASR) and to catch confident mistakes ("cloud").
-    /// Common words are left alone unless the dictionary names them.
+    /// Everyday words are left alone unless the dictionary names them: a
+    /// screen full of headings would otherwise underline "model" for "Models".
     public static func soundAlikes(in text: String, sources: Sources) -> [UnsureWord] {
         UnsureWords.pieces(of: text).compactMap { piece in
             let word = String(text[piece.range])
             guard !sources.judged.contains(piece.key) else { return nil }
             let named = sources.entries.contains { $0.heard.lowercased() == piece.key }
-            guard named || !CommonWords.contains(piece.key) else { return nil }
+            guard named || !OrdinaryWords.contains(piece.key) else { return nil }
             let alternatives = candidates(for: word, sources: sources)
             guard !alternatives.isEmpty else { return nil }
-            return UnsureWord(range: piece.range, word: word, confidence: nil, alternatives: alternatives)
+            return UnsureWord(range: piece.range, word: word, reason: .soundsLike,
+                              confidence: nil, alternatives: alternatives)
         }
     }
 

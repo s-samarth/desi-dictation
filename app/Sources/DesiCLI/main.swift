@@ -6,21 +6,18 @@
 //   swift run desi-cli --translate "text" [english|hindi]           # LLM spike (TRANSLATION.md §5)
 //   swift run desi-cli --structure "text" [notes|actionList|emailDraft|outline]
 //   swift run desi-cli --fit <model.gguf> evals/context_fit/cases.tsv [--word-list]
+//   swift run desi-cli --surprise "text"     # each word's oddness in context (Review before paste)
 import DesiDictationKit
 import Foundation
 
 let args = CommandLine.arguments
-
-/// JSON rows for `--words`: [text, confidence], confidence null when unknown.
-func wordRows(_ words: [ScoredWord]) -> [[Any]] {
-    words.map { [$0.text, $0.confidence.isFinite ? Double($0.confidence) : NSNull()] }
-}
 
 /// exit() after freeing the model: ggml's Metal teardown (a static destructor
 /// run by exit()) aborts if GPU buffers are still allocated — every batch run
 /// used to end in SIGABRT, exit 134 (FM#27).
 func finish(_ code: Int32, unloading engine: EngineRouter?) -> Never {
     engine?.unload()
+    cliChecker = nil   // --words scored with it (FM#40)
     exit(code)
 }
 
@@ -36,6 +33,7 @@ if args.contains("--novad") {
 }
 // Context checker eval ("When it fits"): desi-cli --fit <model.gguf> <cases.tsv>
 if args.count >= 2, args[1] == "--fit" { runFitEval(Array(args.dropFirst(2))) }
+if args.count >= 2, args[1] == "--surprise" { runSurprise(Array(args.dropFirst(2))) }
 
 guard args.count >= 3 else {
     print("""
@@ -149,7 +147,7 @@ if args[2] == "--batch", args.count >= 4 {
                 "audio_seconds": (result.audioSeconds * 10).rounded() / 10,
             ]
             // --words: per-word confidence for evals/word_confidence.py.
-            if args.contains("--words") { record["words"] = wordRows(result.words) }
+            if args.contains("--words") { record["words"] = wordRows(result) }
             let data = try JSONSerialization.data(withJSONObject: record)
             print(String(data: data, encoding: .utf8)!)
         }

@@ -25,17 +25,32 @@ enum UISnapshots {
             }, MainWindow.size)
         }
         // Long pages, whole: what a reader scrolls through.
-        shots.append(("guide-full", { AnyView(GuidePane()) }, NSSize(width: 560, height: 2300)))
+        shots.append(("guide-full", { AnyView(GuidePane()) }, NSSize(width: 560, height: 3000)))
         shots.append(("onboarding", { AnyView(OnboardingView()) }, NSSize(width: 560, height: 640)))
-        shots.append(("review", { AnyView(ReviewView(model: sampleReview())) }, NSSize(width: ReviewView.width, height: 330)))
+        // Short and long dictations, each in a panel sized the way ReviewPanel sizes it.
+        let screen = NSRect(x: 0, y: 0, width: 1440, height: 860)
+        let short = ReviewLayout.size(for: "Ask cloud to send the deck to Cavya before the hakka review", on: screen)
+        shots.append(("review", { AnyView(ReviewView(model: sampleReview(), size: short)) }, fitted(ReviewView(model: sampleReview(), size: short))))
+        let long = ReviewLayout.size(for: longReviewText, on: screen)
+        shots.append(("review-long", { AnyView(ReviewView(model: sampleReview(longReviewText), size: long)) },
+                      fitted(ReviewView(model: sampleReview(longReviewText), size: long))))
         render(shots, into: directory)
     }
 
     typealias Shot = (String, () -> AnyView, NSSize)
 
+    /// The size a window gives the view the way ReviewPanel hosts it.
+    private static func fitted<V: View>(_ view: V) -> NSSize {
+        let host = NSHostingView(rootView: view)
+        host.sizingOptions = [.minSize]
+        return host.fittingSize
+    }
+
     /// A dictation with one low-confidence word and one sound-alike, and a fix already made.
-    private static func sampleReview() -> ReviewModel {
-        let text = "Ask cloud to send the deck to Cavya before the hakka review"
+    private static let longReviewText = String(repeating:
+        "Ask cloud to send the deck to Cavya before the hakka review, and tell the team the numbers moved. ", count: 14)
+
+    private static func sampleReview(_ text: String = "Ask cloud to send the deck to Cavya before the hakka review") -> ReviewModel {
         let unsure = ReviewPlanner.unsure(
             in: text,
             words: text.split(separator: " ").map {

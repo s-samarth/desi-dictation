@@ -15,6 +15,7 @@ public final class VocabularySession: @unchecked Sendable {
     private var fieldWords: [String] = []
     private var hotwords: [String] = []
     private var lastFixes: (fixes: [WordFix], unfixed: String)?
+    private var suggestions: [WordFix] = []
     private let readQueue = DispatchQueue(label: "desi.vocab.screen", qos: .userInitiated)
 
     /// What the main actor knows at recording start: toggles and the stored lists.
@@ -51,7 +52,7 @@ public final class VocabularySession: @unchecked Sendable {
         lock.lock()
         generation += 1
         let mine = generation
-        screenTerms = []; fieldWords = []; lastFixes = nil
+        screenTerms = []; fieldWords = []; lastFixes = nil; suggestions = []
         hotwords = plan.useVocabulary ? Array(plan.dictionaryTerms.prefix(HotwordSelector.limit)) : []
         lock.unlock()
         guard plan.readField || plan.readScreen else { return }
@@ -99,6 +100,20 @@ public final class VocabularySession: @unchecked Sendable {
     public func recordFixes(_ fixes: [WordFix], unfixed: String) {
         lock.lock(); defer { lock.unlock() }
         lastFixes = fixes.isEmpty ? nil : (fixes, unfixed)
+    }
+
+    /// Guessed fixes (near-misses, screen names, field spellings): never
+    /// applied, only offered in Review before paste.
+    public func recordSuggestions(_ fixes: [WordFix]) {
+        lock.lock(); defer { lock.unlock() }
+        suggestions = fixes
+    }
+
+    /// This dictation's suggestions, once.
+    public func takeSuggestions() -> [WordFix] {
+        lock.lock(); defer { lock.unlock() }
+        defer { suggestions = [] }
+        return suggestions
     }
 
     /// The fixes of the dictation being delivered, once.

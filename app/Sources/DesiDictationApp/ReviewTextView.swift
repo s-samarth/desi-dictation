@@ -34,6 +34,7 @@ struct ReviewTextEditor: NSViewRepresentable {
         view.delegate = context.coordinator
         context.coordinator.textView = view
         model.pick = { [weak coordinator = context.coordinator] n in coordinator?.pick(n) }
+        model.looksRight = { [weak coordinator = context.coordinator] in coordinator?.looksRight() }
         DispatchQueue.main.async {
             view.window?.makeFirstResponder(view)
             context.coordinator.jump(forward: true, from: 0)
@@ -54,6 +55,33 @@ struct ReviewTextEditor: NSViewRepresentable {
             guard let view = textView else { return }
             view.typingAttributes = ReviewTextView.plain   // typing never extends an underline
             model.textChanged(view.string)
+            countUnderlines()
+        }
+
+        /// The header's "N unsure words" follows the text.
+        func countUnderlines() {
+            guard let storage = textView?.textStorage else { return }
+            var count = 0
+            storage.enumerateAttribute(ReviewTextEditor.unsureKey,
+                                       in: NSRange(location: 0, length: storage.length)) { value, _, _ in
+                if value != nil { count += 1 }
+            }
+            model.remaining = count
+        }
+
+        /// 0 / "Looks right": the selected word stays as it is, without its underline.
+        func looksRight() {
+            guard let view = textView, let storage = view.textStorage, model.currentIndex != nil,
+                  view.selectedRange().location < storage.length else { return }
+            var range = NSRange(location: 0, length: 0)
+            guard storage.attribute(ReviewTextEditor.unsureKey, at: view.selectedRange().location,
+                                    effectiveRange: &range) != nil else { return }
+            storage.removeAttribute(ReviewTextEditor.unsureKey, range: range)
+            storage.removeAttribute(.underlineStyle, range: range)
+            storage.removeAttribute(.underlineColor, range: range)
+            model.currentIndex = nil
+            countUnderlines()
+            jump(forward: true, from: NSMaxRange(range))
         }
 
         func textViewDidChangeSelection(_ notification: Notification) {
@@ -110,7 +138,8 @@ struct ReviewTextEditor: NSViewRepresentable {
     }
 }
 
-/// Digits pick an alternative while an unsure word is selected; otherwise they type.
+/// Digits pick an alternative (0: looks right) while an unsure word is
+/// selected; otherwise they type.
 final class ReviewTextView: NSTextView {
     static let plain: [NSAttributedString.Key: Any] = [
         .font: NSFont.systemFont(ofSize: 15), .foregroundColor: NSColor.labelColor,
@@ -123,7 +152,8 @@ final class ReviewTextView: NSTextView {
             out.addAttributes([
                 ReviewTextEditor.unsureKey: i,
                 .underlineStyle: NSUnderlineStyle.thick.rawValue | NSUnderlineStyle.patternDot.rawValue,
-                .underlineColor: NSColor(Theme.accent),
+                // Odd in context gets its own colour: the audio was clear, the word may still be wrong.
+                .underlineColor: unsure.reason == .odd ? NSColor.systemPurple : NSColor(Theme.accent),
             ], range: range)
         }
         return out
@@ -131,12 +161,12 @@ final class ReviewTextView: NSTextView {
 
     override func keyDown(with event: NSEvent) {
         if let chars = event.charactersIgnoringModifiers, chars.count == 1,
-           let digit = Int(chars), (1...ReviewAlternatives.limit).contains(digit),
+           let digit = Int(chars), (0...ReviewAlternatives.limit).contains(digit),
            event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty,
            selectedRange().length > 0,
            let coordinator = delegate as? ReviewTextEditor.Coordinator,
            coordinator.model.currentIndex != nil {
-            coordinator.pick(digit - 1)
+            digit == 0 ? coordinator.looksRight() : coordinator.pick(digit - 1)
             return
         }
         super.keyDown(with: event)

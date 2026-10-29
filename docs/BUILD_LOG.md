@@ -988,3 +988,19 @@ scorer is freed before `exit`. `DictationController.shutdown()` calls
 `ContextChecker.shared.reset()` after the engine queue drains.
 **Lesson:** every ggml copy in the process has the same exit rule. A new
 native model needs its own line in `shutdown()`.
+
+### Failure mode #41 — the review panel opened at its smallest size
+
+**Symptom:** after "sized to the text" shipped, a real dictation still
+opened a small panel (about 480 pt wide, 4 lines) that scrolled. The UI
+snapshot of the same view looked right.
+**Cause:** `NSHostingView` with `sizingOptions = [.minSize]` gives a window
+the view's *minimum* as `fittingSize`, not its ideal size, so the panel
+opened at `minWidth` / `minHeight`. The snapshot harness drew the view into
+a window of a size it chose itself, so it never exercised that path.
+**Fix:** the size `ReviewLayout` computes is the view's minimum
+(`frame(minWidth:minHeight:)`), so the panel opens at it and can only be
+dragged bigger. `UISnapshots` now sizes review shots with the same
+`NSHostingView` + `fittingSize` the panel uses.
+**Lesson:** a snapshot proves a view's drawing, not a window's size. Size
+snapshot windows the way the real window is sized.

@@ -91,6 +91,14 @@ struct OnboardingView: View {
                     .scrollDisabled(true)
                     .frame(height: 230)
 
+                step(5, "Check before pasting (optional)")
+                Text("A panel can show your words before they're pasted, with the ones that may be wrong underlined: **orange** when the audio was unclear, **purple** when a word is odd in its sentence (a name, or a mishearing like \"one PC\" for \"One Piece\"). It suggests, you decide: nothing is changed for you. **Moderate** (default) suits most people; Liberal underlines only likely mistakes, Conservative catches more but asks more often. Purple needs the optional context checker (397 MB, Get button below once review is on). All of this is optional; you can leave it off.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Form { ReviewSection() }
+                    .formStyle(.grouped)
+                    .scrollDisabled(true)
+                    .frame(height: settings.reviewMode == .off ? 170 : 260)
+
                 Divider()
                 Text("Then: **hold Right ⌥ (Option)**, speak, release — your words appear wherever your cursor is. Esc cancels. Change the key, language or model anytime: menu bar mic → Open Desi Dictation…")
                     .font(.callout)

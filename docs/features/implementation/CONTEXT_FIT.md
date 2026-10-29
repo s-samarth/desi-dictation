@@ -11,6 +11,11 @@ Plan and decisions: [VOCABULARY_NEXT.md](../VOCABULARY_NEXT.md) §1.
 sentence both ways and keeps the likelier one. It **scores, never writes**,
 so it can only pick between "cloud" and "Claude".
 
+**Also used by Review before paste** (2026-10-29): the same model, through
+`desi_lm_token_scores`, marks words that are odd in their sentence so the
+review panel can underline them (English and हिन्दी). It still never
+writes: [REVIEW_BEFORE_PASTE.md](REVIEW_BEFORE_PASTE.md) "Strictness".
+
 ## How a dictation flows (English only)
 
 1. **Key down** (`beginVocabulary`): if any English entry is When it fits,
@@ -48,7 +53,7 @@ keeps it testable for the next model.
 | Pipeline hook + logging | `DictationController+Vocabulary.swift`, `VocabularySession.Plan` |
 | C scorer over llama.cpp (tokenize, one decode, log-softmax) | `native/desi_lm/desi_lm.cpp`, header `app/Sources/CLlamaScore/include/desi_lm.h` |
 | Build: llama.cpp `b11900` + desi_lm, ggml hidden | `scripts/setup_llama.sh` → `app/Libraries/libllama-bundle.a` |
-| UI: popup "Only when it fits", row "When it fits", per-word Always/When it fits picker, download row | `VocabularyPromptPanel.swift`, `SmartVocabularyView.swift`, `DictionaryView.swift`, `ContextCheckerView.swift` |
+| UI: popup "When it fits" (English words, offered before the checker is downloaded too; 2026-10-29), row "When it fits", per-word Always/When it fits picker, download row | `VocabularyPromptPanel.swift`, `SmartVocabularyView.swift`, `DictionaryView.swift`, `ContextCheckerView.swift` |
 | Model download entry (outside the ASR catalog) | `ModelCatalog.swift` `contextCheckerEntry` |
 | Eval | `desi-cli --fit <model.gguf> evals/context_fit/cases.tsv [--word-list] [--cpu]` |
 | Tests (fake scorer) | `DesiTests/ContextFitTests.swift` |
