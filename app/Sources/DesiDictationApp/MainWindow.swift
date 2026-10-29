@@ -109,12 +109,12 @@ extension Text {
 }
 
 extension ModelDescriptor {
-    /// "Hinglish Prime" rather than "ggml-hinglish-prime-q5_0": the catalog's
-    /// name for a downloaded file, else the file name.
+    /// "Qwen (most accurate)" rather than "ggml-qwen3-asr-1.7b-q8_0": the
+    /// catalog's short name for a downloaded file, else the file name.
     var displayName: String {
         guard let entry = ModelManager.catalog.first(where: { "ggml-\($0.id)" == name }) else {
             return name
         }
-        return entry.label.components(separatedBy: " — ").first ?? entry.label
+        return ModelManager.shortName(for: entry.id) ?? entry.label.components(separatedBy: " — ").first ?? entry.label
     }
 }

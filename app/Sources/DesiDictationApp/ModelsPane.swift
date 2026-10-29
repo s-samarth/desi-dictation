@@ -13,6 +13,8 @@ struct ModelsPane: View {
 
             Section {
                 ForEach(ModelManager.catalog) { row($0) }
+                // Not a speech model, but a download people look for here.
+                if LlamaContextScorer.isAvailable { row(ModelManager.contextCheckerEntry) }
                 HStack {
                     Text("Models folder").foregroundStyle(.secondary)
                     Spacer()
@@ -22,7 +24,7 @@ struct ModelsPane: View {
             } header: {
                 Text("Downloads")
             } footer: {
-                Text("⭐ = our pick for that language. Get the VAD add-on too.").footnote()
+                Text("⭐ = our pick for that language. Get the VAD add-on too. The context checker is optional: a small model that reads your sentence on your Mac to decide \"When it fits\" words and to underline odd words in Review before paste.").footnote()
             }
         }
         .formStyle(.grouped)
@@ -46,7 +48,10 @@ struct ModelsPane: View {
                 ProgressView(value: progress).frame(width: 90)
             } else {
                 Button("Get · \(item.approxMB) MB") {
-                    Task { await models.download(item) }
+                    Task {
+                        await models.download(item)
+                        if item.id == ContextChecker.modelID { ContextChecker.shared.reset() }
+                    }
                 }
                 .disabled(item.pro && !license.isPro)
             }

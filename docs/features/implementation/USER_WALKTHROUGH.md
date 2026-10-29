@@ -80,12 +80,13 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 ## 0d · The menu and the window (2026-10-28)
 
 The menu bar mic holds what you change daily, nothing else: status,
-**Open Desi Dictation… (⌘,)** right under it, **Enable Dictation**, **Language**, "For <app>", **Copy Last**, **History**
+**Open Desi Dictation… (⌘,)** right under it, **Enable Dictation**, **Language**, **Model** (when the language has more than one installed: English → Parakeet (fastest) / Qwen (most accurate)), "For <app>", **Copy Last**, **History**
 (last 10, plus **Show All…**), **Send Feedback…**, **Quit**.
 
-**Open Desi Dictation…** opens the app's one window, and so does opening the
-app from Applications, Spotlight or Launchpad (at login it stays in the menu
-bar). Its sidebar has five pages, each
+**Open Desi Dictation…** opens the app's one window. Opening the app from
+Spotlight (⌘Space), Applications or Launchpad starts it quietly in the menu
+bar, like at login, and never pops the window (2026-10-29; only an
+unfinished first-run setup comes back). Its sidebar has five pages, each
 with its own colored icon, and the sidebar never goes away:
 
 - **Guide** (first, until you've opened it once): every feature in plain
@@ -175,14 +176,16 @@ menu items and right-click services are hidden (§3–§8).
   are underlined.
 - **Your edit wins:** if it auto-fixed a word and you change it back, the
   popup says "Got it" and that fix is never made again.
-- **Near-miss fixes:** "Saraswath" becomes "Saraswat" when the dictionary
-  already has Saraswat. With "Read names from the window" on, a name visible
-  in the chat or document fixes a sound-alike ("Rowan" → "Rohan"). The
-  overlay says **"Fixed: Rowan → Rohan"**. History shows a green "fixed:"
-  line; right-click it for "Don't change … again" or "Copy as heard".
+- **Near-miss suggestions, never fixes (2026-10-29):** "Saraswath" when the
+  dictionary has Saraswat, or "Rowan" when Rohan is on screen, is
+  **underlined in the review panel** with the likely word as choice 1. It's
+  never changed for you: only words you told it to write (Your words,
+  Always; or When it fits) are written automatically. Before this, "plus"
+  became "PRs" because "PRs" was on screen. Without Review before paste,
+  near-misses are simply left alone.
 - **Hinglish:** fix *nahin* → *nahi* once and it proposes the style rule.
-  With "match the spelling already in the text" on, the field's own spelling
-  wins for that dictation.
+  With "suggest my spelling in the field" on, the field's own spelling is
+  suggested in the review panel for that dictation.
 - **Never touched:** everyday words (the, there, hai, kya), anything inside
   an email or URL, हिन्दी mode.
 - **Seeing it work (2026-10-28):** Vocabulary → **What it's been doing**
@@ -295,8 +298,10 @@ Skip AI entirely → 0 extra.
 ## Picking a language (v0.6.1)
 
 Menu bar → **Language** → English / Hinglish / हिन्दी. That is the whole
-decision — the model for that language loads itself, and the **Model** picker
-for it is picked for you. The Dictation page names it ("Uses Hinglish Prime").
+decision — the model for that language loads itself. To switch model without
+opening the window, the menu's **Model** item lists the installed ones for
+the current language (English: **Parakeet (fastest)** or **Qwen (most
+accurate)**). The Dictation page names it ("Uses Hinglish Prime").
 
 Want a specific model for one language and a different one for another?
 **Open Desi Dictation… → Models → Model for each language**. "Auto" names what it

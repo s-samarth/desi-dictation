@@ -67,11 +67,6 @@ final class AppWindows {
         present(window)
     }
 
-    /// Dock/Spotlight re-open → show something useful.
-    func handleReopen() {
-        SettingsStore.shared.onboarded ? showMain() : showOnboarding()
-    }
-
     private func makeWindow(title: String, content: NSView, size: NSSize) -> NSWindow {
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: size),

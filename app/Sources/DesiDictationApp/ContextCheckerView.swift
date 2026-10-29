@@ -33,9 +33,9 @@ struct ContextCheckerSection: View {
                     }
                 }
             } header: {
-                Text("When it fits (English)")
+                Text("Context checker (English, Hindi)")
             } footer: {
-                Text("Some words are right only sometimes: Claude, not cloud, but only when you mean Claude. With this small model on your Mac, a word set to When it fits is written only when the sentence is about it. It reads the sentence, never sends it anywhere, and adds about 0.4 GB of memory while in use.")
+                Text("Some words are right only sometimes: Claude, not cloud, but only when you mean Claude. With this small model on your Mac, a word set to When it fits is written only when the sentence is about it. It also underlines words that are odd in their sentence (purple) in Review before paste. It reads the sentence, never writes or sends it anywhere, and adds about 0.4 GB of memory while in use. Also on the Models page.")
                     .footnote()
             }
         }

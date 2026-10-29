@@ -7,6 +7,7 @@ struct MenuContent: View {
     @ObservedObject var history = HistoryStore.shared
     @ObservedObject var appModes = AppModeStore.shared
     @ObservedObject var llm = LLMServices.shared
+    @ObservedObject var models = ModelManager.shared
 
     var body: some View {
         Text(statusLine)
@@ -29,6 +30,22 @@ struct MenuContent: View {
         Picker("Language", selection: $settings.languageMode) {
             ForEach(LanguageMode.offered, id: \.self) { mode in
                 Text(mode.displayName).tag(mode)
+            }
+        }
+
+        // The language's model, when there's a choice (English: Parakeet or
+        // Qwen). Same setting as the Models page's "Model for each language".
+        let candidates = models.candidates(for: settings.languageMode)
+        if candidates.count > 1 {
+            Picker("Model", selection: Binding(
+                get: { settings.modelPath(for: settings.languageMode) },
+                set: { path in
+                    settings.setModelPath(path, for: settings.languageMode)
+                    controller.modelChanged()
+                })) {
+                Text(models.autoChoice(for: settings.languageMode).map { "Auto · \($0.displayName)" } ?? "Auto")
+                    .tag("")
+                ForEach(candidates) { Text($0.displayName).tag($0.path) }
             }
         }
 

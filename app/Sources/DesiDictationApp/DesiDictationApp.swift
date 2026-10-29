@@ -44,8 +44,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         #endif
-        // Read before anything else handles an Apple event.
-        let launchedAtLogin = LoginItem.launchedAtLogin
         // Menu-bar-only app (no Dock icon), also when run via `swift run`.
         NSApp.setActivationPolicy(.accessory)
 
@@ -87,10 +85,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if SettingsStore.shared.dictationEnabled {
                 DictationController.shared.enable()
             }
-            // Opened by hand (Finder, Spotlight, Launchpad): show the window,
-            // or "opening" the app looks like nothing happened. At login it
-            // stays quietly in the menu bar.
-            if !launchedAtLogin { AppWindows.shared.showMain() }
+            // Opened by hand (Spotlight, Finder) or at login, it starts quietly
+            // in the menu bar: the window opens from the menu bar's "Open Desi
+            // Dictation…" (user decision 2026-10-29, reversing v0.6.2's
+            // window-on-launch).
         }
     }
 
@@ -100,27 +98,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DictationController.shared.shutdown()
     }
 
-    /// Clicking the app in Dock/Spotlight/Finder shows a window — before this,
-    /// "opening" the app appeared to do nothing.
+    /// Opening the app again from Spotlight or Finder while it runs: stay in
+    /// the menu bar, as on launch; the window opens from the menu bar. Only
+    /// unfinished setup comes back, so a closed onboarding isn't lost.
     func applicationShouldHandleReopen(_ sender: NSApplication,
                                        hasVisibleWindows: Bool) -> Bool {
-        AppWindows.shared.handleReopen()
-        return true
+        if !SettingsStore.shared.onboarded { AppWindows.shared.showOnboarding() }
+        return false
     }
 }
 
 /// Launch-at-login (SMAppService) — dictation should survive a reboot.
 @MainActor
 enum LoginItem {
-    /// True when macOS started us as a login item, from the launch event's
-    /// `keyAELaunchedAsLogInItem` marker.
-    static var launchedAtLogin: Bool {
-        guard let event = NSAppleEventManager.shared().currentAppleEvent,
-              event.eventID == kAEOpenApplication else { return false }
-        return event.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue
-            == keyAELaunchedAsLogInItem
-    }
-
     static func apply() {
         guard Bundle.main.bundlePath.hasSuffix(".app") else { return }  // not `swift run`
         if SettingsStore.shared.launchAtLogin {

@@ -49,6 +49,6 @@ struct DefaultModelSettings: View {
         guard let pick = models.autoChoice(for: mode) else {
             return "Auto — none installed yet"
         }
-        return "Auto (\(pick.displayName))"
+        return "Auto · \(pick.displayName)"
     }
 }
