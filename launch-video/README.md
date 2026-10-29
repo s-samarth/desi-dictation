@@ -69,7 +69,15 @@ every line in `voice-lines.tsv` (id, language, text) with:
 ```
 
 Takes go to `public/voice/<id>.wav`. Git ignores them until you choose to
-commit them. The default mic is the DGM20 USB; set `MIC="…"` to use another.
+commit them.
+
+**Recording setup:**
+- **Mic:** it records the Mac's input device (System Settings → Sound → Input).
+- **Recorder:** it uses macOS's own recorder (`scripts/rec.swift`, built on
+  first use). ffmpeg's mic capture spliced its 512-sample buffers on this Mac,
+  and the voice crackled and broke.
+- **Level check:** after each take it prints the loudest moment. Aim for -6 to
+  -3 dB, and turn up the mic's own gain knob if it says "too quiet".
 
 **Which takes play:** only three, in the scenes where the app is seen
 listening:

@@ -11,3 +11,4 @@ out
 
 # Your voice takes (scripts/record-voice.sh): kept local until you choose to commit them
 public/voice/
+scripts/.bin/
