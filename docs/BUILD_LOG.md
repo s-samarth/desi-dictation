@@ -1004,3 +1004,24 @@ dragged bigger. `UISnapshots` now sizes review shots with the same
 `NSHostingView` + `fittingSize` the panel uses.
 **Lesson:** a snapshot proves a view's drawing, not a window's size. Size
 snapshot windows the way the real window is sized.
+
+### Failure mode #42 — `desi-tests` segfaulted after "394 passed"
+
+**Symptom:** in 3 of 20 runs, `desi-tests` printed "394 passed, 0 failed"
+and then died with SIGSEGV, failing preflight (and once the v0.7.1
+release, which passed on retry). The crash report's faulting thread was
+`desi.context.load`, deep in `llama_vocab::impl::load` → `unicode_byte_to_utf8`,
+reading a null pointer.
+**Cause:** `ContextFitTests` accepts a "When it fits" word, and
+`acceptWhenItFits` calls `ContextChecker.shared.warmUp()`, which loads the
+real 397 MB model on a background queue when it's downloaded. When the tests
+finished first, `exit()` ran C++ static destructors, freeing llama's unicode
+tables while the load still read them. The app had a narrower version of the
+same race: `shutdown()` called `reset()`, which waits for a load in progress
+(it holds the lock) but not for one still queued.
+**Fix:** `ContextChecker.shutdown()` drains the load queue, then frees the
+model. `DictationController.shutdown()` and the test harness's `T.finish()`
+both call it before exit. Measured: 3 crashes in 20 runs without it, 0 in
+40 with it.
+**Lesson:** `exit()` isn't the end of other threads. Anything that loads
+native code in the background needs a drain before exit, not just a lock.

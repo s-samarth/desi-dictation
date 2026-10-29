@@ -1,4 +1,5 @@
 import Foundation
+import DesiDictationKit
 
 /// Micro test harness — the CLT toolchain ships no XCTest, so tests are a
 /// plain executable: `swift run desi-tests`, exit 0 = green (used by CI-ish
@@ -31,6 +32,9 @@ enum T {
 
     static func finish() -> Never {
         print("\n\(passes) passed, \(failures) failed")
+        // ContextFitTests' "When it fits" accept starts a background model
+        // load; exiting mid-load segfaults in llama (FM#42), like the app.
+        ContextChecker.shared.shutdown()
         exit(failures == 0 ? 0 : 1)
     }
 

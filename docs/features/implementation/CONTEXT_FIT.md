@@ -69,7 +69,7 @@ keeps it testable for the next model.
   unconditionally. A file-exists check in the manifest never worked: SwiftPM
   caches the manifest's answer (BUILD_LOG FM#39). It adds 10.8 MB to the
   app binary (14.3 → 25.1 MB).
-- **Freed before exit.** `shutdown()` resets the checker, and `--fit`
+- **Freed before exit.** `shutdown()` waits for a warm-up load, even a queued one (FM#42), then resets the checker, and `--fit`
   frees its scorer before `exit`: ggml-metal asserts otherwise (FM#40).
 - **Gated in the UI** on `ContextChecker.isReady` (runtime + model file). An
   entry already set to When it fits keeps its picker even if the model is
