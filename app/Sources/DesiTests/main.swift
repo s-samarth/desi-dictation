@@ -18,6 +18,7 @@ runContextFitTests()
 runReviewTests()
 runStrictnessTests()
 runCleanupTests()
+runFeedbackTests()
 
 let group = DispatchGroup()
 group.enter()

@@ -1,9 +1,9 @@
 import AppKit
 import DesiDictationKit
 
-/// Explicit, user-initiated feedback (GTM.md §4.1). Opens a pre-filled email
-/// draft — every byte of context is VISIBLE in the draft the user sends;
-/// nothing is transmitted by the app itself. Privacy promise intact.
+/// The email route for feedback (GTM.md §4.1), now the Send Feedback window's
+/// "Email instead" button (FeedbackWindow.swift): a pre-filled draft in the
+/// user's own mail app, every byte of context visible, sent by them.
 enum Feedback {
     static let address = "samarth.iitg@gmail.com"
 

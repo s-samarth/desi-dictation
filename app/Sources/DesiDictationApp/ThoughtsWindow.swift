@@ -97,8 +97,8 @@ struct ThoughtsView: View {
             .font(.caption)
 
             HStack {
-                Button("👍") { Feedback.compose() }
-                Button("👎 Report…") { Feedback.compose(includeLastTranscript: true) }
+                Button("👍") { AppWindows.shared.showFeedback() }
+                Button("👎 Report…") { AppWindows.shared.showFeedback(includeLastDictation: true) }
                     .help("Opens a pre-filled email — you see everything before sending")
                 Spacer()
                 Button("Copy structured") {

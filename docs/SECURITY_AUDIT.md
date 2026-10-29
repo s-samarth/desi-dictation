@@ -35,7 +35,7 @@ docs are fine to publish.
 | Vector | Status |
 |---|---|
 | Model downloads (HTTPS) | ✅ + **SHA256 pinned per catalog entry** (v0.3.2) — a hijacked model repo can't feed tampered GGML into the C parsers (whisper.cpp, and since v0.6.1 libparakeet); mismatches are deleted |
-| Network calls | Only 3, all visible in code: model downloads (user-initiated), Gumroad license verify (dormant — gating disabled), Ollama at 127.0.0.1 (opt-in, localhost-only) |
+| Network calls | Only 4, all visible in code: model downloads (user-initiated), **Send Feedback** (user-initiated: one HTTPS POST of the text the window shows, ephemeral session, no IDs; `FeedbackReport.swift`, FEEDBACK.md, 2026-10-30), Gumroad license verify (dormant — gating disabled), Ollama at 127.0.0.1 (opt-in, localhost-only) |
 | Telemetry / analytics | **None. Zero.** |
 | Keystroke access (Input Monitoring) | Tap inspects keycodes for the hotkey/Esc only; no logging, no buffering of other keys — auditable in `HotkeyManager.swift` (~120 lines) |
 | Audio | RAM-only Float buffer, discarded post-transcription; never written to disk, never transmitted |
@@ -58,7 +58,8 @@ docs are fine to publish.
 
 Audio never leaves the Mac. No accounts. No telemetry. Transcripts stored
 locally only, deletable, optional. The only outbound traffic is model downloads
-the user clicks, and (post-launch) a single license verification to Gumroad.
+the user clicks, feedback the user sends with the Send button (only the text
+the window shows), and (post-launch) a single license verification to Gumroad.
 Any future change to this list must be release-noted loudly.
 The user-facing version is [legal/PRIVACY_POLICY.md](legal/PRIVACY_POLICY.md):
 update it in the same change.

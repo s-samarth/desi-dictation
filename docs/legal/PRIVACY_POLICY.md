@@ -66,12 +66,19 @@ no accounts.
 
 ## 4. Feedback and support
 
-"Send Feedback…" opens an email draft in your own email app, filled with
-basic details such as the app version, macOS version and model name. Nothing
-is sent until you press Send yourself, and you can edit or remove anything
-first. If you email us, we receive what you choose to send, including your
-email address. We use it only to reply and to improve the app, and we don't
-share it.
+"Send Feedback…" opens a window. What you type is sent only when you press
+Send, to our website (samarthsaraswat.com), which forwards it to our inbox
+through an email service (EmailJS) and doesn't store it. Two optional parts
+are shown in full before you send: a line of app details (app version, macOS
+version, language, model), which you can untick, and your last dictation,
+which is off unless you tick it. Your email address is sent only if you type
+it, so we can reply. Nothing else is sent: no audio, no identifiers. Like any
+website, ours sees the network address the request comes from; we use it
+only to stop floods of reports and don't keep it.
+
+The same window can open an email draft in your own email app instead.
+Either way, we use what you send only to reply and to improve the app, and
+we don't share it.
 
 ## 5. The web demo
 

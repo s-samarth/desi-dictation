@@ -13,6 +13,7 @@ final class AppWindows {
     private var onboarding: NSWindow?
     private var lastDictation: NSWindow?
     private var thoughts: NSWindow?
+    private var feedback: NSWindow?
 
     func showMain() {
         if main == nil {
@@ -48,6 +49,17 @@ final class AppWindows {
                                   size: NSSize(width: 600, height: 500))
         }
         present(thoughts!)
+    }
+
+    /// Send Feedback. Rebuilt each time so it starts empty and picks up the
+    /// latest dictation.
+    func showFeedback(includeLastDictation: Bool = false) {
+        feedback?.close()
+        let view = FeedbackView(includeLastDictation: includeLastDictation)
+        let window = makeWindow(title: "Send Feedback", content: NSHostingView(rootView: view),
+                                size: NSSize(width: 520, height: 420))
+        feedback = window
+        present(window)
     }
 
     /// The right-click "Always write as…" window, prefilled with the word.
