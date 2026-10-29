@@ -107,4 +107,13 @@ public final class ContextChecker: @unchecked Sendable {
         scorer = nil
         failed = false
     }
+
+    /// Before exit: let a `warmUp()` load finish, even one still queued, then
+    /// free the model. A load still running at exit reads llama's unicode
+    /// tables while exit tears them down (FM#42); a model still loaded aborts
+    /// in Metal teardown (FM#27, FM#40).
+    public func shutdown() {
+        queue.sync {}
+        reset()
+    }
 }

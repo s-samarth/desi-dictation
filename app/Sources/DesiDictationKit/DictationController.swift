@@ -188,8 +188,9 @@ public final class DictationController: ObservableObject {
     public func shutdown() {
         disable()
         workQueue.sync { engine.unload() }
-        // llama's Metal teardown asserts the same way (FM#27, FM#40).
-        ContextChecker.shared.reset()
+        // llama's Metal teardown asserts the same way (FM#27, FM#40), and a
+        // load still in flight crashes at exit (FM#42).
+        ContextChecker.shared.shutdown()
     }
 
     /// Applies the mic-warm setting change immediately.
