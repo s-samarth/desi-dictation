@@ -134,8 +134,8 @@ the app loads the right one when you switch languages. To pick one yourself:
     (catches more, asks more).
   - **Tab** jumps to the next underline, **1–5** picks a suggestion, **0**
     says it looks right, or just type. **Enter** pastes, **Esc** copies.
-  - A word you fix is remembered **When it fits** unless you pick Always or
-    Just this once.
+  - A word you fix is used **Just this once** unless you pick When it fits
+    or Always to remember it.
   - Works best for English; for Hinglish only orange (unclear audio)
     underlines are used.
 

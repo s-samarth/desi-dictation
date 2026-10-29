@@ -49,7 +49,7 @@ struct ReviewView: View {
                     Button { model.pick?(n) } label: {
                         HStack(spacing: 4) {
                             Keycap(label: "\(n + 1)")
-                            Text(word.isEmpty ? (current.reason == .correction ? "Remove what you took back" : "Remove") : word)
+                            Text(word.isEmpty ? (current.reason == .correction ? "Remove this text" : "Remove") : word)
                         }
                     }
                     .buttonStyle(.bordered).controlSize(.small)

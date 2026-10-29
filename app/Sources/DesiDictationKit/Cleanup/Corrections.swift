@@ -4,8 +4,10 @@ import Foundation
 /// make it 3" → "meet at 3"; "send it to Rohan, sorry, Rahul" → "Rahul";
 /// "Monday, scratch that, Tuesday works" → "Tuesday works". Only offered in
 /// review, never applied. Conservative on purpose: "no" counts only after a
-/// comma, and without "make it" the replacement must be the same kind of
-/// thing as what it replaces (a number, a weekday, a name).
+/// comma, or at a sentence start when "make it" or "wait" follows ("two. No,
+/// make it three", as the engine often writes it); and without "make it"
+/// the replacement must be the same kind of thing as what it replaces (a
+/// number, a weekday, a name).
 public enum Corrections {
     public struct Correction: Sendable {
         /// What would go: the old words, the trigger and the new words.
@@ -15,7 +17,7 @@ public enum Corrections {
     }
 
     static let replace = try! NSRegularExpression(pattern:
-        #",\s*(?:(no)(?:,\s*|\s+)(?:wait,?\s*)?(make (?:it|that)\s+)?|(sorry|actually|i mean)(?:,\s*|\s+)(make (?:it|that)\s+)?)"#,
+        #"([,.!])\s*(?:(no)(?:,\s*|\s+)(?:(wait),?\s*)?(make (?:it|that)\s+)?|(sorry|actually|i mean)(?:,\s*|\s+)(make (?:it|that)\s+)?)"#,
         options: [.caseInsensitive])
     static let scratch = try! NSRegularExpression(pattern: #"[,.]?\s*\bscratch that\b[,.]?\s*"#, options: [.caseInsensitive])
 
@@ -24,7 +26,10 @@ public enum Corrections {
         let ns = NSRange(text.startIndex..., in: text)
         for m in replace.matches(in: text, range: ns) {
             guard let trigger = Range(m.range, in: text) else { continue }
-            let explicit = m.range(at: 2).location != NSNotFound || m.range(at: 4).location != NSNotFound
+            let explicit = m.range(at: 4).location != NSNotFound || m.range(at: 6).location != NSNotFound
+            // After "." or "!", "No," may just be an answer: only with "make it" or "wait".
+            let afterComma = (text as NSString).substring(with: m.range(at: 1)) == ","
+            guard afterComma || explicit || m.range(at: 3).location != NSNotFound else { continue }
             if let c = replacement(after: trigger, in: text, explicit: explicit, scorer: scorer) { out.append(c) }
         }
         for m in scratch.matches(in: text, range: ns) {
