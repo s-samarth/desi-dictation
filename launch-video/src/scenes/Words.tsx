@@ -39,8 +39,8 @@ export const YourWords: React.FC = () => {
     <Backdrop>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 70 }}>
         <Caption
-          title={<>Teach it your names <Accent>once</Accent>.</>}
-          sub="Fix a word, choose to remember it. Smart enough to know when it fits."
+          title={<>It learns only what you <Accent>teach it</Accent>.</>}
+          sub="Fix a name once and choose to remember it. Smart enough to know when it fits."
         />
         <div style={{ display: "flex", flexDirection: "column", gap: 44 }}>
           <Sequence from={0.8 * fps} layout="none">

@@ -32,8 +32,8 @@ export const Review: React.FC = () => {
     <Backdrop>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 44 }}>
         <Caption
-          title={<>Not sure it heard you? <Accent>Check before it pastes.</Accent></>}
-          sub="Optional. Nothing is changed unless you say so."
+          title={<>Only the unsure words are <Accent>highlighted</Accent>.</>}
+          sub="Press 1 to fix, Enter to paste. Or ✕ to close."
         />
         <div
           style={{

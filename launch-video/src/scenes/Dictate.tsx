@@ -5,35 +5,14 @@ import { Accent, Caption } from "../components/Caption";
 import { Bubble, DictationDemo } from "../components/DictationDemo";
 import { color, font } from "../theme";
 
-/** The core loop in a chat window: hold, speak, let go, it's there. */
+/** The core loop, in English: hold, speak, let go, it's there. */
 export const Dictate: React.FC = () => (
   <Backdrop>
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 46 }}>
       <Caption title={<>Hold <Accent>Right ⌥</Accent>. Speak. Let go.</>} sub="It types into whatever app you're in." />
       <DictationDemo
-        window="Chat"
-        language="Hinglish"
-        talk={[1.2, 4.2]}
-        above={
-          <div style={{ display: "flex", flexDirection: "column", fontFamily: font }}>
-            <Bubble>Kal milna hai? 🍵</Bubble>
-          </div>
-        }
-        text="Haan, kal 5 baje milte hain. Main Rahul ko bhi bol deta hoon."
-      />
-    </div>
-  </Backdrop>
-);
-
-/** Per-app language: Mail gets English with no switching. */
-export const PerApp: React.FC = () => (
-  <Backdrop>
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 46 }}>
-      <Caption title={<>Chats in Hinglish. <Accent c={color.blue}>Mail in English.</Accent></>} sub="Each app remembers its language. No switching." />
-      <DictationDemo
         window="New Message"
         language="English"
-        rule="Mail"
         talk={[1.0, 3.6]}
         above={
           <div style={{ fontFamily: font, fontSize: 30, color: color.dim, lineHeight: 1.9 }}>
@@ -42,6 +21,27 @@ export const PerApp: React.FC = () => (
           </div>
         }
         text="Hi Priya, can we move the review to Thursday at 3 pm? I'll send the deck tonight."
+      />
+    </div>
+  </Backdrop>
+);
+
+/** Hinglish in a chat, with the per-app rule badge. */
+export const Hinglish: React.FC = () => (
+  <Backdrop>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 46 }}>
+      <Caption title={<>Think in <Accent>Hinglish</Accent>? So does it.</>} sub="Chats get Hinglish, Mail gets English. Each app remembers." />
+      <DictationDemo
+        window="Chat"
+        language="Hinglish"
+        rule="Chat"
+        talk={[1.0, 3.6]}
+        above={
+          <div style={{ display: "flex", flexDirection: "column", fontFamily: font }}>
+            <Bubble>Kal milna hai? 🍵</Bubble>
+          </div>
+        }
+        text="Haan, kal 5 baje milte hain. Main Rahul ko bhi bol deta hoon."
       />
     </div>
   </Backdrop>

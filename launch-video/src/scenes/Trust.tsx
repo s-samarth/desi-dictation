@@ -58,22 +58,26 @@ const Point: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
-/** Three numbers worth remembering. */
-export const Stats: React.FC = () => {
+/** The pitch in four promises. */
+export const Promises: React.FC = () => {
   const { fps } = useVideoConfig();
   const tiles: [string, string][] = [
-    ["0.2 s", "to turn a short English dictation into text (M3 Mac)"],
-    ["24 h", "of history, plus the clipboard. You never lose a word."],
-    ["0", "seconds of audio uploaded. Ever."],
+    ["Asks", "only when it's unsure, and only about those words."],
+    ["Never", "swaps a word on a guess. Fixes wait for your OK."],
+    ["Stays", "on your Mac. No audio uploaded. Ever."],
+    ["Keeps", "every dictation for 24 h. You never lose a word."],
   ];
   return (
     <Backdrop>
-      <div style={{ display: "flex", gap: 44 }}>
-        {tiles.map(([big, small], i) => (
-          <Sequence key={big} from={i * 0.45 * fps} layout="none">
-            <Tile big={big} small={small} />
-          </Sequence>
-        ))}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 60 }}>
+        <Caption title={<>Dictation you can <Accent>trust</Accent>.</>} />
+        <div style={{ display: "flex", gap: 34 }}>
+          {tiles.map(([big, small], i) => (
+            <Sequence key={big} from={(0.5 + i * 0.4) * fps} layout="none">
+              <Tile big={big} small={small} />
+            </Sequence>
+          ))}
+        </div>
       </div>
     </Backdrop>
   );
@@ -85,9 +89,9 @@ const Tile: React.FC<{ big: string; small: string }> = ({ big, small }) => {
   return (
     <div
       style={{
-        width: 500,
-        height: 420,
-        padding: 48,
+        width: 400,
+        height: 380,
+        padding: 40,
         borderRadius: 32,
         background: color.bgSoft,
         border: `1px solid ${color.panelLine}`,
@@ -99,8 +103,8 @@ const Tile: React.FC<{ big: string; small: string }> = ({ big, small }) => {
         }),
       }}
     >
-      <div style={{ fontSize: 140, fontWeight: 800, letterSpacing: -4, color: color.saffron }}>{big}</div>
-      <div style={{ marginTop: 20, fontSize: 40, lineHeight: 1.3, color: color.text }}>{small}</div>
+      <div style={{ fontSize: 84, fontWeight: 800, letterSpacing: -2, color: color.saffron }}>{big}</div>
+      <div style={{ marginTop: 18, fontSize: 40, lineHeight: 1.3, color: color.text }}>{small}</div>
     </div>
   );
 };

@@ -42,7 +42,7 @@ export const Cleanup: React.FC = () => {
   return (
     <Backdrop>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 90 }}>
-        <Caption title={<>Ums disappear. <Accent>Second thoughts get caught.</Accent></>} />
+        <Caption title={<>It never rewrites you <Accent>behind your back</Accent>.</>} sub="Ums go. Second thoughts become suggestions. You decide." />
         <div style={{ fontFamily: font, fontSize: 64, color: color.text, position: "relative" }}>
           <Fold strikeAt={1.0} goneAt={2.0}>{"Um, "}</Fold>
           <span>{t >= 2.0 ? "So" : "so"} we should</span>
@@ -85,7 +85,7 @@ export const Cleanup: React.FC = () => {
             opacity: interpolate(t, [5.6, 6.0], [0, 1], clamp),
           }}
         >
-          “Scratch that” works too. Corrections are only ever suggested.
+          Nothing changes until you press 1.
         </div>
       </div>
     </Backdrop>

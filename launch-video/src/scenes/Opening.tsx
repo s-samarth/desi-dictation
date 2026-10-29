@@ -5,16 +5,16 @@ import { Accent, Caption } from "../components/Caption";
 import { SoundBars } from "../components/Typed";
 import { color, font } from "../theme";
 
-/** The hook: the problem in two lines. A stock clip can go behind it later. */
+/** The hook: the problem with dictation, in two lines. A stock clip can go behind it later. */
 export const Hook: React.FC = () => {
   const { fps } = useVideoConfig();
   return (
     <Backdrop>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 50 }}>
         <SoundBars from={0} to={10} />
-        <Caption title={<>You think in <Accent>Hinglish</Accent>.</>} />
+        <Caption title={<>Most dictation apps <Accent>guess</Accent>.</>} />
         <Sequence from={1.6 * fps} layout="none">
-          <Caption title="So why type in English?" style={{ color: color.dim }} />
+          <Caption title="And you find out after you hit send." style={{ color: color.dim }} />
         </Sequence>
       </div>
     </Backdrop>
@@ -41,7 +41,7 @@ export const TitleCard: React.FC = () => {
             }),
           }}
         >
-          Speak Hinglish. Get Hinglish. In any app on your Mac.
+          Dictation you can trust. English, Hinglish and हिन्दी.
         </div>
       </div>
     </Backdrop>
@@ -58,7 +58,7 @@ export const Outro: React.FC = () => {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 34, fontFamily: font }}>
         <Img src={staticFile("icon.png")} style={{ width: 200, height: 200, scale: String(pop) }} />
         <div style={{ fontSize: 110, fontWeight: 800, letterSpacing: -3, color: color.text }}>Desi Dictation</div>
-        <div style={{ fontSize: 46, color: color.dim }}>On-device dictation for Hinglish, English and हिन्दी</div>
+        <div style={{ fontSize: 46, color: color.dim }}>Dictation you can trust. On your Mac.</div>
         <div
           style={{
             marginTop: 20,

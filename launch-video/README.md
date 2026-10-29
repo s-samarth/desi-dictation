@@ -1,6 +1,6 @@
 # Launch video
 
-A ~58 s product launch video for Desi Dictation, built with
+A ~65 s product launch video for Desi Dictation, built with
 [Remotion](https://www.remotion.dev): React components rendered frame by frame
 into an MP4. It sits apart from `app/` and `web/` and shares nothing with them
 except pictures of the app.
@@ -30,21 +30,25 @@ with `npx skills add remotion-dev/skills`, then start Claude Code inside
 The video covers features that ship today. The hidden AI layer (tone,
 translation, Structure my thoughts) is left out.
 
+**Pitch:** dictation you can trust. English comes first, Hinglish is the
+differentiator.
+
 | # | Scene | File | Shows |
 |---|---|---|---|
-| 1 | Hook | `scenes/Opening.tsx` | "You think in Hinglish. So why type in English?" |
-| 2 | Title | `scenes/Opening.tsx` | Icon, name, one-line promise |
-| 3 | Dictate | `scenes/Dictate.tsx` | Hold Right ⌥ → overlay listens → Hinglish lands in a chat |
-| 4 | Per-app language | `scenes/Dictate.tsx` | Mail gets English, with the orange "Mail rule" badge |
-| 5 | Languages | `scenes/Dictate.tsx` | Hinglish / English / हिन्दी |
-| 6 | Review before paste | `scenes/Review.tsx` | The real panel: underline → 1 Claude → Paste |
-| 7 | Fillers and corrections | `scenes/Cleanup.tsx` | um/uh fold away; "two, no, make it three" → three |
-| 8 | Your words | `scenes/Words.tsx` | Kavya always; Claude only when it fits |
-| 9 | On-device | `scenes/Trust.tsx` | The real Models screen + no cloud / offline |
-| 10 | Numbers | `scenes/Trust.tsx` | 0.2 s English, 24 h history, 0 audio uploaded |
-| 11 | Outro | `scenes/Opening.tsx` | Name, GitHub link, Apple Silicon |
+| 1 | Hook | `scenes/Opening.tsx` | "Most dictation apps guess. And you find out after you hit send." |
+| 2 | Title | `scenes/Opening.tsx` | Icon, name, "Dictation you can trust" |
+| 3 | Dictate (English) | `scenes/Dictate.tsx` | Hold Right ⌥ → overlay listens → an email lands in Mail |
+| 4 | Smart review | `scenes/SmartReview.tsx` | Sure → pasted, no pop-up; unsure → only 2 words to check |
+| 5 | Review panel | `scenes/Review.tsx` | The real panel: underline → 1 Claude → Paste |
+| 6 | Never rewrites you | `scenes/Cleanup.tsx` | um/uh fold away; "two, no, make it three" waits for your 1 |
+| 7 | Your words | `scenes/Words.tsx` | Kavya always; Claude only when it fits |
+| 8 | Hinglish | `scenes/Dictate.tsx` | Hinglish in a chat, with the per-app rule badge |
+| 9 | Languages | `scenes/Dictate.tsx` | Hinglish / English / हिन्दी |
+| 10 | On-device | `scenes/Trust.tsx` | The real Models screen + no cloud / offline |
+| 11 | Promises | `scenes/Trust.tsx` | Asks / Never / Stays / Keeps |
+| 12 | Outro | `scenes/Opening.tsx` | Name, GitHub link, Apple Silicon |
 
-- **Scene lengths:** `SCENES` in `src/LaunchVideo.tsx`.
+- **Scene order and lengths:** `SCENES` in `src/LaunchVideo.tsx`.
 - **Colours and fonts:** `src/theme.ts`.
 - **App screenshots:** `public/screens/` are made by the debug app itself:
 

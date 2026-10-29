@@ -3,73 +3,52 @@ import { linearTiming, TransitionSeries } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { slide } from "@remotion/transitions/slide";
 import { Cleanup } from "./scenes/Cleanup";
-import { Dictate, Languages, PerApp } from "./scenes/Dictate";
+import { Dictate, Hinglish, Languages } from "./scenes/Dictate";
 import { Hook, Outro, TitleCard } from "./scenes/Opening";
 import { Review } from "./scenes/Review";
-import { Private, Stats } from "./scenes/Trust";
+import { SmartReview } from "./scenes/SmartReview";
+import { Private, Promises } from "./scenes/Trust";
 import { YourWords } from "./scenes/Words";
 import { FPS } from "./theme";
 
-/** Scene lengths in seconds, in order; the composition's duration is derived from them. */
-export const SCENES = [4, 3.5, 7.5, 6.5, 5.5, 7, 7.5, 7, 6, 5, 5];
+/** The scenes in order, with their lengths in seconds. The pitch: dictation you can trust. */
+const SCENES: { name: string; seconds: number; push?: boolean; Scene: React.FC }[] = [
+  { name: "Hook", seconds: 4, Scene: Hook },
+  { name: "Title", seconds: 3.5, Scene: TitleCard },
+  { name: "Dictate (English)", seconds: 7, Scene: Dictate },
+  { name: "Smart review", seconds: 7, push: true, Scene: SmartReview },
+  { name: "Review panel", seconds: 7, push: true, Scene: Review },
+  { name: "Never rewrites you", seconds: 7.5, push: true, Scene: Cleanup },
+  { name: "Your words", seconds: 6.5, push: true, Scene: YourWords },
+  { name: "Hinglish", seconds: 6.5, push: true, Scene: Hinglish },
+  { name: "Languages", seconds: 4.5, push: true, Scene: Languages },
+  { name: "On-device", seconds: 6, push: true, Scene: Private },
+  { name: "Promises", seconds: 6.5, Scene: Promises },
+  { name: "Outro", seconds: 5, Scene: Outro },
+];
 export const TRANSITION = 15; // frames
-export const DURATION =
-  SCENES.reduce((sum, s) => sum + Math.round(s * FPS), 0) - TRANSITION * (SCENES.length - 1);
-
-const cut = () => <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANSITION })} />;
-const push = () => (
-  <TransitionSeries.Transition
-    presentation={slide({ direction: "from-right" })}
-    timing={linearTiming({ durationInFrames: TRANSITION })}
-  />
-);
 const f = (seconds: number) => Math.round(seconds * FPS);
+export const DURATION = SCENES.reduce((sum, s) => sum + f(s.seconds), 0) - TRANSITION * (SCENES.length - 1);
 
-/** The launch video: problem → product → features → trust → where to get it. */
+/** Scene starts in frames, for rendering one still per scene. */
+export const STARTS = SCENES.map((_, i) =>
+  SCENES.slice(0, i).reduce((sum, s) => sum + f(s.seconds) - TRANSITION, 0));
+
 export const LaunchVideo: React.FC = () => (
   <TransitionSeries>
-    <TransitionSeries.Sequence name="Hook" durationInFrames={f(SCENES[0])}>
-      <Hook />
-    </TransitionSeries.Sequence>
-    {cut()}
-    <TransitionSeries.Sequence name="Title" durationInFrames={f(SCENES[1])}>
-      <TitleCard />
-    </TransitionSeries.Sequence>
-    {cut()}
-    <TransitionSeries.Sequence name="Dictate" durationInFrames={f(SCENES[2])}>
-      <Dictate />
-    </TransitionSeries.Sequence>
-    {push()}
-    <TransitionSeries.Sequence name="Per-app language" durationInFrames={f(SCENES[3])}>
-      <PerApp />
-    </TransitionSeries.Sequence>
-    {push()}
-    <TransitionSeries.Sequence name="Languages" durationInFrames={f(SCENES[4])}>
-      <Languages />
-    </TransitionSeries.Sequence>
-    {push()}
-    <TransitionSeries.Sequence name="Review before paste" durationInFrames={f(SCENES[5])}>
-      <Review />
-    </TransitionSeries.Sequence>
-    {push()}
-    <TransitionSeries.Sequence name="Fillers and corrections" durationInFrames={f(SCENES[6])}>
-      <Cleanup />
-    </TransitionSeries.Sequence>
-    {push()}
-    <TransitionSeries.Sequence name="Your words" durationInFrames={f(SCENES[7])}>
-      <YourWords />
-    </TransitionSeries.Sequence>
-    {push()}
-    <TransitionSeries.Sequence name="On-device" durationInFrames={f(SCENES[8])}>
-      <Private />
-    </TransitionSeries.Sequence>
-    {cut()}
-    <TransitionSeries.Sequence name="Numbers" durationInFrames={f(SCENES[9])}>
-      <Stats />
-    </TransitionSeries.Sequence>
-    {cut()}
-    <TransitionSeries.Sequence name="Outro" durationInFrames={f(SCENES[10])}>
-      <Outro />
-    </TransitionSeries.Sequence>
+    {SCENES.flatMap(({ name, seconds, push, Scene }, i) => [
+      ...(i === 0
+        ? []
+        : [
+            <TransitionSeries.Transition
+              key={`t-${name}`}
+              presentation={push ? slide({ direction: "from-right" }) : fade()}
+              timing={linearTiming({ durationInFrames: TRANSITION })}
+            />,
+          ]),
+      <TransitionSeries.Sequence key={name} name={name} durationInFrames={f(seconds)}>
+        <Scene />
+      </TransitionSeries.Sequence>,
+    ])}
   </TransitionSeries>
 );
