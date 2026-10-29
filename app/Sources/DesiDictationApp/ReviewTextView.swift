@@ -130,10 +130,33 @@ struct ReviewTextEditor: NSViewRepresentable {
             var range = NSRange(location: 0, length: 0)
             guard storage.attribute(ReviewTextEditor.unsureKey, at: view.selectedRange().location,
                                     effectiveRange: &range) != nil else { return }
+            if word.isEmpty {
+                remove(range)
+                return
+            }
             guard view.shouldChangeText(in: range, replacementString: word) else { return }
             storage.replaceCharacters(in: range, with: NSAttributedString(string: word, attributes: ReviewTextView.plain))
             view.didChangeText()
             jump(forward: true, from: range.location + (word as NSString).length)
+        }
+
+        /// "Remove": the word goes with its commas and spaces, and the next
+        /// word is capitalised if it now starts the sentence (TextSpans).
+        private func remove(_ range: NSRange) {
+            guard let view = textView, let storage = view.textStorage else { return }
+            let text = storage.string
+            guard let swiftRange = Range(range, in: text) else { return }
+            let (delete, capitalize) = TextSpans.removal(of: swiftRange, in: text)
+            let ns = NSRange(delete, in: text)
+            guard view.shouldChangeText(in: ns, replacementString: "") else { return }
+            storage.replaceCharacters(in: ns, with: "")
+            if capitalize, ns.location < storage.length {
+                let next = NSRange(location: ns.location, length: 1)
+                let upper = (storage.string as NSString).substring(with: next).uppercased()
+                storage.replaceCharacters(in: next, with: upper)
+            }
+            view.didChangeText()
+            jump(forward: true, from: ns.location)
         }
     }
 }

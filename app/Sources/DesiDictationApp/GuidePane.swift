@@ -81,6 +81,15 @@ struct GuidePane: View {
                 steps: ["**Needs it:** purple underlines in Review (English, हिन्दी), and **When it fits** words judged by the sentence (English).",
                         "**Works without it:** everything else. A When it fits word without the checker changes only when its written form is on screen or is the app you're in.",
                         "Uses about 0.4 GB of memory while a feature that needs it is on."])
+
+            GuideFeature(
+                number: 11, title: "Fillers and spoken corrections",
+                summary: "Dictation → Clean-up. \"Remove um and uh\" is on: um, uh, hmm and er are never words, so they just go. Everything else is only offered in Review before paste, unless you switch it on.",
+                steps: ["**Sometimes fillers** (like, you know, I mean, basically…) are underlined as **Filler?** when the context checker thinks they are: press **1** to remove, **0** to keep. \"I like the design\" is left alone; \"we should like ship it\" is offered.",
+                        "**Remove fillers when sure** (off by default) takes out the clear ones without asking. On test sentences it removed 8 of 21 fillers and none of 20 real uses.",
+                        "**Spoken corrections:** \"meet at 2, no, make it 3\" is underlined with **You probably meant: 3**; \"Rohan, sorry, Rahul\" with Rahul; \"plan A, scratch that, plan B\" offers to remove what you took back. Never applied on its own."],
+                turnOnIf: "you think out loud while dictating.",
+                skipIf: "you want every word exactly as said: turn \"Remove um and uh\" off.")
         }
         .formStyle(.grouped)
         .onAppear { UserDefaults.standard.set(true, forKey: MainNav.guideSeenKey) }

@@ -49,7 +49,7 @@ struct ReviewView: View {
                     Button { model.pick?(n) } label: {
                         HStack(spacing: 4) {
                             Keycap(label: "\(n + 1)")
-                            Text(word)
+                            Text(word.isEmpty ? (current.reason == .correction ? "Remove what you took back" : "Remove") : word)
                         }
                     }
                     .buttonStyle(.bordered).controlSize(.small)
@@ -77,6 +77,8 @@ struct ReviewView: View {
         case .odd: return "Odd here. Maybe:"
         case .soundsLike: return "Sounds like:"
         case .suggested: return "Did you mean:"
+        case .filler: return "Filler?"
+        case .correction: return "You probably meant:"
         }
     }
 

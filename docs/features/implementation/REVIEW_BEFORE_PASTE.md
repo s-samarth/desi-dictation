@@ -60,6 +60,10 @@ panel:
    `review(…)` (`DictationController+Review.swift`) decides; otherwise
    `commit` (history, then paste) as before.
 4. **What's underlined** (`ReviewPlanner.unsure`):
+   - **Spoken corrections and likely fillers** (`CleanupReview`, see
+     [FILLERS_AND_CORRECTIONS.md](FILLERS_AND_CORRECTIONS.md)): "You
+     probably meant:" / "Filler?" with **Remove**; they win where they
+     overlap other underlines.
    - **The vocabulary corrector's guesses** (near-misses of dictionary
      words, names on screen, Hinglish field spellings): never applied since
      2026-10-29, only underlined here with the guess as choice 1 ("Did you

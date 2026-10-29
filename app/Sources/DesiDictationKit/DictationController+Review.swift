@@ -34,10 +34,12 @@ extension DictationController {
                     }
                 })
         }
+        let removeSounds = CleanupSettings.shared.removeSounds
         let ranks = mode == .english && ContextChecker.isReady
         guard oddAbove != nil || ranks else {
+            let cleanup = CleanupReview.items(in: text, mode: mode, scorer: nil, removeSounds: removeSounds)
             let unsure = ReviewPlanner.unsure(in: text, words: words, threshold: threshold,
-                                              suggested: suggested, sources: sources)
+                                              suggested: suggested, cleanup: cleanup, sources: sources)
             guard ReviewPlanner.opens(reviewMode, unsure: unsure) else { return false }
             present(unsure)
             return true
@@ -47,8 +49,10 @@ extension DictationController {
         DispatchQueue.global(qos: .userInitiated).async {
             let scorer = ContextChecker.shared.loaded()
             let odd = oddAbove == nil ? [] : scorer.flatMap { SentenceSurprise.words(in: text, scorer: $0) } ?? []
+            let cleanup = CleanupReview.items(in: text, mode: mode, scorer: scorer, removeSounds: removeSounds)
             var unsure = ReviewPlanner.unsure(in: text, words: words, threshold: threshold,
-                                              odd: odd, oddAbove: oddAbove, suggested: suggested, sources: sources)
+                                              odd: odd, oddAbove: oddAbove, suggested: suggested,
+                                              cleanup: cleanup, sources: sources)
             if ranks, let scorer {
                 for i in unsure.indices where unsure[i].alternatives.count > 1 {
                     unsure[i].alternatives = ReviewAlternatives.ranked(unsure[i], in: text, scorer: scorer)
