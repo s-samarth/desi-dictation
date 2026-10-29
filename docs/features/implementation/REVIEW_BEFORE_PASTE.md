@@ -35,9 +35,10 @@ panel:
   still in the text (`ReviewModel.remaining`);
 - **Enter** pastes, **Esc** copies (the panel's buttons do the same);
 - **Remember your fixes?** lists each word changed in the panel with *Just
-  this once* / *Always* / *When it fits*, **When it fits by default** where
-  offered (English, llama runtime in the build; user decision 2026-10-29),
-  else Just this once. Without the checker downloaded, a note says it
+  this once* / *When it fits* / *Always* (in that order), **Just this once
+  by default** (user decision 2026-10-29, reversing the When it fits
+  default: remembering a word is a choice). When it fits is offered for
+  English with the llama runtime in the build. Without the checker downloaded, a note says it
   judges sentences only once installed. Not shown for हिन्दी.
 - The **context checker's status** (installed, or Get · 397 MB, and what it
   adds) shows under the Review settings and on the Vocabulary page

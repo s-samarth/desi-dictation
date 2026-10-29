@@ -7,7 +7,7 @@ import DesiDictationKit
 final class ReviewModel: ObservableObject {
     /// How a fix made in review is kept.
     enum Keep: String, CaseIterable, Identifiable {
-        case once, always, whenItFits
+        case once, whenItFits, always   // the picker's order
         var id: String { rawValue }
         var label: String {
             switch self {
@@ -62,10 +62,10 @@ final class ReviewModel: ObservableObject {
         request.offerWhenItFits ? Keep.allCases : [.once, .always]
     }
 
-    /// A fix is kept "When it fits" unless changed (user decision 2026-10-29):
-    /// right in this sentence, judged again in the next. Where that isn't
-    /// offered (हिन्दी, Hinglish), it's kept just this once.
-    var defaultKeep: Keep { request.offerWhenItFits ? .whenItFits : .once }
+    /// A fix is kept "Just this once" unless changed (user decision
+    /// 2026-10-29, reversing the earlier "When it fits" default): remembering
+    /// a word is the user's choice, never a side effect of fixing it.
+    var defaultKeep: Keep { .once }
 
     func textChanged(_ new: String) {
         text = new

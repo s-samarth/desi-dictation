@@ -12,7 +12,8 @@ So only two kinds of change happen on their own, each behind a switch:
 | um, uh, hmm, er (and umm, uhh…) | **removed** ("Remove um and uh", on) | pipeline, all languages |
 | like, you know, I mean, basically, literally, actually, kind of, sort of, yeah | **offered** in review as "Filler?" | review panel (English, checker) |
 | the same, when the checker is sure | removed only with "Remove fillers when sure" (off) | pipeline (English, checker) |
-| "2, no, make it 3", "Rohan, sorry, Rahul", "scratch that" | **offered** in review as "You probably meant:" | review panel (English, Hinglish) |
+| "2, no, make it 3", "two. No, make it three", "Rohan, sorry, Rahul" | **offered** in review as "You probably meant:" | review panel (English, Hinglish) |
+| "scratch that" | **offered** in review as **Remove this text** | review panel (English, Hinglish) |
 
 "yeah" is a sometimes-filler, not a sound: in "yeah, sounds good" it is the
 answer.
@@ -35,7 +36,11 @@ answer.
   - `removeSure`: removes the candidates scoring above `removeAbove`.
 - `Corrections`: rules for spoken corrections.
   - **Triggers:** ", no," / ", no wait" / ", no make it" / ", sorry," /
-    ", actually" / ", I mean", always after a comma.
+    ", actually" / ", I mean", after a comma.
+  - **At a sentence start** too, but only with "make it" or "wait": the
+    speech engine often hears the pause as a full stop ("meet at two. No,
+    make it three tomorrow", live 2026-10-29). "No, three people came" and
+    anything after a "?" stay alone: there "No" is an answer.
   - **Without "make it",** the new words must be one or two, and of the same
     kind as an earlier word in the clause (number, weekday, month, name).
     That's what they replace.

@@ -70,7 +70,7 @@ struct GuidePane: View {
                 steps: ["**Orange:** the speech model wasn't sure what it heard, or the word sounds like one of your words or a name on screen.",
                         "**Purple:** heard clearly but odd in its sentence (\"one PC Luffy\", a misheard name). Only with the context checker (section 10).",
                         "**Tab** jumps to an underline, **1–5** picks a suggestion, **0** says it looks right, or just type. **Enter** pastes, **Esc** copies.",
-                        "A word you fix is remembered **When it fits** unless you pick **Always** or **Just this once**.",
+                        "A word you fix is used **Just this once** unless you pick **When it fits** or **Always** to remember it.",
                         "\"Underline words\": **Moderate** (default) suits most people; Liberal marks only likely mistakes; Conservative marks more. Everyday words said casually are left alone."],
                 turnOnIf: "you want to check names and odd words before they're sent.",
                 skipIf: "you'd rather fix things after pasting; section 4 still learns from that.")
@@ -87,7 +87,7 @@ struct GuidePane: View {
                 summary: "Dictation → Clean-up. \"Remove um and uh\" is on: um, uh, hmm and er are never words, so they just go. Everything else is only offered in Review before paste, unless you switch it on.",
                 steps: ["**Sometimes fillers** (like, you know, I mean, basically…) are underlined as **Filler?** when the context checker thinks they are: press **1** to remove, **0** to keep. \"I like the design\" is left alone; \"we should like ship it\" is offered.",
                         "**Remove fillers when sure** (off by default) takes out the clear ones without asking. On test sentences it removed 8 of 21 fillers and none of 20 real uses.",
-                        "**Spoken corrections:** \"meet at 2, no, make it 3\" is underlined with **You probably meant: 3**; \"Rohan, sorry, Rahul\" with Rahul; \"plan A, scratch that, plan B\" offers to remove what you took back. Never applied on its own."],
+                        "**Spoken corrections:** \"meet at 2, no, make it 3\" is underlined with **You probably meant: 3**; \"Rohan, sorry, Rahul\" with Rahul; \"plan A, scratch that, plan B\" offers **Remove this text**. Never applied on its own."],
                 turnOnIf: "you think out loud while dictating.",
                 skipIf: "you want every word exactly as said: turn \"Remove um and uh\" off.")
         }

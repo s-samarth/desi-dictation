@@ -29,6 +29,11 @@ func runCleanupTests() {
     T.equal(fix("Send it to Rohan, sorry, Rahul."), ["Rohan, sorry, Rahul → Rahul"], "a name for a name")
     T.equal(fix("We need five, no, six chairs."), ["five, no, six chairs → six chairs"], "a number for a number")
     T.equal(fix("Ship it Monday, actually Tuesday."), ["Monday, actually Tuesday → Tuesday"], "a day for a day")
+    T.equal(fix("I think we should meet at two. No, make it three tomorrow."),
+            ["two. No, make it three tomorrow → three tomorrow"], "a new sentence: \". No, make it\" (live, 2026-10-29)")
+    T.equal(fix("Meet at two. No wait, three."), ["two. No wait, three → three"], "a new sentence: \". No wait\"")
+    T.equal(fix("We had two. No, three people came. Was it two? No, make it three."), [],
+            "at a sentence start \"No\" alone is an answer; after a question too")
     T.equal(fix("Monday works, scratch that, Tuesday works."), ["Monday works, scratch that,  → "],
             "scratch that: the taken-back words")
     T.equal(fix("I said no, make it simple. He tried to call, no answer. It's fine, actually it's great."), [],

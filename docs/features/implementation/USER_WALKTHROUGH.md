@@ -162,8 +162,9 @@ menu items and right-click services are hidden (§3–§8).
   (like, you know, I mean…) are underlined in review as **Filler?** (1
   removes, 0 keeps); **Remove fillers when sure** (off) takes out the ones
   the context checker is sure of. Spoken corrections ("meet at 2, no, make
-  it 3", "Rohan, sorry, Rahul", "scratch that") are underlined as **You
-  probably meant:** and never applied on their own.
+  it 3", also "two. No, make it three"; "Rohan, sorry, Rahul") are
+  underlined as **You probably meant:**; "scratch that" offers **Remove
+  this text**. Never applied on their own.
 - **Review before paste:** Dictation → **Review**: **Review before paste**
   Off (default), **Only when unsure**, or **Always**, and **Underline
   words** Conservative / **Moderate** (default) / Liberal: how readily
@@ -182,9 +183,9 @@ menu items and right-click services are hidden (§3–§8).
   **0** says it looks right (the underline goes, the word stays), or just
   type. The "N unsure words" count drops as you fix, delete or clear them.
   **Enter** pastes into the app you were in, **Esc** copies instead. Under
-  "Remember your fixes?" each word you changed is kept **When it fits** by
-  default (English; **Just this once** for Hinglish), or pick **Always** /
-  **Just this once**. Purple underlines and When it fits judging need the
+  "Remember your fixes?" each word you changed is used **Just this once**
+  by default, or pick **When it fits** (English) / **Always** to remember
+  it. Purple underlines and When it fits judging need the
   optional context checker: its row, with a Get button, sits under the
   Review settings and on the Vocabulary page. Starting a
   new dictation while the panel is open copies the waiting text. With
