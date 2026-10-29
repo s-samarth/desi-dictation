@@ -75,14 +75,19 @@ public final class QwenASREngine: TranscriptionEngine, HotwordBiasing {
         // audio in ≤ 30 s pieces (quick tier: 22 % vs 16 % nWER on those clips),
         // so long input is cut at pauses — the same size the app chunks at.
         var parts: [String] = []
+        var words: [ScoredWord] = []
         for range in AudioSplitter.pieces(of: samples, maxSamples: Self.maxPieceSamples) {
             let text = try run(session, Array(samples[range]), language: mode.whisperLanguage)
-            if !text.isEmpty { parts.append(text) }
+            if !text.isEmpty {
+                parts.append(text)
+                words += EngineWords.transcribe(session)
+            }
         }
         return TranscriptionResult(
             text: parts.joined(separator: " "),
             duration: Date().timeIntervalSince(start),
-            audioSeconds: Double(samples.count) / 16000.0
+            audioSeconds: Double(samples.count) / 16000.0,
+            words: words
         )
     }
 

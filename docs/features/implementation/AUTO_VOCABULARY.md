@@ -172,14 +172,13 @@ field's spelling wins for this dictation. It's never learned.
 - **Latency:** the screen read overlaps recording, and correction takes
   milliseconds. Everything is off by default, so the latency gate is
   unaffected.
-- **Next (decided 2026-10-28):** context scorer for sound-alike real words
-  (cloud/Claude), built as [CONTEXT_FIT.md](CONTEXT_FIT.md) ("When it fits"),
-  and Review before paste. Plan: [VOCABULARY_NEXT.md](../VOCABULARY_NEXT.md).
+- **Built since (2026-10-28):** the context scorer for sound-alike real
+  words (cloud/Claude), [CONTEXT_FIT.md](CONTEXT_FIT.md) ("When it fits"),
+  and Review before paste with per-word ASR confidence,
+  [REVIEW_BEFORE_PASTE.md](REVIEW_BEFORE_PASTE.md). Confidence only
+  underlines words for the user; the corrector still never changes a real
+  word on a dictionary term alone.
 - **Deferred:**
-  - per-word ASR confidence: needs `TranscriptionResult` and engine changes,
-    left until the Qwen PR lands. Until then a dictionary term alone can't
-    change a real word, the stricter rule;
-  - the Qwen engine itself;
   - LLM post-correction;
   - per-app vocabularies;
   - Apex `initial_prompt` biasing (a fine-tune may be destabilized by a

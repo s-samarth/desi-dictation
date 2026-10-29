@@ -151,6 +151,17 @@ menu items and right-click services are hidden (§3–§8).
   "fits the sentence" in History; kept words say why under **What it's been
   doing**. Undoing one of these fixes doesn't ban it: the next sentence
   decides again.
+- **Review before paste:** Dictation → Options → **Review before paste**:
+  Off (default), **Only when unsure**, or **Always**. When it opens, a small
+  panel shows the text before it's pasted, with shaky words underlined in
+  orange dots. **Tab** jumps to the next one and shows suggestions
+  ("Maybe: 1 Saraswat"); **1–5** picks one, or just type. **Enter** pastes
+  into the app you were in, **Esc** copies instead. Under "Remember your
+  fixes?" each word you changed can be kept **Just this once** (default),
+  **Always**, or **When it fits**. Starting a new dictation while the panel
+  is open copies the waiting text. With Qwen3-ASR (Accurate English) only
+  sound-alikes of your words are underlined: that model reports no
+  per-word confidence.
 - **Your edit wins:** if it auto-fixed a word and you change it back, the
   popup says "Got it" and that fix is never made again.
 - **Near-miss fixes:** "Saraswath" becomes "Saraswat" when the dictionary

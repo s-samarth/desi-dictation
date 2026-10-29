@@ -2,7 +2,7 @@
 //
 // Usage:
 //   swift run desi-cli <model.bin> <audio.wav> [hinglish|english|hindi]
-//   swift run desi-cli <model.bin> --batch <dir-with-wavs> [mode]   # JSONL out (evals)
+//   swift run desi-cli <model.bin> --batch <dir-with-wavs> [mode] [--words]  # JSONL out (evals)
 //   swift run desi-cli --translate "text" [english|hindi]           # LLM spike (TRANSLATION.md §5)
 //   swift run desi-cli --structure "text" [notes|actionList|emailDraft|outline]
 //   swift run desi-cli --fit <model.gguf> evals/context_fit/cases.tsv [--word-list]
@@ -10,6 +10,11 @@ import DesiDictationKit
 import Foundation
 
 let args = CommandLine.arguments
+
+/// JSON rows for `--words`: [text, confidence], confidence null when unknown.
+func wordRows(_ words: [ScoredWord]) -> [[Any]] {
+    words.map { [$0.text, $0.confidence.isFinite ? Double($0.confidence) : NSNull()] }
+}
 
 /// exit() after freeing the model: ggml's Metal teardown (a static destructor
 /// run by exit()) aborts if GPU buffers are still allocated — every batch run
@@ -34,7 +39,7 @@ if args.count >= 2, args[1] == "--fit" { runFitEval(Array(args.dropFirst(2))) }
 
 guard args.count >= 3 else {
     print("""
-    usage: desi-cli <model.bin> <audio file | --batch dir> [hinglish|english|hindi] [--hotwords "A,B"]
+    usage: desi-cli <model.bin> <audio file | --batch dir> [hinglish|english|hindi] [--hotwords "A,B"] [--words]
            desi-cli --translate "text" [english|hindi]
            desi-cli --structure "text" [notes|actionList|emailDraft|outline]
     """)
@@ -137,12 +142,14 @@ if args[2] == "--batch", args.count >= 4 {
         for file in files {
             let samples = try AudioFileLoader.loadSamples(url: file)
             let result = try engine.transcribe(samples: samples, mode: batchMode)
-            let record: [String: Any] = [
+            var record: [String: Any] = [
                 "file": file.lastPathComponent,
                 "text": result.text,
                 "seconds": (result.duration * 100).rounded() / 100,
                 "audio_seconds": (result.audioSeconds * 10).rounded() / 10,
             ]
+            // --words: per-word confidence for evals/word_confidence.py.
+            if args.contains("--words") { record["words"] = wordRows(result.words) }
             let data = try JSONSerialization.data(withJSONObject: record)
             print(String(data: data, encoding: .utf8)!)
         }
@@ -179,6 +186,9 @@ do {
         let rtf = result.audioSeconds / max(result.duration, 0.001)
         print("[run \(i)] \(String(format: "%.2f", result.duration))s "
             + "(\(String(format: "%.0f", rtf))x realtime) -> \"\(result.text)\"")
+        if i == 1, args.contains("--words") {
+            for word in result.words { print("   \(String(format: "%.3f", word.confidence))  \(word.text)") }
+        }
     }
 } catch {
     print("error: \(error.localizedDescription)")

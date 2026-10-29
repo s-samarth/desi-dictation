@@ -74,9 +74,11 @@ public final class WhisperCppEngine: TranscriptionEngine {
         let ranges = Self.maxCallSamples(for: mode)
             .map { AudioSplitter.pieces(of: samples, maxSamples: $0) } ?? [0..<samples.count]
         var texts: [String] = []
+        var words: [ScoredWord] = []
         for range in ranges {
             do {
                 texts.append(try transcribeWindow(Array(samples[range]), mode: mode))
+                words += lastWords
             } catch EngineError.emptyAudio where ranges.count > 1 {
                 continue   // a silent piece of a longer dictation is not an error
             }
@@ -85,13 +87,18 @@ public final class WhisperCppEngine: TranscriptionEngine {
         return TranscriptionResult(
             text: texts.filter { !$0.isEmpty }.joined(separator: " "),
             duration: Date().timeIntervalSince(start),
-            audioSeconds: Double(samples.count) / 16000.0
+            audioSeconds: Double(samples.count) / 16000.0,
+            words: words
         )
     }
+
+    /// Words of the last `transcribeWindow`, scored (empty if its text was dropped).
+    private var lastWords: [ScoredWord] = []
 
     /// One whisper_full call. Returns trimmed text ("" for NaN garbage).
     private func transcribeWindow(_ samples: [Float], mode: LanguageMode) throws -> String {
         guard let ctx else { throw EngineError.modelNotLoaded }
+        lastWords = []
         guard samples.count > 1600 else { throw EngineError.emptyAudio }  // <0.1s
         // Reject silent/corrupt buffers before they reach the model — NaN or
         // all-zero input produces NaN logits and garbage decodes downstream.
@@ -178,6 +185,7 @@ public final class WhisperCppEngine: TranscriptionEngine {
             .trimmingCharacters(in: .whitespaces).isEmpty && lowered.contains("nan") {
             text = ""
         }
+        if !text.isEmpty { lastWords = EngineWords.whisper(ctx) }
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
