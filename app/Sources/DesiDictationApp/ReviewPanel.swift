@@ -16,7 +16,6 @@ final class ReviewCoordinator {
     private var panel: ReviewPanel?
     private var model: ReviewModel?
     private var phaseWatch: AnyCancellable?
-    private var resizeWatch: AnyCancellable?
 
     func start() {
         DictationController.shared.onReview = { [weak self] request in self?.show(request) }
@@ -35,16 +34,11 @@ final class ReviewCoordinator {
         let size = ReviewLayout.size(for: request.text, on: screen)
         let panel = ReviewPanel(content: ReviewView(model: model, size: size))
         position(panel, in: screen)
-        // A width the user drags to is kept for the next review.
-        resizeWatch = NotificationCenter.default
-            .publisher(for: NSWindow.didEndLiveResizeNotification, object: panel)
-            .sink { _ in ReviewLayout.remember(width: panel.frame.width) }
         self.panel = panel
         panel.makeKeyAndOrderFront(nil)
     }
 
     private func close() {
-        resizeWatch = nil
         panel?.orderOut(nil)
         panel = nil
         model = nil
@@ -67,7 +61,8 @@ final class ReviewCoordinator {
 final class ReviewPanel: NSPanel {
     init<Content: View>(content: Content) {
         let host = NSHostingView(rootView: content)
-        // Opens at the view's ideal size; only the minimum binds, so it can be dragged bigger.
+        // The view's minimum is the size ReviewLayout chose: the panel opens
+        // at it (fittingSize) and can only be dragged bigger.
         host.sizingOptions = [.minSize]
         host.layout()
         super.init(contentRect: NSRect(origin: .zero, size: host.fittingSize),

@@ -5,15 +5,15 @@ import DesiDictationKit
 /// choices for the word at the caret, and what to remember.
 struct ReviewView: View {
     @ObservedObject var model: ReviewModel
-    /// Opening size, from ReviewLayout; the panel can be dragged bigger.
-    var size = ReviewLayout.Size(width: 560, editorHeight: 90)
+    /// Opening size, from ReviewLayout. It is the panel's minimum, so the
+    /// panel can't open smaller than the text needs; it can be dragged bigger.
+    var size = ReviewLayout.Size(width: 680, editorHeight: 140)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
             ReviewTextEditor(model: model)
-                .frame(minHeight: ReviewLayout.minEditorHeight, idealHeight: size.editorHeight,
-                       maxHeight: .infinity)
+                .frame(minHeight: size.editorHeight, maxHeight: .infinity)
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.neutral.opacity(0.25)))
             alternatives
@@ -21,8 +21,7 @@ struct ReviewView: View {
             footer
         }
         .padding(16)
-        .frame(minWidth: ReviewLayout.minWidth, idealWidth: size.width, maxWidth: .infinity,
-               maxHeight: .infinity, alignment: .top)
+        .frame(minWidth: size.width, maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .tint(Theme.accent)
     }
 
