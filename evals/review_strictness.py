@@ -24,6 +24,7 @@ from pathlib import Path
 from statistics import median
 
 from run_eval import CLI, MODELS_DIR
+from ordinary_words import is_ordinary
 from word_confidence import DEFAULT_MODELS, run
 
 LEVELS = {"conservative": 0.15, "moderate": 0.08, "liberal": 0.04}
@@ -31,8 +32,9 @@ LEVELS = {"conservative": 0.15, "moderate": 0.08, "liberal": 0.04}
 # per level, keyed by suite/model. Printed after the search so a re-run shows
 # whether they still hold.
 SHIPPED = {
-    "english/parakeet": {"conservative": (0.69, 15.0), "moderate": (0.53, 15.8), "liberal": (0.40, 17.0)},
-    "english/qwen3-asr": {"conservative": (None, 9.4), "moderate": (None, 11.1), "liberal": (None, 13.3)},
+    # English: everyday words need 8 nats more (EVERYDAY_EXTRA, shape "plus8").
+    "english/parakeet": {"conservative": (0.66, 7.0), "moderate": (0.50, 8.0), "liberal": (0.43, 14.0)},
+    "english/qwen3-asr": {"conservative": (None, 1.5), "moderate": (None, 3.6), "liberal": (None, 8.0)},
     "hinglish/hinglish-prime": {"conservative": (0.84, None), "moderate": (0.64, None), "liberal": (0.52, None)},
     "hindi/vaani": {"conservative": (0.59, 11.3), "moderate": (0.59, 19.4), "liberal": (0.54, 25.3)},
 }
@@ -44,10 +46,17 @@ def surprise(row: dict, clip: list[dict], how: str) -> float | None:
     raw       as scored
     opener    sentence-opening words discounted (anything may start a sentence)
     relative  minus the clip's median, for text the checker finds odd
-              everywhere (romanised Hinglish)"""
+              everywhere (romanised Hinglish)
+    names     everyday words (ordinary_words) never count: casual grammar
+              makes them odd, names never are everyday words
+    plusN     everyday words need N more nats"""
     s = row["surprise"]
     if s is None:
         return None
+    if how == "names" or how.startswith("plus"):
+        if not is_ordinary(row.get("text", "")):
+            return s
+        return None if how == "names" else s - float(how[4:])
     if how == "opener":
         return s * 0.5 if row["opens"] else s
     if how == "relative":
@@ -96,7 +105,8 @@ def analyse(key: str, clips: list[list[dict]]) -> None:
     words = sum(len(c) for c in clips)
     wrong = sum(r["wrong"] for c in clips for r in c)
     print(f"\n== {key}: {words} words, {wrong} wrong ({wrong / max(words, 1):.1%})")
-    for how in ("raw", "opener", "relative"):
+    shapes = ("raw", "names", "plus4", "plus8") if any("text" in r for c in clips for r in c) else ("raw", "opener", "relative")
+    for how in shapes:
         rows = [(r["conf"], surprise(r, c, how), r["wrong"]) for c in clips for r in c]
         for level, budget in LEVELS.items():
             out = {"conf": best(rows, budget, True, False),
@@ -107,9 +117,10 @@ def analyse(key: str, clips: list[list[dict]]) -> None:
             for name, r in out.items():
                 print(f"  {level:12} {name:18} flag {r['flagged']:.1%}  recall {r['recall']:.1%}  "
                       f"precision {r['precision']:.1%}  conf<{r['conf_below']}  surprise>{r['surprise_above']}")
-    raw = [(r["conf"], r["surprise"], r["wrong"]) for c in clips for r in c]
+    # As the app scores: everyday words need 8 nats more (never true for Devanagari).
+    app = [(r["conf"], surprise(r, c, "plus8"), r["wrong"]) for c in clips for r in c]
     for level, (tc, ts) in SHIPPED.get(key, {}).items():
-        print(f"  shipped {level:12} conf<{tc} surprise>{ts}: {measure(raw, tc, ts)}")
+        print(f"  shipped {level:12} conf<{tc} surprise>{ts}: {measure(app, tc, ts)}")
 
 
 def main() -> None:

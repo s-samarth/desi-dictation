@@ -62,6 +62,23 @@ func runStrictnessTests() {
     T.equal(unsure.first?.reason, .odd, "…and it says why")
     T.equal(ReviewPlanner.unsure(in: line, words: [], threshold: nil, odd: odd, oddAbove: nil, sources: .init()).count, 0,
             "no surprise bar: nothing odd is underlined")
+
+    T.begin("Review — everyday words need to be much odder")
+    let casual = "I would want you to update Prabjot"
+    let flat = (SentenceSurprise.words(in: casual, scorer: OddWordScorer(odd: "-")) ?? [])
+        .map { WordSurprise(range: $0.range, total: casual[$0.range] == "want" ? 15 : casual[$0.range] == "Prabjot" ? 12 : 1, peak: 1) }
+    T.equal(ReviewPlanner.unsure(in: casual, words: [], threshold: nil, odd: flat, oddAbove: 10, sources: .init()).map(\.word),
+            ["Prabjot"], "casual grammar (\"want\", 15) stays; a name (12) is underlined")
+    T.expect(OrdinaryWords.contains("models") && OrdinaryWords.contains("reasoning") && OrdinaryWords.contains("running"),
+             "everyday words in any form")
+    T.expect(!OrdinaryWords.contains("Prabjot") && !OrdinaryWords.contains("PC") && !OrdinaryWords.contains("Luffy"),
+             "names and acronyms aren't everyday words")
+    T.expect(OrdinaryWords.sameWord("model", "Models") && !OrdinaryWords.sameWord("cloud", "Claude"), "forms of one word")
+
+    T.begin("Review — screen words don't underline everyday words")
+    let screen = ReviewAlternatives.Sources(screenTerms: ["Models", "General", "Kavya"])
+    T.equal(ReviewAlternatives.soundAlikes(in: "the model is general, ask Cavya", sources: screen).map(\.word), ["Cavya"],
+            "\"model\" ~ \"Models\" isn't underlined; a misheard name still is")
 }
 
 private final class FailingScorer: ContextScorer {

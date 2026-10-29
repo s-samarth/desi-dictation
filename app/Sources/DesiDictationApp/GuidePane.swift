@@ -66,7 +66,7 @@ struct GuidePane: View {
 
             GuideFeature(
                 number: 9, title: "Check before pasting",
-                summary: "Dictation → Review. \"Only when unsure\" opens a panel when a word looks wrong: the speech model wasn't sure of it (orange), it's odd in its sentence (purple, needs the context checker), or it sounds like one of your words. \"Underline words\" sets how readily: Conservative, Moderate or Liberal. Nothing is changed for you. Tab jumps to it, 1–5 picks a suggestion, or just type. Enter pastes, Esc copies. A word you fix there can be remembered: Always, When it fits, or Just this once. Off by default.")
+                summary: "Dictation → Review. \"Only when unsure\" opens a panel when a word looks wrong: the speech model wasn't sure of it (orange), it's odd in its sentence (purple, needs the context checker), or it sounds like one of your words. \"Underline words\" sets how readily: Liberal (default) only marks likely mistakes, Conservative marks more. Everyday words said casually are left alone. Nothing is changed for you. Tab jumps to it, 1–5 picks a suggestion, or just type. Enter pastes, Esc copies. A word you fix there can be remembered: Always, When it fits, or Just this once. Off by default.")
         }
         .formStyle(.grouped)
         .onAppear { UserDefaults.standard.set(true, forKey: MainNav.guideSeenKey) }

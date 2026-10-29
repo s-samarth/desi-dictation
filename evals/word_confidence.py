@@ -80,7 +80,7 @@ def score_clip(suite: str, words: list, ref: str) -> list[dict]:
         if k not in kept:
             continue
         opens = k == 0 or words[k - 1][0].rstrip().endswith((".", "?", "!", "।"))
-        rows.append({"conf": row[1], "surprise": row[2] if len(row) > 2 else None,
+        rows.append({"text": row[0], "conf": row[1], "surprise": row[2] if len(row) > 2 else None,
                      "peak": row[3] if len(row) > 3 else None,
                      "opens": opens, "wrong": wrong[k]})
     return rows

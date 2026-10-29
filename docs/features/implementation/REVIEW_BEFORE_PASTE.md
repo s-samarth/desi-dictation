@@ -15,12 +15,14 @@ your own words.
 ## What the user sees
 
 Dictation → **Review**: **Review before paste** Off (default) / **Only when
-unsure** / **Always**, and **Underline words** Conservative / **Moderate**
-(default) / Liberal (see Strictness). The panel:
+unsure** / **Always**, and **Underline words** Conservative / Moderate /
+**Liberal** (default; see Strictness). Onboarding step 5 offers both. The
+panel:
 
-- opens sized to the text: 560 pt wide (720 past 280 characters), as tall
-  as the text needs up to half the screen (`ReviewLayout`). It can be
-  dragged bigger; a width the user drags to is kept;
+- opens sized to the text so it can be checked in one look: 680 pt wide
+  (820 past 400 characters), a text box of 6 to 20 lines, scrolling only
+  past 20 or when the screen is shorter (`ReviewLayout`). That size is the
+  panel's minimum; it can be dragged bigger (FM#41);
 - text in an editable box, unsure words underlined in dots: **orange** when
   the speech model wasn't sure ("Hard to hear. Maybe:") or the word sounds
   like one of yours ("Sounds like:"), **purple** when it was heard clearly
@@ -61,15 +63,18 @@ unsure** / **Always**, and **Underline words** Conservative / **Moderate**
      `ContextFit.prompt`) and each word's surprise is the sum of −log p over
      its tokens. Above the strictness bar → underlined, unless it has digits
      or is one of the user's dictionary words (both written on purpose).
+     **Everyday words** (`OrdinaryWords`) must clear the bar by 8 more nats:
+     see "Everyday words" below.
      Long text is scored in sentence groups of ≤ 1,200 bytes (512-token
      context). Runs off the main thread, so with the checker installed
      `review` always takes the dictation and commits it itself when nothing
      needs a look; the checker warms up at key-down when review is on.
    - `ReviewAlternatives.soundAlikes`: words that sound like one of the
      user's words (dictionary + screen, `IndicPhonetics`, distance ≤ 0.35,
-     same onset on the keys), skipping common words unless the dictionary
-     names them, and skipping When it fits words the context checker
-     already judged.
+     same onset on the keys), skipping **everyday words** unless the
+     dictionary names them, and skipping When it fits words the context
+     checker already judged. Other forms of the same word ("Models" for
+     "model") are never offered.
 5. **Alternatives** (`ReviewAlternatives.candidates`): the dictionary pair
    for that word first, then sound-alikes, up to 5. English with the context
    checker installed: re-ordered by how well each fits the sentence
@@ -85,6 +90,32 @@ dictated into stays the active app. On Enter the panel closes, waits 0.12 s,
 then `TextInserter` pastes as usual (it still waits for modifiers, FM#31).
 A new dictation while the panel is open copies the waiting text.
 
+## Everyday words (2026-10-29)
+
+First live use (Qwen3-ASR, review Always, checker not installed) underlined
+five fine words in a casual sentence: "general", "reasoning", "works",
+"model"… All were **sound-alikes of screen words**: a Claude chat is full of
+capitalised headings ("Models", "Moderate"), which `TermExtractor` takes as
+terms. And casual speech makes everyday words look odd to the checker too.
+
+`OrdinaryWords` answers "is this an everyday word?": macOS's own word list
+(`/usr/share/dict/words`, Webster's 2nd, 236k lowercase entries; capitalised
+names excluded) plus `CommonWords`, with endings stripped (models → model,
+running → run, making → make). Names (Luffy, Shlok, Prabjot, Kavya),
+acronyms (PC) and garbled words are not in it. Two rules:
+
+- a screen word never underlines an everyday word by sound;
+- an everyday word must be 8 nats odder than the bar to be underlined as
+  odd in context (`ReviewStrictness.everydayExtra`). Leaving everyday words
+  out entirely was tried: Qwen3-ASR then catches at most 19 % of mistakes,
+  because many of its mistakes are real words.
+
+The quick tier is read-aloud, grammatical text, so it can't show what this
+saves on casual dictation; it shows the cost (below). On the sentence that
+prompted it, Liberal now underlines one word ("onboarding", too modern for
+the 1934 list) instead of five, and the "one PC Luffy" sentence gets PC,
+Luffy, Shlok and Prabjot and no everyday words.
+
 ## Strictness
 
 One setting decides how readily words are underlined. Every level uses both
@@ -94,7 +125,7 @@ words: Conservative ~15 %, Moderate ~8 %, Liberal ~4 %). For each engine,
 words within that share; `ReviewStrictness.swift` ships rounded ones, in
 order (Conservative underlines the most).
 
-**Measured** (2026-10-29, M3, quick tier; recall = wrong words caught,
+**Measured before the everyday-word rule** (2026-10-29, M3, quick tier; recall = wrong words caught,
 precision = underlined words that were wrong):
 
 | Suite · model (wrong words) | Signal | Conservative | **Moderate** | Liberal |
@@ -108,14 +139,29 @@ precision = underlined words that were wrong):
 | हिन्दी · Vaani (9.6 %) | confidence only | 45 % / 31 % | 28 % / 34 % | 17 % / 41 % |
 | | **+ odd in context** | **47 % / 30 %** | **30 % / 39 %** | **21 % / 46 %** |
 
-Shipped thresholds (confidence below / surprise above, nats):
+**With the everyday-word rule** (shipped; English only, Devanagari is never
+"everyday"):
+
+| English | Conservative | Moderate | **Liberal** (default) |
+|---|---|---|---|
+| Parakeet | 56 % / 35 % | 43 % / 49 % | 28 % / 67 % |
+| Qwen3-ASR | 42 % / 22 % | 32 % / 29 % | 22 % / 40 % |
+
+Shipped thresholds (confidence below / surprise above, nats; English
+everyday words +8):
 
 | | Conservative | Moderate | Liberal |
 |---|---|---|---|
-| Parakeet | 0.69 / 15.0 | 0.53 / 15.8 | 0.40 / 17.0 |
-| Qwen3-ASR | — / 9.4 | — / 11.1 | — / 13.3 |
+| Parakeet | 0.66 / 7.0 | 0.50 / 8.0 | 0.43 / 14.0 |
+| Qwen3-ASR | — / 1.5 | — / 3.6 | — / 8.0 |
 | whisper (Prime, Apex) | 0.84 / — | 0.64 / — | 0.52 / — |
 | Vaani | 0.59 / 11.3 | 0.59 / 19.4 | 0.54 / 25.3 |
+
+**Default: Liberal.** The first real use showed that underlining fine words
+costs more trust than a missed mistake: a review that cries wolf gets
+turned off. Liberal underlines ~4 % of words, two in three of them real
+mistakes with Parakeet. Conservative is there for people who want more
+checked.
 
 How to read it:
 

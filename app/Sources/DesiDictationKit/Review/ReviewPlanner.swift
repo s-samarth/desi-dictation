@@ -41,8 +41,10 @@ public enum ReviewPlanner {
         var taken = Set(flagged.map(\.range.lowerBound))
         if let oddAbove {
             let chosen = Set(sources.entries.map { $0.written.lowercased() })
-            for word in odd where word.total > oddAbove && !taken.contains(word.range.lowerBound) {
+            for word in odd where !taken.contains(word.range.lowerBound) {
                 let piece = String(text[word.range])
+                let everyday = OrdinaryWords.contains(UnsureWords.comparable(piece))
+                guard word.total > oddAbove + (everyday ? ReviewStrictness.everydayExtra : 0) else { continue }
                 // Numbers and dictionary words were written by our rules, on purpose.
                 guard !piece.contains(where: \.isNumber), !chosen.contains(piece.lowercased()) else { continue }
                 flagged.append(UnsureWord(range: word.range, word: piece, reason: .odd, confidence: nil, alternatives: []))

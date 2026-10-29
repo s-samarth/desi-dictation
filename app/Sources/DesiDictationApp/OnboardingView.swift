@@ -91,6 +91,14 @@ struct OnboardingView: View {
                     .scrollDisabled(true)
                     .frame(height: 230)
 
+                step(5, "Check before pasting (optional)")
+                Text("A panel can show your words before they're pasted, with the ones that may be wrong underlined: **orange** when the audio was unclear, **purple** when a word is odd in its sentence (a name, or a mishearing like \"one PC\" for \"One Piece\"). It suggests, you decide: nothing is changed for you. **Liberal** underlines only likely mistakes; Conservative catches more but asks more often. Purple needs the context checker (Vocabulary page, 397 MB).")
+                    .font(.caption).foregroundStyle(.secondary)
+                Form { ReviewSection() }
+                    .formStyle(.grouped)
+                    .scrollDisabled(true)
+                    .frame(height: 170)
+
                 Divider()
                 Text("Then: **hold Right ⌥ (Option)**, speak, release — your words appear wherever your cursor is. Esc cancels. Change the key, language or model anytime: menu bar mic → Open Desi Dictation…")
                     .font(.callout)

@@ -59,8 +59,10 @@ private func surprise(_ text: String) -> Int32 {
         print("scoring failed")
         return 1
     }
+    // "*": an everyday word, which must be ReviewStrictness.everydayExtra odder.
     for word in words {
-        print(String(format: "%6.2f  %6.2f  ", word.total, word.peak) + text[word.range])
+        let everyday = OrdinaryWords.contains(String(text[word.range])) ? "*" : " "
+        print(String(format: "%6.2f  %6.2f %@ ", word.total, word.peak, everyday) + text[word.range])
     }
     print(String(format: "%.0f ms (first call includes model load)", Date().timeIntervalSince(start) * 1000))
     return 0

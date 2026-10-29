@@ -116,6 +116,26 @@ the app loads the right one when you switch languages. To pick one yourself:
   `Saraswat`). Turn on **Learn automatically** and it offers these itself
   when you correct a word after dictating.
 - **History**: last 24 h of dictations, searchable, local-only, can be turned off.
+- **Check before pasting** (Dictation → Review, or onboarding step 5): a
+  panel shows your words before they're pasted, with the ones that may be
+  wrong underlined. It suggests; you decide. Nothing is changed for you.
+  - **Orange:** the speech model wasn't sure what it heard, or the word
+    sounds like a name from your dictionary or the screen.
+  - **Purple:** the word was heard clearly but is odd in its sentence: a
+    name whose spelling can't be heard (Prabjot), or a mishearing ("watch
+    one PC Luffy"). This needs the **context checker** (Vocabulary page,
+    397 MB): a small language model that runs on your Mac, reads the
+    sentence once and scores how expected each word is. It never writes
+    words, only scores them, and nothing leaves your Mac.
+  - Everyday words said casually ("I would want you to…") aren't
+    underlined unless they're very odd.
+  - **Underline words: Liberal** (default) marks about 1 word in 25, most
+    of them real mistakes. **Moderate** ~1 in 12, **Conservative** ~1 in 7
+    (catches more, asks more).
+  - **Tab** jumps to the next underline, **1–5** picks a suggestion, or just
+    type. **Enter** pastes, **Esc** copies instead.
+  - Works best for English; for Hinglish only orange (unclear audio)
+    underlines are used.
 
 
 ## Something broken?

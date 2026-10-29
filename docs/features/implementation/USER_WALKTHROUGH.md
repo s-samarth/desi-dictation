@@ -153,14 +153,18 @@ menu items and right-click services are hidden (§3–§8).
   decides again.
 - **Review before paste:** Dictation → **Review**: **Review before paste**
   Off (default), **Only when unsure**, or **Always**, and **Underline
-  words** Conservative / **Moderate** (default) / Liberal: how readily
-  words get underlined (about 1 in 7, 1 in 12, 1 in 30). When it opens, a
-  panel sized to the text (up to half the screen; drag it bigger and it
-  keeps the width) shows the dictation before it's pasted. Words the speech
+  words** Conservative / Moderate / **Liberal** (default): how readily
+  words get underlined (about 1 in 7, 1 in 12, 1 in 25). Onboarding offers
+  both as step 5. When it opens, a panel sized to the text (6 to 20 lines
+  without scrolling; it can be dragged bigger) shows the dictation before
+  it's pasted. Words the speech
   model wasn't sure of are underlined in orange ("Hard to hear. Maybe:");
   with the context checker installed, English and हिन्दी words that are
   clear but odd in their sentence ("watch one **PC** Luffy", unusual names)
-  are underlined in purple ("Odd here."). Nothing is changed for you.
+  are underlined in purple ("Odd here."). Everyday words said casually
+  ("I would want you to…") are left alone unless they're very odd, and
+  never underlined just for sounding like a word on screen. Nothing is
+  changed for you.
   **Tab** jumps to the next one and shows suggestions; **1–5** picks one,
   or just type. **Enter** pastes into the app you were in, **Esc** copies
   instead. Under "Remember your fixes?" each word you changed can be kept
