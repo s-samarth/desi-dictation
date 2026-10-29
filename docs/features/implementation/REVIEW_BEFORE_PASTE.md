@@ -29,12 +29,19 @@ panel:
   but is odd in its sentence ("Odd here. Maybe:"). Nothing is changed;
 - **Tab** / **⇧Tab** jump between them; the word is selected and its
   alternatives show after the reason;
-- **1–5** pick an alternative while an underlined word is selected;
-  otherwise digits type. Typing edits anything;
+- **1–5** pick an alternative while an underlined word is selected, **0**
+  ("Looks right") drops its underline and leaves the word; otherwise digits
+  type. Typing edits anything. The header's count follows the underlines
+  still in the text (`ReviewModel.remaining`);
 - **Enter** pastes, **Esc** copies (the panel's buttons do the same);
 - **Remember your fixes?** lists each word changed in the panel with *Just
-  this once* (default) / *Always* / *When it fits* (English, checker
-  installed). Not shown for हिन्दी, which has no word list.
+  this once* / *Always* / *When it fits*, **When it fits by default** where
+  offered (English, llama runtime in the build; user decision 2026-10-29),
+  else Just this once. Without the checker downloaded, a note says it
+  judges sentences only once installed. Not shown for हिन्दी.
+- The **context checker's status** (installed, or Get · 397 MB, and what it
+  adds) shows under the Review settings and on the Vocabulary page
+  (`ContextCheckerRow`), and Guide card 10 lists what needs it.
 
 ## How a dictation flows
 

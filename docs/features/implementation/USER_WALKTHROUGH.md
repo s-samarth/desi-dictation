@@ -172,9 +172,14 @@ menu items and right-click services are hidden (§3–§8).
   never underlined just for sounding like a word on screen. Nothing is
   changed for you.
   **Tab** jumps to the next one and shows suggestions; **1–5** picks one,
-  or just type. **Enter** pastes into the app you were in, **Esc** copies
-  instead. Under "Remember your fixes?" each word you changed can be kept
-  **Just this once** (default), **Always**, or **When it fits**. Starting a
+  **0** says it looks right (the underline goes, the word stays), or just
+  type. The "N unsure words" count drops as you fix, delete or clear them.
+  **Enter** pastes into the app you were in, **Esc** copies instead. Under
+  "Remember your fixes?" each word you changed is kept **When it fits** by
+  default (English; **Just this once** for Hinglish), or pick **Always** /
+  **Just this once**. Purple underlines and When it fits judging need the
+  optional context checker: its row, with a Get button, sits under the
+  Review settings and on the Vocabulary page. Starting a
   new dictation while the panel is open copies the waiting text. With
   Qwen3-ASR (Accurate English), which reports no per-word confidence, only
   odd-in-context words (checker installed) and sound-alikes of your words

@@ -25,7 +25,7 @@ enum UISnapshots {
             }, MainWindow.size)
         }
         // Long pages, whole: what a reader scrolls through.
-        shots.append(("guide-full", { AnyView(GuidePane()) }, NSSize(width: 560, height: 2300)))
+        shots.append(("guide-full", { AnyView(GuidePane()) }, NSSize(width: 560, height: 3000)))
         shots.append(("onboarding", { AnyView(OnboardingView()) }, NSSize(width: 560, height: 640)))
         // Short and long dictations, each in a panel sized the way ReviewPanel sizes it.
         let screen = NSRect(x: 0, y: 0, width: 1440, height: 860)

@@ -15,6 +15,9 @@ struct ReviewSection: View {
                 Picker("Underline words", selection: $settings.reviewStrictness) {
                     ForEach(ReviewStrictness.allCases, id: \.self) { Text($0.label).tag($0) }
                 }
+                if LlamaContextScorer.isAvailable {
+                    ContextCheckerRow(adds: "purple underlines for words odd in their sentence (English, हिन्दी)")
+                }
             }
         } header: {
             Text("Review")
@@ -26,7 +29,7 @@ struct ReviewSection: View {
     private var line: String {
         switch settings.reviewMode {
         case .off:
-            return "Off: words go straight into your app."
+            return "Off: words go straight into your app. Optional; nothing else needs it."
         case .unsure:
             return "A small panel opens only when a word looks wrong. Tab jumps to it, 1–5 picks a suggestion, Enter pastes. "
                 + settings.reviewStrictness.detail

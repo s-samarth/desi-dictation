@@ -27,7 +27,7 @@ extension DictationController {
             controllerLog.info("review: \(unsure.count, privacy: .public) unsure words")
             onReview(ReviewRequest(
                 text: text, unsure: unsure, scope: scope,
-                offerWhenItFits: scope == .english && ContextChecker.isReady) { outcome in
+                offerWhenItFits: scope == .english && LlamaContextScorer.isAvailable) { outcome in
                     switch outcome {
                     case .paste(let final): self?.commit(text: final, mode: mode, copyOnly: copyOnly, raw: raw)
                     case .copy(let final): self?.commit(text: final, mode: mode, copyOnly: true, raw: raw)

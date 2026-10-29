@@ -132,8 +132,10 @@ the app loads the right one when you switch languages. To pick one yourself:
   - **Underline words: Moderate** (default) marks about 1 word in 12.
     **Liberal** ~1 in 25, only likely mistakes; **Conservative** ~1 in 7
     (catches more, asks more).
-  - **Tab** jumps to the next underline, **1–5** picks a suggestion, or just
-    type. **Enter** pastes, **Esc** copies instead.
+  - **Tab** jumps to the next underline, **1–5** picks a suggestion, **0**
+    says it looks right, or just type. **Enter** pastes, **Esc** copies.
+  - A word you fix is remembered **When it fits** unless you pick Always or
+    Just this once.
   - Works best for English; for Hinglish only orange (unclear audio)
     underlines are used.
 

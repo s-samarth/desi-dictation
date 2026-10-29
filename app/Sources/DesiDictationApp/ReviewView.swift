@@ -30,8 +30,9 @@ struct ReviewView: View {
             Text("Check before pasting").font(.headline)
             Spacer()
             Text(model.request.unsure.isEmpty ? "Nothing looked unsure"
-                 : "\(model.request.unsure.count) unsure \(model.request.unsure.count == 1 ? "word" : "words")")
-                .font(.caption).foregroundStyle(model.request.unsure.isEmpty ? Theme.hindi : Theme.accent)
+                 : model.remaining == 0 ? "All checked"
+                 : "\(model.remaining) unsure \(model.remaining == 1 ? "word" : "words")")
+                .font(.caption).foregroundStyle(model.remaining == 0 ? Theme.hindi : Theme.accent)
         }
     }
 
@@ -53,6 +54,13 @@ struct ReviewView: View {
                     }
                     .buttonStyle(.bordered).controlSize(.small)
                 }
+                Button { model.looksRight?() } label: {
+                    HStack(spacing: 4) {
+                        Keycap(label: "0")
+                        Text("Looks right")
+                    }
+                }
+                .buttonStyle(.bordered).controlSize(.small)
                 Spacer()
             }
         } else {
@@ -87,12 +95,16 @@ struct ReviewView: View {
                     .pickerStyle(.segmented).labelsHidden().frame(width: 290)
                 }
             }
+            if !ContextChecker.isReady, model.fixes.contains(where: { $0.keep == .whenItFits }) {
+                Text("When it fits needs the context checker (Models page, 397 MB) to judge each sentence. Until then, only names on screen decide.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
         }
     }
 
     private var footer: some View {
         HStack(spacing: 8) {
-            Text("Tab next · 1–\(ReviewAlternatives.limit) pick · Esc copies instead")
+            Text("Tab next · 1–\(ReviewAlternatives.limit) pick · 0 looks right · Esc copies instead")
                 .font(.caption).foregroundStyle(.secondary)
             Spacer()
             Button("Copy") { model.finish(paste: false) }
