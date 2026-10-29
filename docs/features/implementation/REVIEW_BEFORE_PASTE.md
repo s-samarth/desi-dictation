@@ -34,6 +34,10 @@ panel:
   type. Typing edits anything. The header's count follows the underlines
   still in the text (`ReviewModel.remaining`);
 - **Enter** pastes, **Esc** copies (the panel's buttons do the same);
+  **✕** (top right) or **⌘W** closes it with neither: no paste, the
+  clipboard untouched, nothing remembered. The words stay in History and
+  Copy Last (`ReviewOutcome.discard`, 2026-10-29: the user wanted a way out
+  that didn't overwrite the clipboard);
 - **Remember your fixes?** lists each word changed in the panel with *Just
   this once* / *When it fits* / *Always* (in that order), **Just this once
   by default** (user decision 2026-10-29, reversing the When it fits
@@ -105,6 +109,17 @@ takes the keyboard without activating Desi Dictation, so the app you
 dictated into stays the active app. On Enter the panel closes, waits 0.12 s,
 then `TextInserter` pastes as usual (it still waits for modifiers, FM#31).
 A new dictation while the panel is open copies the waiting text.
+- **Handing the keyboard back (2026-10-29):** the user reported Paste
+  "pasting into the review box". It didn't reproduce: Paste clicked over a
+  Script Editor document landed there. Even so, the coordinator now
+  remembers the app in front when the panel opens and calls `activate()`
+  on it as the panel closes, so macOS can't keep keyboard focus in this
+  app when the ⌘V goes out.
+- **Trying it without speaking:** `DESI_REVIEW_DEMO=click
+  app/.build/debug/desi-dictation` (debug builds only, `ReviewDemo.swift`).
+  It opens the panel over the app in front after 6 s, clicks Paste and
+  prints where the paste went. `=close` presses ⌘W instead; `=1` leaves the
+  panel to you.
 
 ## Everyday words (2026-10-29)
 

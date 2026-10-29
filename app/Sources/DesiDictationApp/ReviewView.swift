@@ -33,6 +33,12 @@ struct ReviewView: View {
                  : model.remaining == 0 ? "All checked"
                  : "\(model.remaining) unsure \(model.remaining == 1 ? "word" : "words")")
                 .font(.caption).foregroundStyle(model.remaining == 0 ? Theme.hindi : Theme.accent)
+            Button { model.end(.discard) } label: {
+                Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut("w", modifiers: .command)
+            .help("Close without pasting or copying (⌘W). It stays in History.")
         }
     }
 
@@ -106,7 +112,7 @@ struct ReviewView: View {
 
     private var footer: some View {
         HStack(spacing: 8) {
-            Text("Tab next · 1–\(ReviewAlternatives.limit) pick · 0 looks right · Esc copies instead")
+            Text("Tab next · 1–\(ReviewAlternatives.limit) pick · 0 looks right · Esc copies instead · ⌘W closes")
                 .font(.caption).foregroundStyle(.secondary)
             Spacer()
             Button("Copy") { model.finish(paste: false) }

@@ -16,6 +16,8 @@ final class ReviewCoordinator {
     private var panel: ReviewPanel?
     private var model: ReviewModel?
     private var phaseWatch: AnyCancellable?
+    /// The app the user dictated into: it gets the keyboard back on close.
+    private var target: NSRunningApplication?
 
     func start() {
         DictationController.shared.onReview = { [weak self] request in self?.show(request) }
@@ -27,6 +29,8 @@ final class ReviewCoordinator {
 
     private func show(_ request: ReviewRequest) {
         model?.finish(paste: false)   // never two at once
+        target = NSWorkspace.shared.frontmostApplication
+            .flatMap { $0.processIdentifier == ProcessInfo.processInfo.processIdentifier ? nil : $0 }
         let model = ReviewModel(request: request)
         model.onClose = { [weak self] in self?.close() }
         self.model = model
@@ -38,10 +42,15 @@ final class ReviewCoordinator {
         panel.makeKeyAndOrderFront(nil)
     }
 
+    /// Hides the panel and hands the keyboard back to the app the user
+    /// dictated into before the ⌘V goes out, so the paste can't land in the
+    /// panel (or nowhere) if macOS kept focus here.
     private func close() {
         panel?.orderOut(nil)
         panel = nil
         model = nil
+        target?.activate()
+        target = nil
     }
 
     private func currentScreen() -> NSScreen? {
