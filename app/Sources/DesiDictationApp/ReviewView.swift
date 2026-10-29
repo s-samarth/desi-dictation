@@ -68,6 +68,7 @@ struct ReviewView: View {
         case .unclear: return "Hard to hear. Maybe:"
         case .odd: return "Odd here. Maybe:"
         case .soundsLike: return "Sounds like:"
+        case .suggested: return "Did you mean:"
         }
     }
 

@@ -10,13 +10,13 @@ struct SmartVocabularyToggles: View {
     var body: some View {
         toggle("Suggest words from my corrections", $store.learnFromEdits,
                "Retype a word it got wrong and it asks \"Always write X as Y?\"")
-        toggle("Fix near-misses of my words", $store.fixNearMisses,
-               "\"Saraswath\" becomes \"Saraswat\". Everyday words are never changed.")
-        toggle("Use names on screen", $store.readScreen,
+        toggle("Suggest near-misses of my words", $store.fixNearMisses,
+               "\"Saraswath\" is underlined with \"Saraswat\" in Review before paste. Never changed for you.")
+        toggle("Suggest names on screen", $store.readScreen,
                "Reads the window you dictate into, for that dictation only. Never saved.")
             .disabled(!store.fixNearMisses)
-        toggle("Hinglish: match my spelling in the field", $store.hinglishFieldSpelling,
-               "If the text already says \"nahi\", \"nahin\" becomes \"nahi\".")
+        toggle("Hinglish: suggest my spelling in the field", $store.hinglishFieldSpelling,
+               "If the text already says \"nahi\", \"nahin\" is underlined with \"nahi\".")
     }
 
     private func toggle(_ title: String, _ isOn: Binding<Bool>, _ note: String) -> some View {

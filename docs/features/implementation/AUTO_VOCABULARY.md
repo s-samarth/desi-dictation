@@ -1,7 +1,14 @@
 # Auto vocabulary — implementation
 
 **Status:** built 2026-10-28 (branch `feat/auto-vocabulary`), all switches
-**off** by default. Research and sources: [AUTO_VOCABULARY_RESEARCH.md](AUTO_VOCABULARY_RESEARCH.md)
+**off** by default. **2026-10-29: the corrector no longer applies anything.**
+"plus" → "PRs" (on screen), "pressed" → "Pushed", "Another" → "Enter" were
+written into real messages; the user's rule is that only words they told it
+to write are written. `VocabularyCorrector`'s fixes are now recorded as
+suggestions (`VocabularySession.recordSuggestions`) and shown in Review
+before paste as underlines with the guess as choice 1 (reason "Did you
+mean:"). Exact dictionary pairs and When it fits still apply. Read the
+"fix" wording below as "suggest". Research and sources: [AUTO_VOCABULARY_RESEARCH.md](AUTO_VOCABULARY_RESEARCH.md)
 (`[n]` = its source list).
 **Goal:** the user never maintains a dictionary by hand, and **an edit the
 user makes after a dictation is respected**. A retyped word becomes a

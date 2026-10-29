@@ -53,6 +53,10 @@ panel:
    `review(…)` (`DictationController+Review.swift`) decides; otherwise
    `commit` (history, then paste) as before.
 4. **What's underlined** (`ReviewPlanner.unsure`):
+   - **The vocabulary corrector's guesses** (near-misses of dictionary
+     words, names on screen, Hinglish field spellings): never applied since
+     2026-10-29, only underlined here with the guess as choice 1 ("Did you
+     mean:"). Found by whole-word match in the final text.
    - `UnsureWords.find`: model words are aligned to the *final* text (after
      numbers, replacements, dictionary, vocabulary) by LCS on lowercased,
      punctuation-free words. Words our own rules wrote match nothing and

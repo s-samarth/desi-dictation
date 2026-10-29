@@ -21,9 +21,11 @@ extension DictationController {
     /// This dictation's language, so only its words are used.
     private var vocabularyMode: LanguageMode { sessionLanguage?.mode ?? settingsMode }
 
-    /// Work queue: near-miss names and Hinglish spellings, after the exact
-    /// dictionary step, then "when it fits" pairs (English). Returns the
-    /// transcript unchanged when nothing applies.
+    /// Work queue, after the exact dictionary step. Only fixes the user asked
+    /// for are applied: "when it fits" pairs (English). Guessed fixes (names
+    /// on screen, near-misses of dictionary words, Hinglish spellings) are
+    /// never applied; they go to Review before paste as suggestions
+    /// (2026-10-29: "plus" became "PRs" because "PRs" was on screen).
     nonisolated static func applyVocabulary(
         _ text: String, mode: LanguageMode, plan: VocabularySession.Plan
     ) -> String {
@@ -34,9 +36,7 @@ extension DictationController {
         var corrected = text
         var fixes: [WordFix] = []
         if !snapshot.isEmpty {
-            let result = VocabularyCorrector.correct(text, mode: mode, snapshot: snapshot)
-            corrected = result.text
-            fixes = result.fixes
+            session.recordSuggestions(VocabularyCorrector.correct(text, mode: mode, snapshot: snapshot).fixes)
         }
         if runFit {
             let started = Date()
@@ -54,7 +54,7 @@ extension DictationController {
         session.recordFixes(fixes, unfixed: text)
         if !fixes.isEmpty {
             // Counts only: the words themselves never reach the log.
-            controllerLog.info("vocabulary: \(fixes.count, privacy: .public) fixes")
+            controllerLog.info("vocabulary: \(fixes.count, privacy: .public) when-it-fits fixes")
         }
         return corrected
     }

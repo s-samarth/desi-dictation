@@ -36,26 +36,26 @@ struct GuidePane: View {
             learnSection
 
             GuideFeature(
-                number: 5, title: "Fix near-misses automatically",
-                summary: "When a dictated word sounds and looks almost like one of your words, it swaps it in: \"Saraswath\" becomes \"Saraswat\" without you asking.",
-                steps: ["Each swap flashes on screen as **Fixed: Saraswath → Saraswat** and is listed in History.",
-                        "Disagree? Change it back in the text. It notices and never makes that swap again."],
+                number: 5, title: "Suggest near-misses of your words",
+                summary: "When a dictated word sounds and looks almost like one of your words, it's underlined in the review panel with your word as choice 1: \"Saraswath\" → 1 Saraswat. It's never changed for you; only words you've told it to always write are written automatically.",
+                steps: ["Needs **Review before paste** on (section 9). Press 1 to take the suggestion, or just carry on.",
+                        "Want it written every time? Keep the fix as **Always** in the panel."],
                 turnOnIf: "you've added names to Your words (or let it learn some) and want them right the first time.",
-                skipIf: "you'd rather it never changed a word on its own. Everyday words like \"there\" or \"hai\" are never touched either way.",
+                skipIf: "you don't use Review before paste. Everyday words like \"there\" or \"hai\" are never suggested either way.",
                 isOn: $vocab.fixNearMisses)
 
             GuideFeature(
                 number: 6, title: "Use names on screen",
-                summary: "When you start dictating, it reads the names visible in that window (the chat, the email thread) so a reply to Rohan doesn't come out as \"Rowan\".",
+                summary: "When you start dictating, it reads the names visible in that window (the chat, the email thread), so \"Rowan\" in a reply to Rohan is underlined with \"Rohan\" in the review panel. Never changed for you.",
                 steps: ["The text is kept in memory for that one dictation, then dropped. Never saved, never sent anywhere."],
                 turnOnIf: "you mostly dictate replies in chats and email, where the names are already on screen.",
                 skipIf: "you don't want any window text read, even locally.",
                 isOn: $vocab.readScreen,
-                disabledNote: vocab.fixNearMisses ? nil : "Needs “Fix near-misses” (5) on.")
+                disabledNote: vocab.fixNearMisses ? nil : "Needs “Suggest near-misses” (5) on.")
 
             GuideFeature(
                 number: 7, title: "Hinglish: match my spelling",
-                summary: "Hinglish has no fixed spelling. If the text you're writing in already uses \"nahi\" (twice or more), a dictated \"nahin\" becomes \"nahi\" so the message stays consistent. Only for that dictation.",
+                summary: "Hinglish has no fixed spelling. If the text you're writing in already uses \"nahi\" (twice or more), a dictated \"nahin\" is underlined with \"nahi\" in the review panel, so the message can stay consistent. Only for that dictation.",
                 turnOnIf: "you dictate Hinglish into ongoing chats or notes.",
                 skipIf: "you only dictate English or हिन्दी.",
                 isOn: $vocab.hinglishFieldSpelling)

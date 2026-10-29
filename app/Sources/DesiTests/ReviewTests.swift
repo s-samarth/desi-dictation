@@ -78,4 +78,12 @@ func runReviewTests() {
     T.equal(ReviewPlanner.fixes(from: "send it today", to: "please send it today"), [],
             "added words aren't fixes")
     T.equal(ReviewPlanner.fixes(from: "a b c d e f", to: "u v w x y z"), [], "a rewrite isn't a fix")
+
+    T.begin("Review — guessed fixes are offered, never applied")
+    let guessed = [WordFix(from: "plus", to: "PRs", source: .screen)]
+    let offered = ReviewPlanner.unsure(in: "A surplus, plus one", words: [], threshold: nil,
+                                       suggested: guessed, sources: .init())
+    T.equal(offered.map(\.word), ["plus"], "the word itself, not inside \"surplus\"")
+    T.equal(offered.first?.alternatives.first, "PRs", "…with the guess as choice 1")
+    T.equal(offered.first?.reason, .suggested, "…and it says why")
 }

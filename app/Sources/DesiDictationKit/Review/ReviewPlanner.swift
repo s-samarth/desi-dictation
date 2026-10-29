@@ -36,9 +36,16 @@ public enum ReviewPlanner {
     /// the user's words, each with alternatives.
     public static func unsure(in text: String, words: [ScoredWord], threshold: Float?,
                               odd: [WordSurprise] = [], oddAbove: Double? = nil,
+                              suggested: [WordFix] = [],
                               sources: ReviewAlternatives.Sources) -> [UnsureWord] {
-        var flagged = threshold.map { UnsureWords.find(in: text, scored: words, threshold: $0) } ?? []
+        // The corrector's guesses first: their replacement is the first choice.
+        var flagged = suggestions(suggested, in: text)
         var taken = Set(flagged.map(\.range.lowerBound))
+        for word in threshold.map({ UnsureWords.find(in: text, scored: words, threshold: $0) }) ?? []
+        where !taken.contains(word.range.lowerBound) {
+            flagged.append(word)
+            taken.insert(word.range.lowerBound)
+        }
         if let oddAbove {
             let chosen = Set(sources.entries.map { $0.written.lowercased() })
             for word in odd where !taken.contains(word.range.lowerBound) {
@@ -52,11 +59,33 @@ public enum ReviewPlanner {
             }
         }
         for i in flagged.indices {
-            flagged[i].alternatives = ReviewAlternatives.candidates(for: flagged[i].word, sources: sources)
+            let more = ReviewAlternatives.candidates(for: flagged[i].word, sources: sources)
+            flagged[i].alternatives = Array((flagged[i].alternatives + more.filter { alt in
+                !flagged[i].alternatives.contains { $0.lowercased() == alt.lowercased() }
+            }).prefix(ReviewAlternatives.limit))
         }
         flagged += ReviewAlternatives.soundAlikes(in: text, sources: sources)
             .filter { !taken.contains($0.range.lowerBound) }
         return flagged.sorted { $0.range.lowerBound < $1.range.lowerBound }
+    }
+
+    /// Where each guessed fix's word is in `text` (first unclaimed match,
+    /// whole words only), with the guess as the first alternative.
+    static func suggestions(_ fixes: [WordFix], in text: String) -> [UnsureWord] {
+        var out: [UnsureWord] = []
+        for fix in fixes {
+            var from = text.startIndex
+            while let range = text.range(of: fix.from, options: .caseInsensitive, range: from..<text.endIndex) {
+                from = range.upperBound
+                let before = range.lowerBound == text.startIndex || !text[text.index(before: range.lowerBound)].isLetter
+                let after = range.upperBound == text.endIndex || !text[range.upperBound].isLetter
+                guard before, after, !out.contains(where: { $0.range.overlaps(range) }) else { continue }
+                out.append(UnsureWord(range: range, word: String(text[range]), reason: .suggested,
+                                      confidence: nil, alternatives: [fix.to]))
+                break
+            }
+        }
+        return out
     }
 
     /// Whether this dictation opens the panel.

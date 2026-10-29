@@ -23,6 +23,9 @@ public struct UnsureWord: Equatable, Sendable {
         case odd
         /// Sounds like one of the user's words.
         case soundsLike
+        /// The vocabulary corrector would have changed it (a name on screen,
+        /// a near-miss of a dictionary word); it's offered, never applied.
+        case suggested
     }
 
     public let range: Range<String.Index>

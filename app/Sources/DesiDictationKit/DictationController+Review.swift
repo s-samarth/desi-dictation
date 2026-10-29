@@ -9,6 +9,7 @@ extension DictationController {
     func review(text: String, mode: LanguageMode, copyOnly: Bool, raw: String?) -> Bool {
         let words = reviewWords
         reviewWords = []
+        let suggested = VocabularySession.shared.takeSuggestions()
         let settings = SettingsStore.shared
         guard let onReview, settings.reviewMode != .off else { return false }
         let entries = PersonalDictionary.shared.entries(for: mode)
@@ -35,7 +36,8 @@ extension DictationController {
         }
         let ranks = mode == .english && ContextChecker.isReady
         guard oddAbove != nil || ranks else {
-            let unsure = ReviewPlanner.unsure(in: text, words: words, threshold: threshold, sources: sources)
+            let unsure = ReviewPlanner.unsure(in: text, words: words, threshold: threshold,
+                                              suggested: suggested, sources: sources)
             guard ReviewPlanner.opens(reviewMode, unsure: unsure) else { return false }
             present(unsure)
             return true
@@ -46,7 +48,7 @@ extension DictationController {
             let scorer = ContextChecker.shared.loaded()
             let odd = oddAbove == nil ? [] : scorer.flatMap { SentenceSurprise.words(in: text, scorer: $0) } ?? []
             var unsure = ReviewPlanner.unsure(in: text, words: words, threshold: threshold,
-                                              odd: odd, oddAbove: oddAbove, sources: sources)
+                                              odd: odd, oddAbove: oddAbove, suggested: suggested, sources: sources)
             if ranks, let scorer {
                 for i in unsure.indices where unsure[i].alternatives.count > 1 {
                     unsure[i].alternatives = ReviewAlternatives.ranked(unsure[i], in: text, scorer: scorer)
