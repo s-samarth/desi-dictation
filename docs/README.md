@@ -47,6 +47,7 @@ Everything written about Desi Dictation — engineering, product, strategy, and 
 | [ENGLISH_ASR_AB_2026-10.md](ENGLISH_ASR_AB_2026-10.md) | The measured A/B: Parakeet v3 vs v2, Qwen3-ASR, NVIDIA unified, Turbo — clean + noisy Indian English |
 | [FINETUNING.md](FINETUNING.md) | Fine-tuning deep-dive (when/how/cost/data) |
 | [LAUNCH.md](LAUNCH.md) | Launch/distribution plan |
+| [../launch-video/](../launch-video/README.md) | Launch video (Remotion): scenes, how to render, recording shot list |
 | [competitors/](competitors/) | Standalone deep-dives per competitor across all layers + [PATTERNS.md](competitors/PATTERNS.md) synthesis |
 
 ## 🎯 Strategy log & founder-decision docs
