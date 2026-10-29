@@ -9,6 +9,8 @@ out
 # Remotion agent skills: installed locally (no license to redistribute them)
 .claude/skills/
 
-# Your voice takes (scripts/record-voice.sh): kept local until you choose to commit them
-public/voice/
+# Your voice takes (scripts/record-voice.sh): the raw takes stay local; the
+# prepared ones the video plays (public/voice/mix/) are committed.
+public/voice/*
+!public/voice/mix/
 scripts/.bin/

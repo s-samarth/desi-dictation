@@ -68,8 +68,8 @@ every line in `voice-lines.tsv` (id, language, text) with:
 ./scripts/record-voice.sh chat     # redo one line
 ```
 
-Takes go to `public/voice/<id>.wav`. Git ignores them until you choose to
-commit them.
+Takes go to `public/voice/<id>.wav`, which Git ignores. The prepared takes the
+video plays (`public/voice/mix/`) are committed, so anyone can render it.
 
 **Recording setup:**
 - **Mic:** it records the Mac's input device (System Settings → Sound → Input).
