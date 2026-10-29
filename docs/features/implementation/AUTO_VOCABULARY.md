@@ -116,10 +116,13 @@ Tests: `DesiTests/VocabularyCorrectorTests.swift`, `VocabularyLearningTests.swif
 5. **Reject list** (`rejected` in `autovocab.json`). A pair goes on it from:
    - an undo in the field;
    - History → "Don't change X to Y again";
-   - "Never", or two "Not now"s.
+   - "Never".
 
    Rejected pairs are never applied or proposed again. Vocabulary →
-   "Allow them again" resets the list.
+   Advanced → "Allow again" resets the list. **"Not now" is a snooze, not a
+   rejection** (FM#38): the pair is asked again on its 3rd sighting, then
+   6th, 12th and every 24th (`snoozed` in `autovocab.json`). Files written
+   before this (no `version`) drop the pairs two "Not now"s had rejected.
 6. **Visible:**
    - an overlay notice after the paste;
    - a green "fixed:" line on the History row;
@@ -169,6 +172,9 @@ field's spelling wins for this dictation. It's never learned.
 - **Latency:** the screen read overlaps recording, and correction takes
   milliseconds. Everything is off by default, so the latency gate is
   unaffected.
+- **Next (decided 2026-10-28):** context scorer for sound-alike real words
+  (cloud/Claude), built as [CONTEXT_FIT.md](CONTEXT_FIT.md) ("When it fits"),
+  and Review before paste. Plan: [VOCABULARY_NEXT.md](../VOCABULARY_NEXT.md).
 - **Deferred:**
   - per-word ASR confidence: needs `TranscriptionResult` and engine changes,
     left until the Qwen PR lands. Until then a dictionary term alone can't

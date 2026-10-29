@@ -28,19 +28,22 @@ public enum WordScope: String, Codable, CaseIterable, Sendable {
 }
 
 /// One learned spelling: "when you hear X, always write Y".
-public struct DictionaryEntry: Codable, Identifiable, Equatable {
+public struct DictionaryEntry: Codable, Identifiable, Equatable, Sendable {
     public var id: UUID
     /// What the model tends to output (e.g. "Saraswath", "meating").
     public var heard: String
     /// What must be written instead (e.g. "Saraswat", "meeting").
     public var written: String
     public var scope: WordScope
+    /// Always, or only when the sentence fits (cloud → Claude). English only.
+    public var mode: EntryMode
 
-    public init(heard: String, written: String, scope: WordScope = .english) {
+    public init(heard: String, written: String, scope: WordScope = .english, mode: EntryMode = .always) {
         self.id = UUID()
         self.heard = heard
         self.written = written
         self.scope = scope
+        self.mode = mode
     }
 
     // Entries saved before the two lists existed were English-mode words.
@@ -50,6 +53,7 @@ public struct DictionaryEntry: Codable, Identifiable, Equatable {
         heard = try c.decode(String.self, forKey: .heard)
         written = try c.decode(String.self, forKey: .written)
         scope = try c.decodeIfPresent(WordScope.self, forKey: .scope) ?? .english
+        mode = try c.decodeIfPresent(EntryMode.self, forKey: .mode) ?? .always
     }
 }
 
@@ -76,7 +80,7 @@ public final class PersonalDictionary: ObservableObject {
 
     // MARK: - Editing
 
-    public func add(heard: String, written: String, scope: WordScope = .english) {
+    public func add(heard: String, written: String, scope: WordScope = .english, mode: EntryMode = .always) {
         let heard = heard.trimmingCharacters(in: .whitespacesAndNewlines)
         let written = written.trimmingCharacters(in: .whitespacesAndNewlines)
         // Case-only rules are legitimate ("jira" → "Jira", "gpt" → "GPT");
@@ -84,13 +88,19 @@ public final class PersonalDictionary: ObservableObject {
         guard !heard.isEmpty, !written.isEmpty, heard != written else { return }
         // One rule per heard-form per list: adding again replaces it.
         entries.removeAll { $0.heard.lowercased() == heard.lowercased() && $0.scope == scope }
-        entries.append(DictionaryEntry(heard: heard, written: written, scope: scope))
+        entries.append(DictionaryEntry(heard: heard, written: written, scope: scope, mode: mode))
         save()
     }
 
     public func setScope(_ scope: WordScope, for entry: DictionaryEntry) {
         guard let index = entries.firstIndex(where: { $0.id == entry.id }) else { return }
         entries[index].scope = scope
+        save()
+    }
+
+    public func setMode(_ mode: EntryMode, for entry: DictionaryEntry) {
+        guard let index = entries.firstIndex(where: { $0.id == entry.id }) else { return }
+        entries[index].mode = mode
         save()
     }
 
@@ -118,9 +128,10 @@ public final class PersonalDictionary: ObservableObject {
 
     /// Pure + static so the pipeline can run it off-main with a snapshot and
     /// tests can hit it directly.
+    /// "When it fits" entries are skipped here: ContextFit judges them.
     public static func apply(_ text: String, entries: [DictionaryEntry]) -> String {
         var result = text
-        for entry in entries {
+        for entry in entries where entry.mode == .always {
             let escaped = NSRegularExpression.escapedPattern(for: entry.heard)
             // \b fails around Devanagari/word-edge punctuation for some terms;
             // fall back to plain replacement if the pattern can't compile.

@@ -79,8 +79,8 @@ public final class ModelManager: ObservableObject {
                 at: dir, includingPropertiesForKeys: [.fileSizeKey])) ?? []
             for file in files where file.pathExtension == "bin" {
                 let name = file.deletingPathExtension().lastPathComponent
-                // VAD model is an engine helper, not a transcription model.
-                guard !name.contains("silero") else { continue }
+                // VAD and the context checker are helpers, not transcription models.
+                guard !name.contains("silero"), !name.contains(ContextChecker.modelID) else { continue }
                 let size = (try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
                 found.append(ModelDescriptor(
                     name: name, path: file.path, sizeMB: size / 1_048_576))
@@ -115,6 +115,10 @@ public final class ModelManager: ObservableObject {
             .appendingPathComponent("ggml-\(model.id).bin")
         guard !FileManager.default.fileExists(atPath: destination.path) else { return }
 
+        guard !model.sha256.isEmpty else {
+            throw NSError(domain: "ModelManager", code: 3, userInfo: [
+                NSLocalizedDescriptionKey: "This model's checksum isn't pinned yet, so it can't be verified."])
+        }
         let tempURL = try await ModelDownloader(id: model.id, manager: self).run(url: model.url)
         // Integrity check: refuse tampered/truncated files (whisper.cpp parses
         // these in C — never feed it unverified bytes).

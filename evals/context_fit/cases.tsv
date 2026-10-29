@@ -1,0 +1,43 @@
+# expect	heard	written	sentence  (desi-cli --fit; CONTEXT_FIT.md). Sentences are as dictated: lowercase brand words.
+swap	cloud	Claude	I asked cloud to refactor this function and it did a decent job
+swap	cloud	Claude	Can you paste this error into cloud and see what it says
+swap	cloud	Claude	cloud code just opened a pull request for the fix
+swap	cloud	Claude	I think cloud is better than ChatGPT for writing code
+swap	cloud	Claude	Let me check with cloud before I send this email
+swap	cloud	Claude	cloud wrote most of this script, I only fixed the imports
+swap	cloud	Claude	Which model is cloud running on, Opus or Sonnet
+swap	cloud	Claude	Tell cloud to keep the answer under two hundred words
+swap	cloud	Claude	I pasted the whole log and cloud found the bug in a minute
+swap	cloud	Claude	Ask cloud to summarise the meeting notes for the team
+keep	cloud	Claude	All our data is stored in the cloud now
+keep	cloud	Claude	We are moving the servers to the cloud next quarter
+keep	cloud	Claude	The cloud bill went up again this month
+keep	cloud	Claude	There is a dark cloud over Bangalore, it will rain soon
+keep	cloud	Claude	Which cloud provider are we using, AWS or GCP
+keep	cloud	Claude	Back up your photos to the cloud before you reset the phone
+keep	cloud	Claude	Our cloud costs are higher than our salaries
+keep	cloud	Claude	The cloud storage is almost full
+keep	cloud	Claude	He has his head in the clouds and his laptop in the cloud
+keep	cloud	Claude	Deploy it on any cloud, it should not matter
+swap	notion	Notion	I wrote the plan in notion, check the roadmap page
+swap	notion	Notion	Can you share the notion doc with the design team
+swap	notion	Notion	Let us track the bugs in a notion database
+keep	notion	Notion	I have no notion of what he meant by that
+keep	notion	Notion	That is a romantic notion but it will not scale
+keep	notion	Notion	The whole notion of a free lunch is a myth
+swap	linear	Linear	Create a linear ticket for the login bug
+swap	linear	Linear	I moved the task to done in linear
+keep	linear	Linear	The growth is not linear, it is exponential
+keep	linear	Linear	Fit a linear regression on the cleaned data
+swap	cursor	Cursor	I am using cursor as my code editor now
+swap	cursor	Cursor	Open the repo in cursor and ask it to write the tests
+keep	cursor	Cursor	Move the cursor to the end of the line
+keep	cursor	Cursor	The mouse cursor keeps disappearing on my Mac
+swap	slack	Slack	I will post the update on slack after lunch
+swap	slack	Slack	Ping me on slack if the build fails
+keep	slack	Slack	There is some slack in the schedule, we can take a day off
+keep	slack	Slack	Cut him some slack, it is his first week
+swap	sonnet	Sonnet	Switch the model to sonnet, it is cheaper for this task
+keep	sonnet	Sonnet	She wrote a sonnet for her literature class
+swap	opus	Opus	I think opus is slower but it handles long contexts better
+keep	opus	Opus	The album is considered his magnum opus

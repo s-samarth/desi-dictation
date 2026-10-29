@@ -68,6 +68,16 @@ extension ModelManager {
 
     public static var vadEntry: DownloadableModel { entry("silero-vad") }
 
+    /// The "When it fits" context checker (CONTEXT_FIT.md): a small text
+    /// model that scores sentences, never a transcription model, so it lives
+    /// outside `catalog` and is offered on the Vocabulary page.
+    /// Base, not instruct: it judged the eval better (CONTEXT_FIT.md "Measured").
+    public static let contextCheckerEntry = DownloadableModel(
+        id: ContextChecker.modelID, label: "Context checker — Qwen3 0.6B Base (English)",
+        url: URL(string: "https://huggingface.co/mradermacher/Qwen3-0.6B-Base-GGUF/resolve/b8b11a6dbbb14c739e25018f3f77abac860c28f4/Qwen3-0.6B-Base.Q4_K_M.gguf")!,
+        approxMB: 397, pro: false, recommended: true, category: "Engine add-on",
+        sha256: "1c728e4fe4abb28cde33b59cd66396e62b2ef755f53db44cdb54e9655b863782")
+
     static func entry(_ id: String) -> DownloadableModel {
         guard let found = catalog.first(where: { $0.id == id }) else {
             preconditionFailure("catalog is missing \(id)")

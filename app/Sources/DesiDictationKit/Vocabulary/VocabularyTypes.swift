@@ -10,6 +10,8 @@ public enum VocabularySource: String, Codable, Sendable {
     case screen
     /// Hinglish spelling already used in the field being edited.
     case fieldSpelling
+    /// A "when it fits" pair the sentence agreed with (ContextFit).
+    case context
 
     /// Shown next to a fix in History and the overlay.
     public var label: String {
@@ -17,6 +19,7 @@ public enum VocabularySource: String, Codable, Sendable {
         case .dictionary: return "your dictionary"
         case .screen: return "on screen"
         case .fieldSpelling: return "your spelling"
+        case .context: return "fits the sentence"
         }
     }
 

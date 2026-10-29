@@ -30,6 +30,17 @@ public struct VocabularySuggestion: Codable, Identifiable, Equatable {
     var pairKey: String { WordFix.pairKey(from: heard, to: written) }
 }
 
+/// What `propose` did with a pair, so the activity list can say why.
+public enum ProposalOutcome: Equatable {
+    case asked
+    /// Already waiting under "Waiting for you".
+    case waiting
+    /// "Not now" earlier: asked again after `left` more sightings.
+    case snoozed(left: Int)
+    /// "Never", or an undone automatic fix.
+    case rejected
+}
+
 /// Smart-vocabulary settings, pending proposals and the reject list
 /// (AUTO_VOCABULARY.md). Its own file and defaults keys, so it never collides
 /// with SettingsStore. Everything is **off** by default. What this stores is
@@ -54,6 +65,8 @@ public final class AutoVocabularyStore: ObservableObject {
     @Published public var liveAcknowledgement: String?
 
     private var dismissCounts: [String: Int] = [:]
+    /// Pair key → sightings left before it's asked again ("Not now").
+    private var snoozed: [String: Int] = [:]
     private let d: UserDefaults
     private let fileURL: URL
 
@@ -73,14 +86,23 @@ public final class AutoVocabularyStore: ObservableObject {
 
     // MARK: - Proposals
 
-    /// Queues a proposal; duplicates and rejected pairs are dropped.
-    public func propose(_ pair: EditPair, scope: WordScope = .english) {
+    /// Queues a proposal; duplicates, snoozed and rejected pairs are dropped.
+    @discardableResult
+    public func propose(_ pair: EditPair, scope: WordScope = .english) -> ProposalOutcome {
         let suggestion = VocabularySuggestion(heard: pair.heard, written: pair.typed, scope: scope)
-        guard !rejected.contains(suggestion.pairKey),
-              !suggestions.contains(where: { $0.pairKey == suggestion.pairKey }) else { return }
+        let key = suggestion.pairKey
+        if rejected.contains(key) { return .rejected }
+        if suggestions.contains(where: { $0.pairKey == key }) { return .waiting }
+        if let left = snoozed[key], left > 1 {
+            snoozed[key] = left - 1
+            save()
+            return .snoozed(left: left - 1)
+        }
+        snoozed[key] = nil
         suggestions.insert(suggestion, at: 0)
         liveSuggestion = suggestion
         save()
+        return .asked
     }
 
     /// "Add": the pair becomes a normal PersonalDictionary entry.
@@ -91,12 +113,15 @@ public final class AutoVocabularyStore: ObservableObject {
         Task { @MainActor in VocabularyActivityLog.shared.add(.learned, line) }
     }
 
-    /// "Not now": the second dismissal of the same pair rejects it for good.
+    /// "Not now" never means never (it once did, after two): the pair is
+    /// asked again on its 3rd sighting, then the 6th, 12th, and every 24th.
     public func dismiss(_ suggestion: VocabularySuggestion) {
         dismissCounts[suggestion.pairKey, default: 0] += 1
-        if dismissCounts[suggestion.pairKey, default: 0] >= 2 { rejected.insert(suggestion.pairKey) }
+        snoozed[suggestion.pairKey] = Self.snoozeLength(afterDismissals: dismissCounts[suggestion.pairKey]!)
         remove(suggestion)
     }
+
+    static func snoozeLength(afterDismissals n: Int) -> Int { min(3 << max(n - 1, 0), 24) }
 
     /// "Never": stop proposing this pair.
     public func never(_ suggestion: VocabularySuggestion) {
@@ -122,10 +147,11 @@ public final class AutoVocabularyStore: ObservableObject {
     public func clearRejections() {
         rejected = []
         dismissCounts = [:]
+        snoozed = [:]
         save()
     }
 
-    private func remove(_ suggestion: VocabularySuggestion) {
+    func remove(_ suggestion: VocabularySuggestion) {
         suggestions.removeAll { $0.id == suggestion.id }
         if liveSuggestion?.id == suggestion.id { liveSuggestion = nil }
         save()
@@ -137,6 +163,9 @@ public final class AutoVocabularyStore: ObservableObject {
         var suggestions: [VocabularySuggestion]
         var rejected: [String]
         var dismissCounts: [String: Int]
+        var snoozed: [String: Int]?
+        /// nil = written before "Not now" stopped rejecting (version 2).
+        var version: Int?
     }
 
     private func load() {
@@ -145,10 +174,18 @@ public final class AutoVocabularyStore: ObservableObject {
         suggestions = stored.suggestions
         rejected = Set(stored.rejected)
         dismissCounts = stored.dismissCounts
+        snoozed = stored.snoozed ?? [:]
+        if stored.version == nil {
+            // Pairs rejected by two "Not now"s get asked again; "Never" and
+            // undone fixes have no dismissals, so they stay.
+            rejected.subtract(dismissCounts.filter { $0.value >= 2 }.keys)
+            save()
+        }
     }
 
     private func save() {
-        let stored = Stored(suggestions: suggestions, rejected: rejected.sorted(), dismissCounts: dismissCounts)
+        let stored = Stored(suggestions: suggestions, rejected: rejected.sorted(), dismissCounts: dismissCounts,
+                            snoozed: snoozed, version: 2)
         guard let data = try? JSONEncoder().encode(stored) else { return }
         try? data.write(to: fileURL, options: .atomic)
     }

@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 
 /// One dictation's vocabulary, from key-down to paste. The screen is read
 /// while the user talks, so it adds nothing to the wait after release;
@@ -25,18 +25,25 @@ public final class VocabularySession: @unchecked Sendable {
         var hinglishSpelling: Bool
         var dictionaryTerms: [String]
         var rejected: Set<String>
+        /// English "when it fits" pairs and the app being dictated into (ContextFit).
+        var fitEntries: [DictionaryEntry] = []
+        var appName: String?
     }
 
     @MainActor
     public static func plan(mode: LanguageMode? = nil, store: AutoVocabularyStore = .shared,
                             dictionary: PersonalDictionary = .shared) -> Plan {
         let words = mode.map { dictionary.entries(for: $0) } ?? dictionary.entries
+        // English only: small models are weak on Roman Hinglish (VOCABULARY_NEXT.md).
+        let fit = mode == .english ? words.filter { $0.mode == .whenItFits } : []
         return Plan(readScreen: store.fixNearMisses && store.readScreen,
              readField: store.needsFieldText,
              useVocabulary: store.fixNearMisses,
              hinglishSpelling: store.hinglishFieldSpelling,
              dictionaryTerms: words.flatMap { WordTokens.words(in: $0.written) },
-             rejected: store.rejected)
+             rejected: store.rejected,
+             fitEntries: fit,
+             appName: NSWorkspace.shared.frontmostApplication?.localizedName)
     }
 
     /// Recording started: forget the last dictation, read the screen if asked.
@@ -62,6 +69,12 @@ public final class VocabularySession: @unchecked Sendable {
                                                   dictionary: plan.dictionaryTerms)
             }
         }
+    }
+
+    /// Terms read from the screen this dictation (cues for ContextFit).
+    public var currentScreenTerms: [String] {
+        lock.lock(); defer { lock.unlock() }
+        return screenTerms.map(\.text)
     }
 
     /// Hotwords for a biasable engine (Qwen3-ASR); empty for the others.

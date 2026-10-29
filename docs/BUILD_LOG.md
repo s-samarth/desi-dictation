@@ -942,3 +942,49 @@ list on the Vocabulary page now says what happened after each dictation, or
 why nothing did. `EditTrackerTests` replays the exact case.
 **Lesson:** a feature that can fail silently needs a visible trace. Every
 "nothing happened" path now logs a reason the user can read.
+
+### Failure mode #38 — "Not now" twice meant never, silently
+
+**Symptom:** after two "Not now"s on *cloud → Claude*, fixing the word again
+never brought the popup back, and the activity list said "Not a sound-alike",
+which was false.
+**Cause:** `AutoVocabularyStore.dismiss` put the pair on the permanent reject
+list on the second dismissal. `CorrectionLearner` was handed that list, so a
+rejected pair came back as "no proposal" and was logged as the wrong reason.
+**Fix:** "Not now" snoozes with backoff (asks again on the 3rd, 6th, 12th,
+then every 24th sighting); only "Never" and an undone auto-fix reject. The
+store decides and `propose` returns why (`ProposalOutcome`), so the activity
+list says "asks again after N more fixes" or "you turned this down". Old
+`autovocab.json` files (no `version`) drop pairs that two dismissals had
+rejected.
+**Lesson:** "don't ask so often" is not "never ask". A soft no should decay,
+and a filtered-out case needs its own log line, not the nearest one.
+
+### Failure mode #39 — `Package.swift` never saw the llama archive
+
+**Symptom:** after `scripts/setup_llama.sh` produced
+`app/Libraries/libllama-bundle.a`, `swift build` still compiled without
+`DESI_LLAMA`: `desi-cli --fit` said "llama runtime in this build: false".
+Touching `Package.swift` didn't help.
+**Cause:** the manifest decided with `FileManager.fileExists`. SwiftPM caches
+a manifest's evaluation keyed by its contents, so the first answer ("no
+archive") was reused forever. A probe package confirmed it: deleting the file
+after one evaluation didn't change the result.
+**Fix:** the archive is committed like the whisper and transcribe archives,
+and `Package.swift` links it and defines `DESI_LLAMA` unconditionally.
+**Lesson:** a manifest is not a script that runs every build. Don't branch
+on the file system in `Package.swift`; commit the artifact or use an
+explicit flag.
+
+### Failure mode #40 — llama's Metal teardown aborted `desi-cli --fit`
+
+**Symptom:** the first `--fit` run printed the whole report, then died in
+`ggml_metal_device_free` with `GGML_ASSERT([rsets->data count] == 0)`.
+**Cause:** FM#27 again, in the llama bundle's own ggml copy. `runFitEval`
+called `exit(0)` while its scorer, a local, still held Metal buffers, and the
+app's `shutdown()` didn't release the context checker.
+**Fix:** `--fit` runs in a function that returns its exit code, so the
+scorer is freed before `exit`. `DictationController.shutdown()` calls
+`ContextChecker.shared.reset()` after the engine queue drains.
+**Lesson:** every ggml copy in the process has the same exit rule. A new
+native model needs its own line in `shutdown()`.

@@ -141,6 +141,16 @@ menu items and right-click services are hidden (§3–§8).
   the overlay asks **"Always write Rowan as Rohan?"** with **Add** / **Not now**.
   It never steals the caret. Ignore it and the proposal waits under
   Vocabulary → **Waiting for you**. "Add" puts the pair in your Personal dictionary.
+  **Not now** only snoozes it: make the same fix a few more times and it
+  asks again. Only **Never** stops it for good.
+- **When it fits (English):** Vocabulary → **When it fits** → Get (397 MB).
+  From then on the popup has a third button, **Only when it fits**, and each
+  English word in Your words has an *Always / When it fits* picker. Set
+  *cloud → Claude* to When it fits: "I asked cloud to fix this" becomes
+  "I asked Claude to fix this", "our data is in the cloud" stays. Fixes say
+  "fits the sentence" in History; kept words say why under **What it's been
+  doing**. Undoing one of these fixes doesn't ban it: the next sentence
+  decides again.
 - **Your edit wins:** if it auto-fixed a word and you change it back, the
   popup says "Got it" and that fix is never made again.
 - **Near-miss fixes:** "Saraswath" becomes "Saraswat" when the dictionary

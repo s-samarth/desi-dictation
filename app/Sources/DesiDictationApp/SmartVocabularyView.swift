@@ -46,6 +46,8 @@ struct VocabularyPane: View {
 
             DictionarySettings()
 
+            ContextCheckerSection()
+
             Section {
                 SmartVocabularyToggles()
             } header: {
@@ -96,6 +98,10 @@ struct SuggestionRow: View {
             Spacer(minLength: 8)
             Button("Add") { store.accept(suggestion) }
                 .buttonStyle(.borderedProminent).controlSize(.small)
+            if AutoVocabularyStore.canOfferWhenItFits(suggestion) {
+                Button("When it fits") { store.acceptWhenItFits(suggestion) }
+                    .controlSize(.small)
+            }
             Button("Not now") { store.dismiss(suggestion) }
                 .controlSize(.small)
             if !compact {

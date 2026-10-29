@@ -18,6 +18,7 @@ Each planned feature gets one doc following the same structure:
 | [STRUCTURE_THOUGHTS.md](STRUCTURE_THOUGHTS.md) | Ramble → structured document (small local LLM) | Planned |
 | [PERSONAS.md](PERSONAS.md) | Who we're building for (tier 1/2/3, ages, pain points) | Living doc |
 | [IDEAS.md](IDEAS.md) | 10 candidate features, ranked | Backlog |
+| [VOCABULARY_NEXT.md](VOCABULARY_NEXT.md) | Context scorer (cloud/Claude), review before paste | Planned |
 
 > Competitor analysis moved to its own directory: **[../competitors/](../competitors/)** — one standalone deep-dive per competitor across app, Indian-model, and infra layers, plus [PATTERNS.md](../competitors/PATTERNS.md). (The old single-file `COMPETITOR_FEATURES.md` was consumed into it and removed.)
 
