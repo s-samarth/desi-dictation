@@ -1,6 +1,6 @@
 # Launch video
 
-A ~66 s product launch video for Desi Dictation, built with
+A ~71 s product launch video for Desi Dictation, built with
 [Remotion](https://www.remotion.dev): React components rendered frame by frame
 into an MP4. It sits apart from `app/` and `web/` and shares nothing with them
 except pictures of the app.
@@ -82,7 +82,21 @@ after the text lands. Use made-up names and messages only. Hide notifications
 |---|---|---|
 | `public/clips/hook-woman-laptop.mp4` | [Pexels 7251216](https://www.pexels.com/video/woman-in-a-video-call-indoors-7251216/), re-encoded to 30 fps with no sound | Pexels license: free, commercial use OK, no credit needed |
 
-**Music:** not chosen yet, so the video is silent. Pixabay tracks are free
-for commercial use without credit
-([license](https://pixabay.com/service/license-summary/)). Once one is
-picked, line the scene cuts up with its beat.
+| `public/music/retro-funky-groove.mp3` | [Retro Funky Groove (Lightweight Funk), BombinSound, Pixabay 622862](https://pixabay.com/music/funk-retro-funky-groove-lightwight-funk-622862/) | [Pixabay license](https://pixabay.com/service/license-summary/): free, commercial use OK, no credit needed |
+
+## Cut on the beat
+
+The track runs at **122.09 BPM**: a beat every 0.491 s and a bar every
+1.966 s. Its first beat is 0.464 s in. These are measured with an
+onset-envelope autocorrelation (a small numpy script, not part of the
+project).
+
+- **Music start:** `Soundtrack` skips to that first beat, so frame 0 is beat 1.
+- **Scene lengths:** each scene is a whole number of **bars** (`SCENES` in
+  `LaunchVideo.tsx`), so every transition starts on a bar line. Starts are
+  rounded once from the bar count, so there's no drift.
+- **Transitions:** 15 frames, about one beat.
+- **Tempo:** `BPM` and `MUSIC_START` in `theme.ts`. Change them if you swap
+  the track.
+
+The video is 36 bars (70.8 s), and the music fades out over the last 2 s.

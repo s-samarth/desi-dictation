@@ -25,3 +25,9 @@ export const color = {
 export const FPS = 30;
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
+
+// The soundtrack's grid (Retro Funky Groove, measured: 122.09 BPM, first beat 0.464 s in).
+export const BPM = 122.09;
+export const BEAT = 60 / BPM;
+export const BAR = 4 * BEAT;
+export const MUSIC_START = 0.464;
