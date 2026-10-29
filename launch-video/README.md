@@ -1,6 +1,6 @@
 # Launch video
 
-A ~71 s product launch video for Desi Dictation, built with
+A ~75 s product launch video for Desi Dictation, built with
 [Remotion](https://www.remotion.dev): React components rendered frame by frame
 into an MP4. It sits apart from `app/` and `web/` and shares nothing with them
 except pictures of the app.
@@ -58,6 +58,50 @@ differentiator.
 
   Never add `main-history.png`: it shows your own dictations.
 
+## Your voice on the dictated lines
+
+Three dictation scenes play your real voice. Record
+every line in `voice-lines.tsv` (id, language, text) with:
+
+```bash
+./scripts/record-voice.sh          # every line in order; play back, keep or redo
+./scripts/record-voice.sh chat     # redo one line
+```
+
+Takes go to `public/voice/<id>.wav`, which Git ignores. The prepared takes the
+video plays (`public/voice/mix/`) are committed, so anyone can render it.
+
+**Recording setup:**
+- **Mic:** it records the Mac's input device (System Settings → Sound → Input).
+- **Recorder:** it uses macOS's own recorder (`scripts/rec.swift`, built on
+  first use). ffmpeg's mic capture spliced its 512-sample buffers on this Mac,
+  and the voice crackled and broke.
+- **Level check:** after each take it prints the loudest moment. Aim for -6 to
+  -3 dB, and turn up the mic's own gain knob if it says "too quiet".
+
+**Which takes play:** only three, in the scenes where the app is seen
+listening:
+
+- `mail` in Dictate (English);
+- `fillers` in Never rewrites you;
+- `chat` in Hinglish.
+
+The words on screen stay the script's; your voice is the sound of saying them.
+Playing all eleven felt like too much.
+
+**To change a take:**
+
+1. Re-record it with `./scripts/record-voice.sh <id>`.
+2. Prepare it with `./scripts/prepare-voice.sh mail fillers chat`, which cuts
+   each take to its speech and levels it to -17 LUFS in `public/voice/mix/`.
+3. Copy the printed speech length into `src/voiceover.ts`. The key-down
+   timing and the scene's animation follow from it.
+
+**Music under the voice:** the music dips from 0.8 to 0.2 while you speak (`Soundtrack.tsx`).
+Dictate (English) and Never rewrites you got a fifth bar each: the email has
+time to be read once it lands, and you finish the sentence before the ums fold
+away.
+
 ## Real recordings (to replace scenes 3 and 4)
 
 Scenes 3 and 4 redraw the app's overlay. Real screen recordings would be more
@@ -99,4 +143,4 @@ project).
 - **Tempo:** `BPM` and `MUSIC_START` in `theme.ts`. Change them if you swap
   the track.
 
-The video is 36 bars (70.8 s), and the music fades out over the last 2 s.
+The video is 38 bars (74.7 s), and the music fades out over the last 2 s.

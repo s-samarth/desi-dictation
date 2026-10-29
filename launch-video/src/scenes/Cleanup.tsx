@@ -3,6 +3,13 @@ import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { Backdrop } from "../components/Backdrop";
 import { Accent, Caption } from "../components/Caption";
 import { color, font } from "../theme";
+import { spokenBy } from "../voiceover";
+
+// You say the whole sentence first; the cleanup starts just after.
+const S = spokenBy("fillers") + 0.2;
+const UMS_GONE = S + 0.7;
+const SUGGEST = S + 1.0;
+const ACCEPTED = S + 2.6;
 
 /** A span that is struck through at `strikeAt` s and folds away by `goneAt` s. */
 const Fold: React.FC<{ children: string; strikeAt: number; goneAt: number; c?: string }> = ({
@@ -44,15 +51,15 @@ export const Cleanup: React.FC = () => {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 90 }}>
         <Caption title={<>It never rewrites you <Accent>behind your back</Accent>.</>} sub="Ums go. Second thoughts become suggestions. You decide." />
         <div style={{ fontFamily: font, fontSize: 64, color: color.text, position: "relative" }}>
-          <Fold strikeAt={1.0} goneAt={2.0}>{"Um, "}</Fold>
-          <span>{t >= 2.0 ? "So" : "so"} we should</span>
-          <Fold strikeAt={1.0} goneAt={2.0}>{", uh,"}</Fold>
+          <Fold strikeAt={S} goneAt={UMS_GONE}>{"Um, "}</Fold>
+          <span>{t >= UMS_GONE ? "So" : "so"} we should</span>
+          <Fold strikeAt={S} goneAt={UMS_GONE}>{", uh,"}</Fold>
           <span> meet at </span>
-          <Fold strikeAt={4.4} goneAt={5.2} c={color.purple}>{"two, no, make it "}</Fold>
+          <Fold strikeAt={ACCEPTED - 0.6} goneAt={ACCEPTED} c={color.purple}>{"two, no, make it "}</Fold>
           <span
             style={{
-              borderBottom: `5px solid ${t >= 2.8 && t < 5.2 ? color.purple : "transparent"}`,
-              color: t >= 5.2 ? color.green : color.text,
+              borderBottom: `5px solid ${t >= SUGGEST && t < ACCEPTED ? color.purple : "transparent"}`,
+              color: t >= ACCEPTED ? color.green : color.text,
             }}
           >
             three
@@ -70,7 +77,7 @@ export const Cleanup: React.FC = () => {
               borderRadius: 18,
               background: color.bgSoft,
               border: `2px solid ${color.purple}`,
-              opacity: interpolate(t, [2.8, 3.2, 5.2, 5.6], [0, 1, 1, 0], clamp),
+              opacity: interpolate(t, [SUGGEST, SUGGEST + 0.4, ACCEPTED, ACCEPTED + 0.4], [0, 1, 1, 0], clamp),
             }}
           >
             You probably meant: <b>meet at three</b> &nbsp;
@@ -82,7 +89,7 @@ export const Cleanup: React.FC = () => {
             fontFamily: font,
             fontSize: 36,
             color: color.dim,
-            opacity: interpolate(t, [5.6, 6.0], [0, 1], clamp),
+            opacity: interpolate(t, [ACCEPTED + 0.4, ACCEPTED + 0.8], [0, 1], clamp),
           }}
         >
           Nothing changes until you press 1.

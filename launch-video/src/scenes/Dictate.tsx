@@ -4,6 +4,7 @@ import { Backdrop } from "../components/Backdrop";
 import { Accent, Caption } from "../components/Caption";
 import { Bubble, DictationDemo } from "../components/DictationDemo";
 import { color, font } from "../theme";
+import { talkFor } from "../voiceover";
 
 /** The core loop, in English: hold, speak, let go, it's there. */
 export const Dictate: React.FC = () => (
@@ -13,7 +14,7 @@ export const Dictate: React.FC = () => (
       <DictationDemo
         window="New Message"
         language="English"
-        talk={[1.0, 3.6]}
+        talk={talkFor("mail")}
         above={
           <div style={{ fontFamily: font, fontSize: 30, color: color.dim, lineHeight: 1.9 }}>
             <div>To: Priya Sharma</div>
@@ -35,7 +36,7 @@ export const Hinglish: React.FC = () => (
         window="Chat"
         language="Hinglish"
         rule="Chat"
-        talk={[1.0, 3.6]}
+        talk={talkFor("chat")}
         above={
           <div style={{ display: "flex", flexDirection: "column", fontFamily: font }}>
             <Bubble>Kal milna hai? 🍵</Bubble>
