@@ -58,6 +58,21 @@ differentiator.
 
   Never add `main-history.png`: it shows your own dictations.
 
+## Your voice on the dictated lines
+
+The dictation scenes are getting the real sound of someone dictating. Record
+every line in `voice-lines.tsv` (id, language, text) with:
+
+```bash
+./scripts/record-voice.sh          # every line in order; play back, keep or redo
+./scripts/record-voice.sh chat     # redo one line
+```
+
+Takes go to `public/voice/<id>.wav`. Git ignores them until you choose to
+commit them. The default mic is the DGM20 USB; set `MIC="…"` to use another.
+Each take then runs through `desi-cli`, so the text on screen is what the app
+really wrote.
+
 ## Real recordings (to replace scenes 3 and 4)
 
 Scenes 3 and 4 redraw the app's overlay. Real screen recordings would be more
