@@ -1,6 +1,6 @@
 # Launch video
 
-A ~71 s product launch video for Desi Dictation, built with
+A ~73 s product launch video for Desi Dictation, built with
 [Remotion](https://www.remotion.dev): React components rendered frame by frame
 into an MP4. It sits apart from `app/` and `web/` and shares nothing with them
 except pictures of the app.
@@ -60,7 +60,7 @@ differentiator.
 
 ## Your voice on the dictated lines
 
-The dictation scenes are getting the real sound of someone dictating. Record
+Three dictation scenes play your real voice. Record
 every line in `voice-lines.tsv` (id, language, text) with:
 
 ```bash
@@ -70,8 +70,28 @@ every line in `voice-lines.tsv` (id, language, text) with:
 
 Takes go to `public/voice/<id>.wav`. Git ignores them until you choose to
 commit them. The default mic is the DGM20 USB; set `MIC="…"` to use another.
-Each take then runs through `desi-cli`, so the text on screen is what the app
-really wrote.
+
+**Which takes play:** only three, in the scenes where the app is seen
+listening:
+
+- `mail` in Dictate (English);
+- `fillers` in Never rewrites you;
+- `chat` in Hinglish.
+
+The words on screen stay the script's; your voice is the sound of saying them.
+Playing all eleven felt like too much.
+
+**To change a take:**
+
+1. Re-record it with `./scripts/record-voice.sh <id>`.
+2. Prepare it with `./scripts/prepare-voice.sh mail fillers chat`, which cuts
+   each take to its speech and levels it to -16 LUFS in `public/voice/mix/`.
+3. Copy the printed speech length into `src/voiceover.ts`. The key-down
+   timing and the scene's animation follow from it.
+
+**Music under the voice:** the music dips from 0.8 to 0.2 while you speak (`Soundtrack.tsx`).
+Never rewrites you got a fifth bar, so you finish the sentence before the ums
+fold away.
 
 ## Real recordings (to replace scenes 3 and 4)
 
@@ -114,4 +134,4 @@ project).
 - **Tempo:** `BPM` and `MUSIC_START` in `theme.ts`. Change them if you swap
   the track.
 
-The video is 36 bars (70.8 s), and the music fades out over the last 2 s.
+The video is 37 bars (72.7 s), and the music fades out over the last 2 s.
