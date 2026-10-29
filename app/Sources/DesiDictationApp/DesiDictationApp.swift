@@ -43,6 +43,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             UISnapshots.run(into: directory)
             return
         }
+        if ReviewDemo.enabled {
+            NSApp.setActivationPolicy(.accessory)
+            ReviewDemo.run()
+            return
+        }
         #endif
         // Menu-bar-only app (no Dock icon), also when run via `swift run`.
         NSApp.setActivationPolicy(.accessory)

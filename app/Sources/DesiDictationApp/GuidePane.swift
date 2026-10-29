@@ -69,7 +69,7 @@ struct GuidePane: View {
                 summary: "Off by default. Dictation → Review. \"Only when unsure\" opens a panel before pasting when a word looks wrong. Nothing is changed for you.",
                 steps: ["**Orange:** the speech model wasn't sure what it heard, or the word sounds like one of your words or a name on screen.",
                         "**Purple:** heard clearly but odd in its sentence (\"one PC Luffy\", a misheard name). Only with the context checker (section 10).",
-                        "**Tab** jumps to an underline, **1–5** picks a suggestion, **0** says it looks right, or just type. **Enter** pastes, **Esc** copies.",
+                        "**Tab** jumps to an underline, **1–5** picks a suggestion, **0** says it looks right, or just type. **Enter** pastes, **Esc** copies, **✕** or **⌘W** closes without either.",
                         "A word you fix is used **Just this once** unless you pick **When it fits** or **Always** to remember it.",
                         "\"Underline words\": **Moderate** (default) suits most people; Liberal marks only likely mistakes; Conservative marks more. Everyday words said casually are left alone."],
                 turnOnIf: "you want to check names and odd words before they're sent.",

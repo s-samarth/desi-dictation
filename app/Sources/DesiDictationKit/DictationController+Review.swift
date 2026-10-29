@@ -31,6 +31,7 @@ extension DictationController {
                     switch outcome {
                     case .paste(let final): self?.commit(text: final, mode: mode, copyOnly: copyOnly, raw: raw)
                     case .copy(let final): self?.commit(text: final, mode: mode, copyOnly: true, raw: raw)
+                    case .discard(let final): self?.keepWithoutPasting(text: final, mode: mode, raw: raw)
                     }
                 })
         }
