@@ -26,6 +26,11 @@ public struct UnsureWord: Equatable, Sendable {
         /// The vocabulary corrector would have changed it (a name on screen,
         /// a near-miss of a dictionary word); it's offered, never applied.
         case suggested
+        /// Likely filler ("like", "you know"); the alternative "" removes it.
+        case filler
+        /// A spoken correction ("2, no, make it 3"); the alternative is what
+        /// was meant ("" = remove the taken-back words).
+        case correction
     }
 
     public let range: Range<String.Index>

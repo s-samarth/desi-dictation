@@ -323,7 +323,9 @@ public final class DictationController: ObservableObject {
             sessionLanguage = language
             phase = .recording
             beginVocabulary()
-            if settings.reviewMode != .off { ContextChecker.shared.warmUp(); OrdinaryWords.warmUp() }   // review reads the sentence
+            if settings.reviewMode != .off || CleanupSettings.shared.removeSureFillers {
+                ContextChecker.shared.warmUp(); OrdinaryWords.warmUp()   // review and clean-up read the sentence
+            }
             if wasWarm { Sounds.start.play() }   // cold path: onFirstAudio plays it
             startChunkTicker(modelPath: modelPath, mode: mode)
         } catch {
@@ -353,6 +355,7 @@ public final class DictationController: ObservableObject {
         // Snapshot on main; applied off-main via the pure static core.
         let dictionary = PersonalDictionary.shared.entries(for: mode)
         let vocabulary = vocabularyPlan()
+        let cleanup = Self.cleanupPlan
         let useOllama = settings.aiFeaturesEnabled && settings.ollamaEnabled
             && LicenseManager.shared.isPro
         let ollamaModel = settings.ollamaModel
@@ -386,6 +389,7 @@ public final class DictationController: ObservableObject {
                 text = PostProcessor.applyReplacements(text, rules: rules)
                 text = PersonalDictionary.apply(text, entries: dictionary)
                 text = Self.applyVocabulary(text, mode: mode, plan: vocabulary)
+                text = Self.applyCleanup(text, mode: mode, plan: cleanup)
                 if useOllama, !text.isEmpty {
                     let semaphore = DispatchSemaphore(value: 0)
                     Task { [t = text] in

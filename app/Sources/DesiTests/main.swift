@@ -17,6 +17,7 @@ runEditTrackerTests()
 runContextFitTests()
 runReviewTests()
 runStrictnessTests()
+runCleanupTests()
 
 let group = DispatchGroup()
 group.enter()

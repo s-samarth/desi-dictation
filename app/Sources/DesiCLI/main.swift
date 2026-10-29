@@ -34,6 +34,7 @@ if args.contains("--novad") {
 // Context checker eval ("When it fits"): desi-cli --fit <model.gguf> <cases.tsv>
 if args.count >= 2, args[1] == "--fit" { runFitEval(Array(args.dropFirst(2))) }
 if args.count >= 2, args[1] == "--surprise" { runSurprise(Array(args.dropFirst(2))) }
+if args.count >= 2, ["--cleanup", "--fillers"].contains(args[1]) { runCleanup(Array(args.dropFirst(1))) }
 
 guard args.count >= 3 else {
     print("""

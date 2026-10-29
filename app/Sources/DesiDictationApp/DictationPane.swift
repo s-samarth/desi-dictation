@@ -82,6 +82,7 @@ struct DictationPane: View {
                 Text("Options")
             }
 
+            CleanupSection()
             ReviewSection()
             AdvancedDictationSettings()
             PermissionsSection()

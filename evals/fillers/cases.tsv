@@ -1,0 +1,42 @@
+# label<TAB>phrase<TAB>sentence — is this occurrence of the phrase a filler?
+filler	like	It was like really expensive
+filler	like	So I was like going to the store
+filler	like	We should like ship it on Monday
+filler	like	The demo was like a total mess
+filler	like	I think we need like three more people
+filler	like	He was like five minutes late
+filler	like	It's like super important that we finish this
+filler	like	Can you like send me the file
+keep	like	I like the new design
+keep	like	It looks like rain today
+keep	like	They like each other a lot
+keep	like	She sings like a professional
+keep	like	I would like to book a table
+keep	like	Do you like the color
+keep	like	It feels like a long week
+keep	like	We should build something like this
+filler	you know	The build is, you know, broken again
+filler	you know	We just need to, you know, ship it
+filler	you know	I was talking to him and you know he agreed
+keep	you know	Do you know the answer
+keep	you know	Let me know if you know anyone who can help
+keep	you know	As you know the deadline is Friday
+filler	I mean	So I mean the build is broken again
+filler	I mean	It's fine, I mean, it works
+keep	I mean	What I mean is that we need more time
+keep	I mean	I mean it, this is the last chance
+filler	basically	The fix is basically done
+filler	basically	We basically need to rewrite it
+keep	basically	He was basically right about the cost
+filler	literally	I literally have no idea
+filler	literally	It's literally the best thing ever
+keep	literally	Translate it literally, word for word
+filler	actually	I actually think we should wait
+keep	actually	Did you actually finish it
+keep	actually	The numbers are actually lower than last year
+filler	kind of	It's kind of broken right now
+keep	kind of	What kind of laptop do you use
+filler	sort of	We sort of agreed on the plan
+keep	sort of	This sort of problem happens often
+filler	yeah	So yeah we should probably ship it
+keep	yeah	He said yeah to the offer

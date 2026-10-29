@@ -36,7 +36,7 @@ public enum ReviewPlanner {
     /// the user's words, each with alternatives.
     public static func unsure(in text: String, words: [ScoredWord], threshold: Float?,
                               odd: [WordSurprise] = [], oddAbove: Double? = nil,
-                              suggested: [WordFix] = [],
+                              suggested: [WordFix] = [], cleanup: [UnsureWord] = [],
                               sources: ReviewAlternatives.Sources) -> [UnsureWord] {
         // The corrector's guesses first: their replacement is the first choice.
         var flagged = suggestions(suggested, in: text)
@@ -66,6 +66,8 @@ public enum ReviewPlanner {
         }
         flagged += ReviewAlternatives.soundAlikes(in: text, sources: sources)
             .filter { !taken.contains($0.range.lowerBound) }
+        // Corrections and fillers (CleanupReview) win where they overlap.
+        flagged = cleanup + flagged.filter { f in !cleanup.contains { $0.range.overlaps(f.range) } }
         return flagged.sorted { $0.range.lowerBound < $1.range.lowerBound }
     }
 

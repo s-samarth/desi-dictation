@@ -157,6 +157,13 @@ menu items and right-click services are hidden (§3–§8).
   "fits the sentence" in History; kept words say why under **What it's been
   doing**. Undoing one of these fixes doesn't ban it: the next sentence
   decides again.
+- **Fillers and corrections (2026-10-29):** Dictation → **Clean-up**.
+  **Remove um and uh** is on: um, uh, hmm, er just go. Sometimes-fillers
+  (like, you know, I mean…) are underlined in review as **Filler?** (1
+  removes, 0 keeps); **Remove fillers when sure** (off) takes out the ones
+  the context checker is sure of. Spoken corrections ("meet at 2, no, make
+  it 3", "Rohan, sorry, Rahul", "scratch that") are underlined as **You
+  probably meant:** and never applied on their own.
 - **Review before paste:** Dictation → **Review**: **Review before paste**
   Off (default), **Only when unsure**, or **Always**, and **Underline
   words** Conservative / **Moderate** (default) / Liberal: how readily
