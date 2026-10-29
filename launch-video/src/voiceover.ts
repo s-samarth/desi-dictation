@@ -8,9 +8,9 @@
  * from the scene's start; `speech` is how long it lasts (the script prints it).
  */
 export const TAKES = {
-  mail: { at: 1.2, speech: 4.41 },
-  fillers: { at: 0.5, speech: 4.42 },
-  chat: { at: 1.2, speech: 2.69 },
+  mail: { at: 1.2, speech: 5.19 },
+  fillers: { at: 0.5, speech: 4.66 },
+  chat: { at: 1.0, speech: 3.14 },
 } as const;
 
 export type TakeId = keyof typeof TAKES;

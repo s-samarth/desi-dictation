@@ -1,6 +1,6 @@
 # Launch video
 
-A ~73 s product launch video for Desi Dictation, built with
+A ~75 s product launch video for Desi Dictation, built with
 [Remotion](https://www.remotion.dev): React components rendered frame by frame
 into an MP4. It sits apart from `app/` and `web/` and shares nothing with them
 except pictures of the app.
@@ -93,13 +93,14 @@ Playing all eleven felt like too much.
 
 1. Re-record it with `./scripts/record-voice.sh <id>`.
 2. Prepare it with `./scripts/prepare-voice.sh mail fillers chat`, which cuts
-   each take to its speech and levels it to -16 LUFS in `public/voice/mix/`.
+   each take to its speech and levels it to -17 LUFS in `public/voice/mix/`.
 3. Copy the printed speech length into `src/voiceover.ts`. The key-down
    timing and the scene's animation follow from it.
 
 **Music under the voice:** the music dips from 0.8 to 0.2 while you speak (`Soundtrack.tsx`).
-Never rewrites you got a fifth bar, so you finish the sentence before the ums
-fold away.
+Dictate (English) and Never rewrites you got a fifth bar each: the email has
+time to be read once it lands, and you finish the sentence before the ums fold
+away.
 
 ## Real recordings (to replace scenes 3 and 4)
 
@@ -142,4 +143,4 @@ project).
 - **Tempo:** `BPM` and `MUSIC_START` in `theme.ts`. Change them if you swap
   the track.
 
-The video is 37 bars (72.7 s), and the music fades out over the last 2 s.
+The video is 38 bars (74.7 s), and the music fades out over the last 2 s.

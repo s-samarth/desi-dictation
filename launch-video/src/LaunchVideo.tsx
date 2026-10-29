@@ -28,7 +28,7 @@ const SCENES: {
 }[] = [
   { name: "Hook", bars: 2, Scene: Hook },
   { name: "Title", bars: 2, Scene: TitleCard },
-  { name: "Dictate (English)", bars: 4, voice: "mail", Scene: Dictate },
+  { name: "Dictate (English)", bars: 5, voice: "mail", Scene: Dictate },
   { name: "Smart review", bars: 3, push: true, Scene: SmartReview },
   { name: "Review panel", bars: 4, push: true, Scene: Review },
   { name: "Never rewrites you", bars: 5, push: true, voice: "fillers", Scene: Cleanup },
