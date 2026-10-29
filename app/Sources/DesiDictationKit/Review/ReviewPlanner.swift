@@ -31,15 +31,27 @@ public struct ReviewRequest {
 
 /// The pure decisions behind Review before paste (REVIEW_BEFORE_PASTE.md).
 public enum ReviewPlanner {
-    /// Unsure words of `text`: low confidence (if the engine gives it) plus
-    /// words that sound like one of the user's words, each with alternatives.
+    /// Unsure words of `text`: low confidence (if the engine gives it), odd in
+    /// context (if the checker scored it), and words that sound like one of
+    /// the user's words, each with alternatives.
     public static func unsure(in text: String, words: [ScoredWord], threshold: Float?,
+                              odd: [WordSurprise] = [], oddAbove: Double? = nil,
                               sources: ReviewAlternatives.Sources) -> [UnsureWord] {
         var flagged = threshold.map { UnsureWords.find(in: text, scored: words, threshold: $0) } ?? []
+        var taken = Set(flagged.map(\.range.lowerBound))
+        if let oddAbove {
+            let chosen = Set(sources.entries.map { $0.written.lowercased() })
+            for word in odd where word.total > oddAbove && !taken.contains(word.range.lowerBound) {
+                let piece = String(text[word.range])
+                // Numbers and dictionary words were written by our rules, on purpose.
+                guard !piece.contains(where: \.isNumber), !chosen.contains(piece.lowercased()) else { continue }
+                flagged.append(UnsureWord(range: word.range, word: piece, reason: .odd, confidence: nil, alternatives: []))
+                taken.insert(word.range.lowerBound)
+            }
+        }
         for i in flagged.indices {
             flagged[i].alternatives = ReviewAlternatives.candidates(for: flagged[i].word, sources: sources)
         }
-        let taken = Set(flagged.map(\.range.lowerBound))
         flagged += ReviewAlternatives.soundAlikes(in: text, sources: sources)
             .filter { !taken.contains($0.range.lowerBound) }
         return flagged.sorted { $0.range.lowerBound < $1.range.lowerBound }

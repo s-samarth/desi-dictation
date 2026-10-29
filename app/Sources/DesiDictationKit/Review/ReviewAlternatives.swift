@@ -64,7 +64,8 @@ public enum ReviewAlternatives {
             guard named || !CommonWords.contains(piece.key) else { return nil }
             let alternatives = candidates(for: word, sources: sources)
             guard !alternatives.isEmpty else { return nil }
-            return UnsureWord(range: piece.range, word: word, confidence: nil, alternatives: alternatives)
+            return UnsureWord(range: piece.range, word: word, reason: .soundsLike,
+                              confidence: nil, alternatives: alternatives)
         }
     }
 

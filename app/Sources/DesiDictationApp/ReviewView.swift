@@ -5,14 +5,15 @@ import DesiDictationKit
 /// choices for the word at the caret, and what to remember.
 struct ReviewView: View {
     @ObservedObject var model: ReviewModel
-
-    static let width: CGFloat = 560
+    /// Opening size, from ReviewLayout; the panel can be dragged bigger.
+    var size = ReviewLayout.Size(width: 560, editorHeight: 90)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
             ReviewTextEditor(model: model)
-                .frame(minHeight: 70, maxHeight: 160)
+                .frame(minHeight: ReviewLayout.minEditorHeight, idealHeight: size.editorHeight,
+                       maxHeight: .infinity)
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.neutral.opacity(0.25)))
             alternatives
@@ -20,7 +21,8 @@ struct ReviewView: View {
             footer
         }
         .padding(16)
-        .frame(width: Self.width)
+        .frame(minWidth: ReviewLayout.minWidth, idealWidth: size.width, maxWidth: .infinity,
+               maxHeight: .infinity, alignment: .top)
         .tint(Theme.accent)
     }
 
@@ -37,7 +39,7 @@ struct ReviewView: View {
     @ViewBuilder private var alternatives: some View {
         if let current = model.current {
             HStack(spacing: 6) {
-                Text(current.confidence == nil ? "Sounds like:" : "Maybe:")
+                Text(Self.because(current.reason))
                     .font(.caption).foregroundStyle(.secondary)
                 if current.alternatives.isEmpty {
                     Text("no suggestions; type the right word")
@@ -58,6 +60,15 @@ struct ReviewView: View {
             Text(model.request.unsure.isEmpty ? "Edit anything, then press Enter."
                  : "Tab goes to the next underlined word.")
                 .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    /// Why the word at the caret is underlined, leading into its suggestions.
+    static func because(_ reason: UnsureWord.Reason) -> String {
+        switch reason {
+        case .unclear: return "Hard to hear. Maybe:"
+        case .odd: return "Odd here. Maybe:"
+        case .soundsLike: return "Sounds like:"
         }
     }
 

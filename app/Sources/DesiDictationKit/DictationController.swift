@@ -323,6 +323,7 @@ public final class DictationController: ObservableObject {
             sessionLanguage = language
             phase = .recording
             beginVocabulary()
+            if settings.reviewMode != .off { ContextChecker.shared.warmUp() }   // review reads the sentence
             if wasWarm { Sounds.start.play() }   // cold path: onFirstAudio plays it
             startChunkTicker(modelPath: modelPath, mode: mode)
         } catch {

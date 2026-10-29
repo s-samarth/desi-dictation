@@ -19,6 +19,13 @@ public enum EntryMode: String, Codable, CaseIterable, Sendable {
 public protocol ContextScorer: AnyObject {
     /// Natural-log probability of `text` following `prefix`; nil on failure.
     func logProbability(of text: String, after prefix: String) -> Double?
+    /// Per token of `text`: the byte offset in `text` where it ends, and its
+    /// natural-log probability. nil when the scorer can't give tokens.
+    func tokenLogProbabilities(of text: String, after prefix: String) -> [(end: Int, logprob: Double)]?
+}
+
+public extension ContextScorer {
+    func tokenLogProbabilities(of text: String, after prefix: String) -> [(end: Int, logprob: Double)]? { nil }
 }
 
 /// Signals besides the model: the written form is visible on screen, or the

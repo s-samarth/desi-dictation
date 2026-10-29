@@ -123,7 +123,8 @@ final class ReviewTextView: NSTextView {
             out.addAttributes([
                 ReviewTextEditor.unsureKey: i,
                 .underlineStyle: NSUnderlineStyle.thick.rawValue | NSUnderlineStyle.patternDot.rawValue,
-                .underlineColor: NSColor(Theme.accent),
+                // Odd in context gets its own colour: the audio was clear, the word may still be wrong.
+                .underlineColor: unsure.reason == .odd ? NSColor.systemPurple : NSColor(Theme.accent),
             ], range: range)
         }
         return out

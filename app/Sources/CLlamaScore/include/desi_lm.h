@@ -28,6 +28,15 @@ void desi_lm_free(desi_lm * lm);
 int desi_lm_score(desi_lm * lm, const char * prefix, const char * text,
                   double * out_logprob, int * out_tokens);
 
+/*
+ * Per-token version of desi_lm_score, for finding the words that don't fit
+ * (Review before paste). For each token of `text`: its natural-log
+ * probability, and the byte offset in `text` where it ends. Writes at most
+ * `capacity` entries and their number to *out_count. Same return codes.
+ */
+int desi_lm_token_scores(desi_lm * lm, const char * prefix, const char * text,
+                         double * out_logprobs, int * out_ends, int capacity, int * out_count);
+
 #ifdef __cplusplus
 }
 #endif

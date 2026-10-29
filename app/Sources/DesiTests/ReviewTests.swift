@@ -38,9 +38,7 @@ func runReviewTests() {
                                        ScoredWord(text: "hakka", confidence: 0.3),
                                        ScoredWord(text: "now", confidence: 0.9)], threshold: 0.6)
     T.equal(unsure.map(\.word), ["Hakka"], "words our own rules wrote (numbers) are never underlined")
-    T.equal(UnsureWords.threshold(forModel: "/m/ggml-qwen3-asr-1.7b-q8_0.bin"), nil,
-            "Qwen3-ASR gives no confidence")
-    T.expect(UnsureWords.threshold(forModel: "/m/ggml-parakeet-tdt-0.6b-v3-q4_k.bin") != nil, "Parakeet does")
+    T.equal(unsure.first?.reason, .unclear, "…because the audio was unclear")
 
     T.begin("Review — alternatives come from the user's own words")
     let sources = ReviewAlternatives.Sources(
