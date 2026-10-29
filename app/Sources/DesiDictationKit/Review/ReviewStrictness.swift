@@ -8,9 +8,10 @@ import Foundation
 public enum ReviewStrictness: String, CaseIterable, Codable, Sendable {
     /// Underlines the most, for people who want more checked.
     case conservative
+    /// The default: on the user's real dictations it underlined the misheard
+    /// name ("Luke bomb" for "Shlok Bum") and no fine casual words.
     case moderate
     /// Lets almost everything through; only likely mistakes are underlined.
-    /// The default: a review that underlines fine words gets turned off.
     case liberal
 
     public var label: String {

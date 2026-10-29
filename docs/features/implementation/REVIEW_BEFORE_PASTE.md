@@ -16,7 +16,7 @@ your own words.
 
 Dictation → **Review**: **Review before paste** Off (default) / **Only when
 unsure** / **Always**, and **Underline words** Conservative / Moderate /
-**Liberal** (default; see Strictness). Onboarding step 5 offers both. The
+**Moderate** (default; see Strictness). Onboarding step 5 offers both. The
 panel:
 
 - opens sized to the text so it can be checked in one look: 680 pt wide
@@ -146,7 +146,7 @@ precision = underlined words that were wrong):
 **With the everyday-word rule** (shipped; English only, Devanagari is never
 "everyday"):
 
-| English | Conservative | Moderate | **Liberal** (default) |
+| English | Conservative | **Moderate** (default) | Liberal |
 |---|---|---|---|
 | Parakeet | 56 % / 35 % | 43 % / 49 % | 28 % / 67 % |
 | Qwen3-ASR | 42 % / 22 % | 32 % / 29 % | 22 % / 40 % |
@@ -161,11 +161,22 @@ everyday words +8):
 | whisper (Prime, Apex) | 0.84 / — | 0.64 / — | 0.52 / — |
 | Vaani | 0.59 / 11.3 | 0.59 / 19.4 | 0.54 / 25.3 |
 
-**Default: Liberal.** The first real use showed that underlining fine words
-costs more trust than a missed mistake: a review that cries wolf gets
-turned off. Liberal underlines ~4 % of words, two in three of them real
-mistakes with Parakeet. Conservative is there for people who want more
-checked.
+**Default: Moderate** (briefly Liberal on 2026-10-29). Underlining fine
+words costs trust: a review that cries wolf gets turned off. But the five
+fine words of the first real use were sound-alikes of screen headings, now
+fixed, not the strictness level. With that fixed, two real Qwen3-ASR
+dictations decided it:
+
+| Real dictation | Liberal | Moderate |
+|---|---|---|
+| "…does **Luke bomb** fit…" (meant "Shlok Bum") | nothing; panel didn't open | Luke (12.5), bomb (11.7) |
+| casual sentence, all words fine but "onboarding" | onboarding | onboarding ("Yeah", 11.2, just under) |
+
+Liberal's bar for an everyday word (8 + 8 = 16 for Qwen3-ASR) is above
+what a name misheard as everyday words scores. Moderate's (3.6 + 8 =
+11.6) caught it with no false underline, by thin margins (bomb +0.1,
+"Yeah" −0.4): two sentences, not a measurement. Add real dictations like
+these to the eval before retuning.
 
 How to read it:
 

@@ -178,7 +178,7 @@ public final class SettingsStore: ObservableObject {
         soundsEnabled = d.object(forKey: "soundsEnabled") as? Bool ?? true
         copyInsteadOfPaste = d.object(forKey: "copyInsteadOfPaste") as? Bool ?? false
         reviewMode = ReviewMode(rawValue: d.string(forKey: "reviewMode") ?? "") ?? .off
-        reviewStrictness = ReviewStrictness(rawValue: d.string(forKey: "reviewStrictness") ?? "") ?? .liberal
+        reviewStrictness = ReviewStrictness(rawValue: d.string(forKey: "reviewStrictness") ?? "") ?? .moderate
         replacementRules = d.string(forKey: "replacementRules") ?? ""
         ollamaEnabled = d.object(forKey: "ollamaEnabled") as? Bool ?? false
         ollamaModel = d.string(forKey: "ollamaModel") ?? "llama3.2"

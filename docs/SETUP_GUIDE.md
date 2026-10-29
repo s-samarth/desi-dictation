@@ -129,8 +129,8 @@ the app loads the right one when you switch languages. To pick one yourself:
     words, only scores them, and nothing leaves your Mac.
   - Everyday words said casually ("I would want you to…") aren't
     underlined unless they're very odd.
-  - **Underline words: Liberal** (default) marks about 1 word in 25, most
-    of them real mistakes. **Moderate** ~1 in 12, **Conservative** ~1 in 7
+  - **Underline words: Moderate** (default) marks about 1 word in 12.
+    **Liberal** ~1 in 25, only likely mistakes; **Conservative** ~1 in 7
     (catches more, asks more).
   - **Tab** jumps to the next underline, **1–5** picks a suggestion, or just
     type. **Enter** pastes, **Esc** copies instead.
