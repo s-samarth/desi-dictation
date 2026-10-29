@@ -151,17 +151,24 @@ menu items and right-click services are hidden (§3–§8).
   "fits the sentence" in History; kept words say why under **What it's been
   doing**. Undoing one of these fixes doesn't ban it: the next sentence
   decides again.
-- **Review before paste:** Dictation → Options → **Review before paste**:
-  Off (default), **Only when unsure**, or **Always**. When it opens, a small
-  panel shows the text before it's pasted, with shaky words underlined in
-  orange dots. **Tab** jumps to the next one and shows suggestions
-  ("Maybe: 1 Saraswat"); **1–5** picks one, or just type. **Enter** pastes
-  into the app you were in, **Esc** copies instead. Under "Remember your
-  fixes?" each word you changed can be kept **Just this once** (default),
-  **Always**, or **When it fits**. Starting a new dictation while the panel
-  is open copies the waiting text. With Qwen3-ASR (Accurate English) only
-  sound-alikes of your words are underlined: that model reports no
-  per-word confidence.
+- **Review before paste:** Dictation → **Review**: **Review before paste**
+  Off (default), **Only when unsure**, or **Always**, and **Underline
+  words** Conservative / **Moderate** (default) / Liberal: how readily
+  words get underlined (about 1 in 7, 1 in 12, 1 in 30). When it opens, a
+  panel sized to the text (up to half the screen; drag it bigger and it
+  keeps the width) shows the dictation before it's pasted. Words the speech
+  model wasn't sure of are underlined in orange ("Hard to hear. Maybe:");
+  with the context checker installed, English and हिन्दी words that are
+  clear but odd in their sentence ("watch one **PC** Luffy", unusual names)
+  are underlined in purple ("Odd here."). Nothing is changed for you.
+  **Tab** jumps to the next one and shows suggestions; **1–5** picks one,
+  or just type. **Enter** pastes into the app you were in, **Esc** copies
+  instead. Under "Remember your fixes?" each word you changed can be kept
+  **Just this once** (default), **Always**, or **When it fits**. Starting a
+  new dictation while the panel is open copies the waiting text. With
+  Qwen3-ASR (Accurate English), which reports no per-word confidence, only
+  odd-in-context words (checker installed) and sound-alikes of your words
+  are underlined.
 - **Your edit wins:** if it auto-fixed a word and you change it back, the
   popup says "Got it" and that fix is never made again.
 - **Near-miss fixes:** "Saraswath" becomes "Saraswat" when the dictionary

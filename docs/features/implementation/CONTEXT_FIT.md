@@ -11,6 +11,11 @@ Plan and decisions: [VOCABULARY_NEXT.md](../VOCABULARY_NEXT.md) §1.
 sentence both ways and keeps the likelier one. It **scores, never writes**,
 so it can only pick between "cloud" and "Claude".
 
+**Also used by Review before paste** (2026-10-29): the same model, through
+`desi_lm_token_scores`, marks words that are odd in their sentence so the
+review panel can underline them (English and हिन्दी). It still never
+writes: [REVIEW_BEFORE_PASTE.md](REVIEW_BEFORE_PASTE.md) "Strictness".
+
 ## How a dictation flows (English only)
 
 1. **Key down** (`beginVocabulary`): if any English entry is When it fits,
