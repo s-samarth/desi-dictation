@@ -6,6 +6,8 @@ public enum ReviewOutcome: Equatable, Sendable {
     case paste(String)
     /// Esc (or a new dictation started): put it on the clipboard instead.
     case copy(String)
+    /// ✕ / ⌘W: neither; it stays in History.
+    case discard(String)
 }
 
 /// One dictation waiting in the review panel. The panel (app target) shows

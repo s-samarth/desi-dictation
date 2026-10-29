@@ -133,7 +133,8 @@ the app loads the right one when you switch languages. To pick one yourself:
     **Liberal** ~1 in 25, only likely mistakes; **Conservative** ~1 in 7
     (catches more, asks more).
   - **Tab** jumps to the next underline, **1–5** picks a suggestion, **0**
-    says it looks right, or just type. **Enter** pastes, **Esc** copies.
+    says it looks right, or just type. **Enter** pastes, **Esc** copies,
+    **✕** or **⌘W** closes without either.
   - A word you fix is used **Just this once** unless you pick When it fits
     or Always to remember it.
   - Works best for English; for Hinglish only orange (unclear audio)

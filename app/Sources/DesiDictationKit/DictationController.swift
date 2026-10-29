@@ -527,6 +527,16 @@ public final class DictationController: ObservableObject {
         }
     }
 
+    /// Review closed with ✕: no paste and nothing on the clipboard, but the
+    /// words stay in History and Copy Last (the transcript is sacred).
+    func keepWithoutPasting(text: String, mode: LanguageMode, raw: String?) {
+        lastTranscript = text
+        let vocabulary = VocabularySession.shared.takeFixes()
+        HistoryStore.shared.add(text: text, mode: mode, raw: raw,
+                                fixes: vocabulary?.fixes ?? [], unfixed: vocabulary?.unfixed)
+        if [.transcribing, .translating, .polishing].contains(phase) { phase = .idle }
+    }
+
     /// Ends the session once the paste ran. A skipped paste says so — the
     /// words are on the clipboard, the user must know to press ⌘V.
     private func delivered(_ outcome: InsertOutcome, text: String, fixes: [WordFix]) {

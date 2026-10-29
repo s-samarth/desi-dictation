@@ -78,12 +78,24 @@ final class ReviewModel: ObservableObject {
     }
 
     /// Enter pastes, Esc copies; either way the chosen fixes are kept.
-    func finish(paste: Bool) {
+    func finish(paste: Bool) { end(paste ? .paste : .copy) }
+
+    enum Ending { case paste, copy, discard }
+
+    /// ✕ / ⌘W discards: no paste, no clipboard, nothing remembered (History
+    /// still has the words).
+    func end(_ ending: Ending) {
         guard !finished else { return }
         finished = true
-        ReviewPlanner.remember(fixes.map { ($0.pair, $0.keep.mode) }, scope: request.scope)
+        if ending != .discard {
+            ReviewPlanner.remember(fixes.map { ($0.pair, $0.keep.mode) }, scope: request.scope)
+        }
         onClose?()
-        let outcome: ReviewOutcome = paste ? .paste(text) : .copy(text)
+        let outcome: ReviewOutcome = switch ending {
+        case .paste: .paste(text)
+        case .copy: .copy(text)
+        case .discard: .discard(text)
+        }
         // Let focus settle back in the app we dictated into before ⌘V (FM#31).
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [request] in
             request.complete(outcome)

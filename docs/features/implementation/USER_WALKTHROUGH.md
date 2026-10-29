@@ -182,7 +182,9 @@ menu items and right-click services are hidden (§3–§8).
   **Tab** jumps to the next one and shows suggestions; **1–5** picks one,
   **0** says it looks right (the underline goes, the word stays), or just
   type. The "N unsure words" count drops as you fix, delete or clear them.
-  **Enter** pastes into the app you were in, **Esc** copies instead. Under
+  **Enter** pastes into the app you were in, **Esc** copies instead,
+  **✕** or **⌘W** just closes it (no paste, clipboard untouched; still in
+  History). Under
   "Remember your fixes?" each word you changed is used **Just this once**
   by default, or pick **When it fits** (English) / **Always** to remember
   it. Purple underlines and When it fits judging need the
