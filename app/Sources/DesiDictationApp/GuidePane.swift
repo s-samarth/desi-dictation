@@ -58,7 +58,7 @@ struct GuidePane: View {
 
             GuideFeature(
                 number: 7, title: "Hinglish: match my spelling",
-                summary: "Hinglish has no fixed spelling. If the text you're writing in already uses \"nahi\" (twice or more), a dictated \"nahin\" is underlined with \"nahi\" in the review panel, so the message can stay consistent. Only for that dictation.",
+                summary: "Hinglish has no fixed spelling. If the text you're writing in already uses \"kya\" (twice or more), a dictated \"kyaa\" is underlined with \"kya\" in the review panel, so the message can stay consistent. Only for that dictation. It folds only stretched vowels and doubled letters (theek/thik, accha/acha); nahin and nahi stay different, like hai and hain.",
                 turnOnIf: "you dictate Hinglish into ongoing chats or notes.",
                 skipIf: "you only dictate English or हिन्दी.",
                 isOn: $vocab.hinglishFieldSpelling)

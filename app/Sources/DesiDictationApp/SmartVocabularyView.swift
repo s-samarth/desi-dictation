@@ -16,7 +16,7 @@ struct SmartVocabularyToggles: View {
                "Reads the window you dictate into, for that dictation only. Never saved.")
             .disabled(!store.fixNearMisses)
         toggle("Hinglish: suggest my spelling in the field", $store.hinglishFieldSpelling,
-               "If the text already says \"nahi\", \"nahin\" is underlined with \"nahi\".")
+               "If the text already says \"kya\", a dictated \"kyaa\" is underlined with \"kya\".")
     }
 
     private func toggle(_ title: String, _ isOn: Binding<Bool>, _ note: String) -> some View {

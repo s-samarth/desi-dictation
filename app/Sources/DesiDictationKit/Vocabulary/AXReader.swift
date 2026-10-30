@@ -20,6 +20,16 @@ enum AXReader {
         return element
     }
 
+    /// The focused element of one app, front or not.
+    static func focusedElement(inApp pid: pid_t) -> AXUIElement? {
+        guard AXIsProcessTrusted() else { return nil }
+        let app = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(app, messageTimeout)
+        guard let element = self.element(app, kAXFocusedUIElementAttribute) else { return nil }
+        AXUIElementSetMessagingTimeout(element, messageTimeout)
+        return element
+    }
+
     /// The window that holds `element` (or the app's focused window).
     static func window(of element: AXUIElement) -> AXUIElement? {
         if let window = self.element(element, kAXWindowAttribute) { return window }

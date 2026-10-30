@@ -218,3 +218,14 @@ Claude) gets "cannot complete" (-25204) from the Accessibility server for
 every app, even though its `AXIsProcessTrusted()` says yes (2026-10-30). That
 run has its parent's grant, not an Accessibility identity of its own.
 `open` makes LaunchServices start the app as itself, with its own grant.
+
+**Result, 2026-10-30** (installed app, a test chat in Chrome with "Ananya
+Krishnan", "Kartik", "Figma" on screen):
+
+- Names on screen: "send it to Kartick" → offers Kartick → Kartik.
+- Hinglish spelling, with "thik" and "kya" each twice in the reply box: "kyaa
+  karna hai, theek hai" → offers kyaa → kya and theek → thik.
+- "nahin" with "nahi" in the field → nothing, by design: `HinglishVariants.key`
+  folds only vowel length and doubled letters. Until this check, the Guide,
+  the setup card and the Vocabulary toggle all used nahin → nahi as their
+  example; they now use kyaa → kya.

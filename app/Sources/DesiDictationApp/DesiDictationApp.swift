@@ -149,8 +149,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Opening the app again from Spotlight or Finder while it runs: point at
-    /// the menu-bar mic, where the window opens from. Unfinished setup comes
-    /// back instead, so a closed onboarding isn't lost.
+    /// the menu-bar mic the first time only (MenuBarPointer.reminderShownKey),
+    /// or always when the notch hides it. Unfinished setup comes back
+    /// instead, so a closed onboarding isn't lost.
     func applicationShouldHandleReopen(_ sender: NSApplication,
                                        hasVisibleWindows: Bool) -> Bool {
         if SettingsStore.shared.onboarded {

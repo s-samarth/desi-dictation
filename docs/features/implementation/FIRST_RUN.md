@@ -14,8 +14,8 @@ menu-bar mic, and where to change it.
 |---|---|---|
 | Never set up | The setup window (onboarding) | Unchanged since v0.5.1 |
 | Setup's **Finish** relaunch | **The tour:** a big callout under the mic ("Desi Dictation lives up here"), a pulsing saffron ring around it, and buttons **Show me the menu** and **Got it**. It stays until dismissed or the menu opens. | The moment the window disappears is when people lose it |
-| Opened by hand (Spotlight, Finder, the installer) | **The reminder:** a small callout under the mic for 7 s, with an **Open Desi Dictation** link | Opening it again usually means "where is it?" |
-| Opened again while running | The reminder (unfinished setup reopens setup instead) | Same |
+| Opened by hand (Spotlight, Finder, the installer) | **The reminder**, the first time only: a small callout under the mic for 7 s, with an **Open Desi Dictation** link. After that, nothing (user decision 2026-10-30: not on every ⌘ Space) | The first reopen usually means "where is it?"; the Guide's "Where it lives" covers the rest |
+| Opened again while running | Same as above (unfinished setup reopens setup instead) | Same |
 | At login | Nothing | The user didn't ask for it |
 
 ## Setup: one question per page (redesigned 2026-10-30)
@@ -84,6 +84,8 @@ in your menu bar on purpose, so it never gets in your way."
     other icons out", plus **Open Desi Dictation**.
   - A reminder (opened by hand) also opens the main window, since the user
     can't reach the menu.
+- The notch and off-screen notices show on every reopen, not just the
+  first: without them there's no way to find the app.
 - **Off screen.** No frame, or its centre isn't on the screen (another
   display, or an auto-hiding menu bar). Shows the same notice, worded for
   that case.

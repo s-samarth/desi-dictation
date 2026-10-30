@@ -13,6 +13,10 @@ final class MenuBarPointer {
     static let shared = MenuBarPointer()
     /// Set by setup's Finish; the relaunched app shows the tour once.
     static let tourPendingKey = "menuBarTourPending"
+    /// Set once the reminder has shown: after that, opening the app by hand
+    /// stays quiet (user decision 2026-10-30: not on every ⌘ Space; the
+    /// Guide's "Where it lives" explains the menu bar instead).
+    static let reminderShownKey = "menuBarReminderShown"
 
     enum Style {
         /// After setup: big, stays until "Got it" or the menu opens.
@@ -47,6 +51,10 @@ final class MenuBarPointer {
         #endif
         switch visibility {
         case .visible:
+            if style == .reminder {
+                guard !UserDefaults.standard.bool(forKey: Self.reminderShownKey) else { return }
+                UserDefaults.standard.set(true, forKey: Self.reminderShownKey)
+            }
             showCallout(style, icon: frame, screen: screen)
             showRing(around: frame)
         case .behindNotch:

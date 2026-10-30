@@ -24,13 +24,20 @@ public enum ScreenCheck {
     }
 
     public static func report(dictated: String, mode: LanguageMode) -> String {
-        guard let app = NSWorkspace.shared.frontmostApplication else { return "no front app" }
+        // Launched through LaunchServices, this process counts as frontmost,
+        // so take the owner of the topmost ordinary window that isn't ours.
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
+                                                 kCGNullWindowID) as? [[String: Any]] ?? []
+        guard let pid = windows.first(where: {
+                  ($0[kCGWindowLayer as String] as? Int) == 0
+                      && ($0[kCGWindowOwnerPID as String] as? pid_t) != getpid() })?[kCGWindowOwnerPID as String] as? pid_t,
+              let app = NSRunningApplication(processIdentifier: pid) else { return "no front window" }
         // As AccessibilityPrimer does: Chromium apps build their tree only when asked.
         let element = AXUIElementCreateApplication(app.processIdentifier)
         AXUIElementSetAttributeValue(element, "AXManualAccessibility" as CFString, kCFBooleanTrue)
         Thread.sleep(forTimeInterval: 0.5)
         var lines = ["front app: \(app.localizedName ?? "?")   Accessibility: \(AXIsProcessTrusted())"]
-        guard let context = ScreenContextReader.read(includeWindow: true) else {
+        guard let context = ScreenContextReader.read(includeWindow: true, app: pid) else {
             return (lines + ["✗ no focused text field could be read"]).joined(separator: "\n")
         }
         let fieldTerms = TermExtractor.terms(from: [context.fieldText])

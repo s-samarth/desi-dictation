@@ -25,7 +25,7 @@ struct WordsStep: View {
                         isOn: $store.readScreen, enabled: store.fixNearMisses)
             if flow.languages.contains(.hinglish) {
                 FeatureCard(symbol: "character.bubble", title: "Hinglish: match the chat's spelling",
-                            what: "If the chat already says “nahi”, a dictated “nahin” is underlined with “nahi”.",
+                            what: "If the chat already says “kya” and “thik”, a dictated “kyaa” or “theek” is underlined with your spelling.",
                             turnOnIf: "Turn on if you dictate Hinglish into chats and care how words are spelled.",
                             isOn: $store.hinglishFieldSpelling)
             }

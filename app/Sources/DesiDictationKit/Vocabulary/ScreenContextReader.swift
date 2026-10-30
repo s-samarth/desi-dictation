@@ -24,9 +24,13 @@ public struct ScreenContext: Sendable {
 /// from the field and title only.
 public enum ScreenContextReader {
     /// Run off the main thread: AX calls are cross-process messages.
+    /// `app`: read that app's focused field rather than the frontmost one's
+    /// (ScreenCheck, whose own launch makes it frontmost).
     public static func read(includeWindow: Bool, budget: TimeInterval = 0.15,
-                            maxNodes: Int = 1500, maxTexts: Int = 400) -> ScreenContext? {
-        guard let focused = AXReader.focusedElement() else { return nil }
+                            maxNodes: Int = 1500, maxTexts: Int = 400,
+                            app: pid_t? = nil) -> ScreenContext? {
+        guard let focused = app.map(AXReader.focusedElement(inApp:)) ?? AXReader.focusedElement()
+        else { return nil }
         var context = ScreenContext()
         if let value = AXReader.fieldValue(focused) {
             context.fieldText = around(caret: AXReader.caretUTF16(focused), in: value, radius: 2000)

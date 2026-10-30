@@ -73,7 +73,8 @@ where it went. Now (details: [FIRST_RUN.md](FIRST_RUN.md)):
   the menu.
 - **Opening the app again by hand** (Spotlight, Finder, the installer) shows
   a short "Desi Dictation is up here" callout for 7 s, with an **Open Desi
-  Dictation** link. At login it stays silent.
+  Dictation** link, the first time only. After that it stays quiet, as it
+  does at login.
 - **Mic hidden behind the notch** (a full menu bar on a notched MacBook): a
   notice explains it, how to make room (⌘-drag other icons out), and offers
   **Open Desi Dictation**.
