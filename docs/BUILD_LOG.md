@@ -1057,3 +1057,27 @@ before any of the app starts.
 fresh process. Read macOS's own answers with
 `log show --predicate 'process == "tccd"'`, pairing each `msgID` with its
 `service=` and `authValue`.
+
+### Failure mode #45 — a screenshot in the bundle made `codesign` refuse it
+
+**Symptom:** after a reinstall, setup's Accessibility and Input Monitoring
+ticks stayed blank although both switches were on. tccd's log showed
+`identifier=desi-dictation` and `authValue=0` for the app and its probes,
+where earlier builds were `com.desi.dictation`. `codesign -dv` said
+`Signature=adhoc`, and `--verify` said "code has no resources but signature
+indicates they must be present".
+**Cause:** `app/Resources/guide-menu.png` came from `screencapture`, which
+attaches extended attributes (Finder info, provenance). `codesign` refuses a
+bundle containing them ("resource fork, Finder information, or similar
+detritus not allowed"). `build_app.sh` stopped there (`set -e`), but its
+output was filtered through `grep`, which hid both the error and the exit
+code. The half-built bundle was then installed. It carried only the linker's
+ad-hoc signature, a different identity to macOS, so the grants the user had
+switched on belonged to another app.
+**Fix:** `build_app.sh` runs `xattr -cr` on the bundle before signing,
+verifies the signature afterwards, and says plainly when either fails.
+**Lesson:** before installing, check
+`codesign -dr - "app/dist/Desi Dictation.app"` names
+`identifier "com.desi.dictation" and certificate leaf`. Never judge a build
+by grepped output. And when permissions "don't stick", read tccd's
+`identifier=` before suspecting the permission code.
