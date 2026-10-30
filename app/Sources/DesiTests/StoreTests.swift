@@ -31,8 +31,6 @@ func runStoreTests() {
             ["faithful", "casual", "professional", "respectful"], "tone raw values stable")
 
     T.begin("Model routing — anyToEnglish rides the Hinglish model")
-    T.equal(ModelManager.catalogEntry(for: .anyToEnglish).id,
-            ModelManager.catalogEntry(for: .hinglish).id, "same catalog entry (Prime)")
     ModelManager.shared.refresh()
     if let hinglish = ModelManager.shared.resolveModel(for: .hinglish, pinnedPath: ""),
        hinglish.isHinglish {

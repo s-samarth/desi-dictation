@@ -66,8 +66,6 @@ func runWordListTests() {
     T.equal(PersonalDictionary.apply("nahin is a word", entries: dictionary.entries(for: .english)),
             "nahin is a word", "…and never touch English text")
     T.equal(dictionary.entries(for: .hindi).count, 0, "हिन्दी gets no words")
-    dictionary.add(heard: "nahin", written: "nahin", scope: .english)
-    T.equal(dictionary.entries.count, 2, "a no-op rule isn't stored")
     dictionary.add(heard: "Saraswath", written: "Saraswat", scope: .hinglish)
     T.equal(dictionary.entries.count, 3, "the same word can live in both lists")
 

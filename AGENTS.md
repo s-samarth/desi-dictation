@@ -33,7 +33,7 @@ why the same bug never bites twice.
    A bare `swift build` also needs `source scripts/sdk_env.sh` (CLT 27 has no
    SwiftUI macro plugin — FM#23); the scripts already source it.
 2. **`./scripts/preflight.sh` before every push.** Green preflight = green CI;
-   it runs build · 119 tests · app↔web parity · web tests · **latency gate**
+   it runs build · desi-tests · app↔web parity · web tests · **latency gate**
    (the last one is local-only — CI has no models).
 3. **Parity pairs change together:** `HindiNumbers.swift ↔ web/hindi_numbers.py`
    and `PromptTemplates.swift ↔ web/prompts.py` are deliberate ports.

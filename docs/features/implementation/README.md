@@ -7,7 +7,7 @@ The *plan* docs one level up ([TRANSLATION.md](../TRANSLATION.md),
 uses, and where to reach in when you want to change it.** One doc per feature,
 written to be read two months from now.
 
-## What was built (all tested — `swift run desi-tests`, 119 assertions green)
+## What was built (all tested — `swift run desi-tests`, green)
 
 | Feature | Spec source | Implementation doc |
 |---|---|---|

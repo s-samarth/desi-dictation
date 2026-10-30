@@ -9,7 +9,7 @@ of the same flow: [CONTRIBUTING.md](CONTRIBUTING.md). Hosting the web demo:
                  you edit code
                       │
             ./scripts/preflight.sh          ← run before EVERY push
-      (build · 119 tests · app↔web parity · web tests)
+      (build · desi-tests · app↔web parity · web tests)
                       │  git push
                       ▼
    GitHub Actions: ci.yml  (mirrors preflight exactly)

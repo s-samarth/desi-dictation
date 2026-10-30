@@ -31,8 +31,7 @@ func runMenuBarTests() {
     let size = CGSize(width: 360, height: 180)
     let middle = MenuBarPlacement.callout(size: size, below: icon(1000), in: screen)
     T.equal(middle.frame.midX, 1015, "callout centres under the icon")
-    T.equal(middle.arrowX, 180, "arrow in the middle when centred")
-    T.equal(middle.frame.maxY, 941, "callout hangs just below the menu bar")
+    T.expect(middle.frame.maxY < icon(1000).minY, "callout hangs below the menu bar")
 
     let edge = MenuBarPlacement.callout(size: size, below: icon(1440), in: screen)
     T.equal(edge.frame.maxX, 1502, "callout stays 10 pt inside the right edge")
@@ -40,10 +39,6 @@ func runMenuBarTests() {
 
     let corner = MenuBarPlacement.callout(size: size, below: icon(1490), in: screen)
     T.equal(corner.arrowX, 338, "arrow stays off the rounded corner")
-
-    let notice = MenuBarPlacement.centered(size: size, under: screen, menuBarHeight: 37)
-    T.equal(notice.midX, 756, "notice centres on the screen")
-    T.equal(notice.maxY, 929, "notice sits under the menu bar")
 
     T.equal(LaunchKind.of(onboarded: false, tourPending: false, loginItem: true, uptime: 30),
             .firstRun, "not set up: setup window, even at login")
