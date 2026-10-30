@@ -51,12 +51,12 @@ enum UISnapshots {
         let release = AppRelease(version: "0.8.0", dmg: URL(string: "https://example.com/u.dmg")!,
                                  checksum: URL(string: "https://example.com/u.dmg.sha256")!)
         shots.append(("update-banner", {
-            Updater.shared.preview(.available(release))
+            Updater.shared.preview(.ready(release, URL(fileURLWithPath: "/tmp/Desi Dictation.app")))
             MainNav.shared.selection = .dictation
             return AnyView(MainWindow())
         }, MainWindow.size))
-        shots.append(("update-downloading", {
-            Updater.shared.preview(.downloading(release, 0.42))
+        shots.append(("update-manual", {
+            Updater.shared.preview(.manual(release))
             return AnyView(UpdateBanner().frame(width: 560))
         }, NSSize(width: 560, height: 40)))
         shots.append(("update-icon", {
