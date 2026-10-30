@@ -2,8 +2,8 @@
 
 **Status:** written 2026-10-28 in a Linux container, then built and measured
 on a Mac (M3) the same day: see **Measured** below. Live dictation in the app
-is still to be checked by hand: [handoff/MAC_HANDOFF_CONTEXT_FIT.md](../../handoff/MAC_HANDOFF_CONTEXT_FIT.md).
-Plan and decisions: [VOCABULARY_NEXT.md](../VOCABULARY_NEXT.md) §1.
+is still to be checked by hand: handoff/MAC_HANDOFF_CONTEXT_FIT.md *(private)*.
+Plan and decisions: VOCABULARY_NEXT.md *(private)* §1.
 
 **Problem.** A dictionary pair is a hard rule. *cloud → Claude* is right in
 "I asked cloud to refactor this" and wrong in "our data is in the cloud".

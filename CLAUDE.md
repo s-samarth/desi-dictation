@@ -19,7 +19,7 @@ skip this even for "small" edits.
 | Models, ASR quality, engine choice | [docs/MODEL_RESEARCH.md](docs/MODEL_RESEARCH.md) + [docs/features/implementation/MODEL_ROUTING.md](docs/features/implementation/MODEL_ROUTING.md) |
 | Anything about speed/latency | [docs/PERFORMANCE.md](docs/PERFORMANCE.md) + [docs/PERF_RCA_2026-08.md](docs/PERF_RCA_2026-08.md) — measure, don't assume RTF |
 | Deploy targets, servers, domain | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
-| Anything user-facing (flows, menus, UI) | [docs/features/implementation/USER_WALKTHROUGH.md](docs/features/implementation/USER_WALKTHROUGH.md) + [docs/features/PERSONAS.md](docs/features/PERSONAS.md) |
+| Anything user-facing (flows, menus, UI) | [docs/features/implementation/USER_WALKTHROUGH.md](docs/features/implementation/USER_WALKTHROUGH.md) + `private/docs/features/PERSONAS.md` (private notes, when cloned) |
 
 Full index: [docs/README.md](docs/README.md). When a change teaches you a new
 failure mode, log it in [docs/BUILD_LOG.md](docs/BUILD_LOG.md) — that file is

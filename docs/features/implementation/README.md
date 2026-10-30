@@ -1,8 +1,8 @@
 # Feature Implementation Docs — the 0.6 wave (2026-07-10) + 0.6.1 (2026-08-19)
 
-The *plan* docs one level up ([TRANSLATION.md](../TRANSLATION.md),
-[TRANSCRIBE_TRANSLATE.md](../TRANSCRIBE_TRANSLATE.md),
-[STRUCTURE_THOUGHTS.md](../STRUCTURE_THOUGHTS.md), [IDEAS.md](../IDEAS.md)) say
+The *plan* docs one level up (TRANSLATION.md *(private)*,
+TRANSCRIBE_TRANSLATE.md *(private)*,
+STRUCTURE_THOUGHTS.md *(private)*, IDEAS.md *(private)*) say
 *what and why*. These docs say **how each feature is actually built, what it
 uses, and where to reach in when you want to change it.** One doc per feature,
 written to be read two months from now.

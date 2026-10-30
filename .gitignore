@@ -34,7 +34,9 @@ spike/results/*.json
 evals/data/
 evals/reports/
 
-# NOTE: docs/ — including strategy/business docs — are now TRACKED (repo is private).
-# (Previously these were gitignored; un-ignored on 2026-07-09 after the repo went private.)
+# Strategy, business and planning notes live in a separate PRIVATE repo
+# (s-samarth/desi-dictation-private), cloned here as private/. Never commit them:
+# this repo is public. Moved out on 2026-10-30.
+private/
 web/.venv/
 web/__pycache__/

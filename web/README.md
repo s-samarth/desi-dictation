@@ -91,7 +91,7 @@ Cost control for a demo: stop the instance when idle (`aws ec2 stop-instances`),
 or use spot + a start/stop schedule. Don't leave a $385/mo box idling for a
 demo nobody's clicking at 3 am — the laptop + tunnel covers launch week.
 The production-grade path (serverless GPU, our own endpoint, quotas) is a
-different beast and already designed in [docs/cloud/](../docs/cloud/README.md).
+different beast and already designed in docs/cloud/ *(private)*.
 
 ## What was verified (2026-07-14, this machine)
 

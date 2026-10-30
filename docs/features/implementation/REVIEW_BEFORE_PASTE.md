@@ -5,7 +5,7 @@ and the panel sized to the text added 2026-10-29 (`feat/review-strictness`).
 Tests, preflight and both measurements ran on a Mac (M3).
 **Not checked live:** the panel taking the keyboard and handing the paste
 back to the app you dictated into. That needs a person at the mic.
-Plan: [VOCABULARY_NEXT.md](../VOCABULARY_NEXT.md) §2.
+Plan: VOCABULARY_NEXT.md *(private)* §2.
 
 **Problem.** Some words come out wrong, and today you only find out after
 they're pasted. **Answer.** An opt-in panel between transcription and ⌘V
