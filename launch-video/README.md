@@ -58,6 +58,36 @@ differentiator.
 
   Never add `main-history.png`: it shows your own dictations.
 
+## The reel (vertical, ~41 s)
+
+A fast cut of the same story for Instagram Reels, X and Product Hunt:
+1080×1920, no voice, the launch film's track, hard cuts on bar lines.
+
+```bash
+npx remotion render Reel out/desi-dictation-reel.mp4    # or: npm run render:reel
+```
+
+| Bars | Scene | Shows |
+|---|---|---|
+| 2 | Hook | "Wispr Flow?" and three jabs, struck through: "Not built for how India talks." |
+| 2 | Title | "So I built" → icon → Desi Dictation → "Dictation you can trust." |
+| 2 | Languages | English, Hinglish, हिन्दी, a line each |
+| 2 | Demo | Hold ⌥ → Listening → Transcribing → the Hinglish line lands in Messages |
+| 3 | How it works | Mic → Silero VAD → on-device model → your words → pasted. "0 servers involved" |
+| 2 | No rewrite | um/uh fold away, every real word stays |
+| 3 | Asks when unsure | Sure → pasted; unsure → just 2 words. "No spam. No nagging." |
+| 2 | Privacy | FREE. LOCAL. OFFLINE. PRIVATE. (one per beat), "Your voice never leaves your Mac." |
+| 3 | Get it | "Get your copy. It's free." samarthsaraswat.com/desi-dictation, where the full film is |
+
+- **Code:** `src/reel/` (`Reel.tsx` has the scene order; `kit.tsx` the beat-synced pieces).
+- **Music:** the track's quiet intro carries the hook, its groove kicks in on the
+  title (beat 7), and its breakdown (bar 18) lands on the call to action.
+- **The jabs at Wispr Flow** are the website's comparison table
+  (`s-samarth/src/data/ddCompare.ts`, checked July 2026): their cloud,
+  $12–15 a month, AI auto-edits. Check them again before re-posting later.
+- **Safe zones:** text sits between 260 px from the top and 380 px from the
+  bottom, clear of the Reels caption and buttons.
+
 ## Your voice on the dictated lines
 
 Three dictation scenes play your real voice. Record
