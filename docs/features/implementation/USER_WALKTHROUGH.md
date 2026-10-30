@@ -139,20 +139,22 @@ menu items and right-click services are hidden (§3–§8).
 
 ## 0e · Updates: one click (2026-10-30)
 
-You never check for updates. When a new version is out, the menu-bar mic
+You never check for updates. When a new version is out, the app downloads
+and checks it quietly in the background. Only then the menu-bar mic
 gets a small dot, the menu's second line reads **⬆︎ Update to v0.8.0 (click
 to install)**, and the window shows a banner: "Desi Dictation 0.8.0 is
 ready. Nothing to set up again." with **Update now**.
 
-Click either. The menu shows "Downloading update… 42%", then "Restarting to
-finish the update…", and about ten seconds later the new version is in the
-menu bar. You don't grant permissions again, and your settings, history,
+Click either. There's nothing left to wait for: the menu shows "Restarting
+to finish the update…", and about three seconds later the new version is
+in the menu bar. You don't grant permissions again, and your settings, history,
 dictionary and models are all still there. No Terminal, no DMG, no "Open
 Anyway". If you're mid-dictation, it waits until you finish.
 
-If it can't update (no internet, a damaged download), the same line says
-why and becomes **Try again**. On an account that can't write to
-Applications, the click downloads the DMG instead. This works from the
+If the download fails (no internet, a damaged file), you see nothing, and
+it tries again an hour later. On an account that can't write to
+Applications, the line reads **v0.8.0 is out (click to download)** and
+opens the DMG instead. This works from the
 first version that has it; to get that one, update the old way, once.
 
 ## 1 · Personal dictionary — zero setup, works today

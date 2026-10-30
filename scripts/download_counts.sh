@@ -5,8 +5,10 @@
 #   DesiDictation-mac.dmg   the website's Download button   (from v0.7.0)
 #   DesiDictation.dmg       the one-line installer (Terminal)
 #   DesiDictation-<v>.dmg   the GitHub releases page
-#   DesiDictation-update.dmg  the app's one-click update (existing users;
-#                           not in the total, which counts new downloads)
+#   DesiDictation-update.dmg  the app's update, fetched in the background by
+#                           existing users once it's out (not every one is
+#                           installed; not in the total, which counts new
+#                           downloads)
 # Before v0.7.0 the website button also fetched DesiDictation.dmg, so for
 # older releases "Terminal" includes website clicks.
 #

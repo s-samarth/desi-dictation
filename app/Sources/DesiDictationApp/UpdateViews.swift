@@ -10,16 +10,16 @@ struct UpdateMenuItem: View {
         switch updater.state {
         case .upToDate:
             EmptyView()
-        case .available(let release):
+        case .ready(let release, _):
             Button("⬆︎ Update to v\(release.version) (click to install)") { updater.install() }
             Divider()
-        case .downloading(_, let fraction):
-            Text("Downloading update… \(Int(fraction * 100))%")
+        case .manual(let release):
+            Button("⬆︎ v\(release.version) is out (click to download)") { updater.install() }
             Divider()
         case .restarting:
             Text("Restarting to finish the update…")
             Divider()
-        case .failed(_, let message):
+        case .failed(_, _, let message):
             Button("Update failed: \(message) Try again") { updater.install() }
             Divider()
         }
@@ -50,12 +50,12 @@ struct UpdateBanner: View {
     private var line: (text: String, action: String?)? {
         switch updater.state {
         case .upToDate: return nil
-        case .available(let release):
-            return ("Desi Dictation \(release.version) is ready. Nothing to set up again.",
-                    "Update now")
-        case .downloading(_, let fraction): return ("Downloading the update… \(Int(fraction * 100))%", nil)
+        case .ready(let release, _):
+            return ("Desi Dictation \(release.version) is ready. Nothing to set up again.", "Update now")
+        case .manual(let release):
+            return ("Desi Dictation \(release.version) is out.", "Download")
         case .restarting: return ("Restarting to finish the update…", nil)
-        case .failed(_, let message): return ("Update failed: \(message)", "Try again")
+        case .failed(_, _, let message): return ("Update failed: \(message)", "Try again")
         }
     }
 }

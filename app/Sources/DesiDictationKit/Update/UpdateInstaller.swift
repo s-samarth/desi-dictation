@@ -24,29 +24,45 @@ public enum UpdateInstaller {
             && fm.isWritableFile(atPath: bundle.path)
     }
 
-    /// Downloads `release` and returns the unpacked app, after checking that
+    /// Downloads `release` (or reuses one an earlier launch fetched) and
+    /// returns the unpacked app, after checking that
     /// its SHA-256 matches the published one, that it is the version
     /// advertised and newer than `currentVersion`, and that it is signed by
     /// the same certificate as this app. That last check is what keeps the
     /// user's permissions: macOS ties them to the certificate.
-    public static func prepare(_ release: AppRelease, currentVersion: String,
-                               progress: @escaping @Sendable (Double) -> Void) async throws -> URL {
+    public static func prepare(_ release: AppRelease, currentVersion: String) async throws -> URL {
+        if let app = alreadyStaged(release, currentVersion: currentVersion) { return app }
         let fm = FileManager.default
         try? fm.removeItem(at: stage)
         try fm.createDirectory(at: stage, withIntermediateDirectories: true)
         let dmg = stage.appendingPathComponent("DesiDictation.dmg")
-        try await download(release.dmg, to: dmg, progress: progress)
+        try await download(release.dmg, to: dmg)
 
         let expected = try await published(checksum: release.checksum)
         let actual = SHA256.hash(data: try Data(contentsOf: dmg)).map { String(format: "%02x", $0) }.joined()
         guard actual == expected else { throw Failure.checksum }
 
         let app = try unpack(dmg)
+        try? fm.removeItem(at: dmg)
+        try check(app, is: release, newerThan: currentVersion)
+        return app
+    }
+
+    /// The app a previous launch already downloaded and checked for
+    /// `release`, so a pending update isn't fetched again on every launch.
+    /// Its signature is checked again; the DMG's checksum is gone with it.
+    public static func alreadyStaged(_ release: AppRelease, currentVersion: String) -> URL? {
+        let app = stage.appendingPathComponent("Desi Dictation.app")
+        guard FileManager.default.fileExists(atPath: app.path),
+              (try? check(app, is: release, newerThan: currentVersion)) != nil else { return nil }
+        return app
+    }
+
+    private static func check(_ app: URL, is release: AppRelease, newerThan currentVersion: String) throws {
         let version = Bundle(url: app)?.infoDictionary?["CFBundleShortVersionString"] as? String
         guard version == release.version, AppVersion.isNewer(release.version, than: currentVersion)
         else { throw Failure.version }
         guard signedLikeThisApp(app) else { throw Failure.signature }
-        return app
     }
 
     /// Starts a helper that waits for this process to exit, swaps `staged`
@@ -86,12 +102,9 @@ public enum UpdateInstaller {
         return SecStaticCodeCheckValidity(other, flags, requirement) == errSecSuccess
     }
 
-    private static func download(_ url: URL, to file: URL,
-                                 progress: @escaping @Sendable (Double) -> Void) async throws {
+    private static func download(_ url: URL, to file: URL) async throws {
         let session = URLSession(configuration: .ephemeral)
         defer { session.finishTasksAndInvalidate() }
-        var observation: NSKeyValueObservation?
-        defer { observation?.invalidate() }
         try await withCheckedThrowingContinuation { (done: CheckedContinuation<Void, Error>) in
             let task = session.downloadTask(with: url) { location, response, _ in
                 guard let location, (response as? HTTPURLResponse)?.statusCode == 200,
@@ -99,7 +112,6 @@ public enum UpdateInstaller {
                 else { return done.resume(throwing: Failure.download) }
                 done.resume()
             }
-            observation = task.progress.observe(\.fractionCompleted) { p, _ in progress(p.fractionCompleted) }
             task.resume()
         }
     }

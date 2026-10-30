@@ -34,4 +34,9 @@ func runUpdateTests() {
     T.begin("Updates — only a same-certificate app is accepted")
     T.expect(!UpdateInstaller.signedLikeThisApp(URL(fileURLWithPath: "/System/Applications/Calculator.app")),
              "an app signed by someone else is refused")
+
+    T.begin("Updates — a pending update isn't downloaded again")
+    let next = release(all)!
+    T.expect(UpdateInstaller.alreadyStaged(next, currentVersion: "0.7.1") == nil,
+             "nothing staged: download it")
 }
