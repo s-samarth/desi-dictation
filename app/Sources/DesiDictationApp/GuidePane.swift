@@ -14,6 +14,8 @@ struct GuidePane: View {
                 Text("Desi Dictation types what you say into any app. Everything runs on this Mac. Sections 1 and 2 are all you need. Everything after them is optional and **off until you turn it on**: read what each does and switch on only what helps you. Nothing changes your words unless you told it to (your own word list).")
             }
 
+            GuideHome()
+
             GuideFeature(
                 number: 1, title: "Dictate anywhere",
                 summary: "Click into any text field, then speak.",
@@ -30,8 +32,9 @@ struct GuidePane: View {
             GuideFeature(
                 number: 3, title: "Teach it your words",
                 summary: "A name it keeps getting wrong? Teach it once and every dictation writes it your way, in every app. There are two lists: Hinglish dictations use your Hinglish words, English dictations your English words, so a Hinglish spelling like \"nahi\" never touches English. हिन्दी uses neither.",
-                steps: ["**Fastest:** select the wrong word in any app, right-click → **Services → Always write as… (Desi Dictation)**, type the right spelling, Save.",
-                        "Or fix it in the text right after dictating (section 4), or add it in Vocabulary → Your words."])
+                steps: ["Click the mic → **Open Desi Dictation…** → **Vocabulary**.",
+                        "Under **Your words**, click **Add English word…** (or Hinglish), type what it wrote and what it should write, and Save.",
+                        "From then on it writes your spelling, in every app. Or let it learn as you go: turn on **Learn from my corrections** (section 4) and just fix the word where it landed."])
 
             learnSection
 

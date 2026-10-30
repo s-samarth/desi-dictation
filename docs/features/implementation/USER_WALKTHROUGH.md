@@ -64,6 +64,9 @@ where it went. Now (details: [FIRST_RUN.md](FIRST_RUN.md)):
      the optional context checker.
   7. **Done**: a drawing of the menu bar with the mic ringed, the three
      everyday steps, and **Finish**, which unlocks once the models are in.
+- **The Guide starts with "Where it lives"**: why there's no window (by
+  design), a picture of the menu, and where to change the key and switch
+  between hold and tap.
 - **After Finish restarts the app,** a callout hangs under the mic ("Desi
   Dictation lives up here") with a pulsing ring around the icon. It has
   **Show me the menu** and **Got it**, and stays until you dismiss it or open

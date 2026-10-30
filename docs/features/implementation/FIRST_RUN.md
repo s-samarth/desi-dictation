@@ -55,6 +55,23 @@ macOS as this app, since it's a child process. ~25 ms warm.
 - An already set-up app whose permission was lost still asks at launch, as
   before.
 
+## The Guide's first section: "Where it lives"
+
+People open the app again from Spotlight and see nothing but the mic in the
+menu bar (user review 2026-10-30). The Guide now starts with why that's by
+design, a real capture of the menu (`app/Resources/guide-menu.png`, copied
+into the bundle by `build_app.sh`), and four steps:
+
+1. Open Desi Dictation… to change anything.
+2. Otherwise just hold the key.
+3. Hold or tap (Dictation → Shortcut → Mode).
+4. A different key (→ Key).
+
+Re-take the capture when the menu's items change. It was taken with Finder
+in front, so it reads "For Finder", and with `screencapture -l <window id>`
+so nothing behind the menu shows. The tour callout also says why: "It stays
+in your menu bar on purpose, so it never gets in your way."
+
 ## When there's no icon to point at
 
 `MenuBarPlacement.visibility` checks the icon's frame:

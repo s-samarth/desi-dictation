@@ -199,3 +199,22 @@ field's spelling wins for this dictation. It's never learned.
 - **A new biasable engine:** conform to `HotwordBiasing`.
 - **A new source:** add a `VocabularySource` case. Its `isOnScreen` decides
   whether it may replace real words.
+
+## Checking it on a real window
+
+"Use names on screen" and "Hinglish: match my spelling" depend on reading
+another app's window, which unit tests can't cover. `ScreenCheck` reads the
+front window the way a dictation does at key-down, runs a sentence through
+the corrector, and writes what Review would offer:
+
+```bash
+open -n -a "Desi Dictation" --args --screen-check 3 "send it to Kartick" english /tmp/check.txt
+# within 3 s, click into a text field in the window to test; then:
+cat /tmp/check.txt
+```
+
+It has to run as the installed app. A tool started from a terminal (or by
+Claude) gets "cannot complete" (-25204) from the Accessibility server for
+every app, even though its `AXIsProcessTrusted()` says yes (2026-10-30). That
+run has its parent's grant, not an Accessibility identity of its own.
+`open` makes LaunchServices start the app as itself, with its own grant.

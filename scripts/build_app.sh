@@ -40,6 +40,9 @@ if [ ! -f "$ICNS" ]; then
   iconutil -c icns "$ICONSET" -o "$ICNS"
 fi
 cp "$ICNS" "$CONTENTS/Resources/AppIcon.icns"
+# The Guide's picture of the menu-bar menu (GuideHome.swift). A real capture
+# of the menu window: re-take it when the menu's items change.
+cp "$APP_DIR/Resources/guide-menu.png" "$CONTENTS/Resources/guide-menu.png"
 
 cat > "$CONTENTS/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
