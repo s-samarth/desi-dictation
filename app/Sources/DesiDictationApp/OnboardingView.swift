@@ -9,7 +9,6 @@ struct OnboardingView: View {
     @ObservedObject var models = ModelManager.shared
     @State private var choice: LanguageMode = .hinglish
     @State private var alsoDownload: Set<LanguageMode> = []
-    @State private var permissions = Permissions.check()
 
     private var wanted: [DownloadableModel] {
         var entries = [ModelManager.catalogEntry(for: choice)]
@@ -77,11 +76,7 @@ struct OnboardingView: View {
                 .disabled(allDownloaded)
 
                 step(3, "Give macOS permissions")
-                permissionRow("Microphone — to hear you", permissions.microphone, .microphone)
-                permissionRow("Accessibility — to type into apps", permissions.accessibility, .accessibility)
-                permissionRow("Input Monitoring — for the hotkey", permissions.inputMonitoring, .inputMonitoring)
-                Button("Re-check permissions") { permissions = Permissions.check() }
-                    .font(.caption)
+                OnboardingPermissions()
 
                 step(4, "Teach it your names (optional)")
                 Text("Fixes names it keeps getting wrong, and learns from the words you correct. All off until you turn them on. The Guide page (opens after setup) explains each one.")
@@ -100,6 +95,7 @@ struct OnboardingView: View {
                     .frame(height: settings.reviewMode == .off ? 170 : 260)
 
                 Divider()
+                MenuBarHomeNote()
                 Text("Then: **hold Right ⌥ (Option)**, speak, release — your words appear wherever your cursor is. Esc cancels. Change the key, language or model anytime: menu bar mic → Open Desi Dictation…")
                     .font(.callout)
 
@@ -107,6 +103,7 @@ struct OnboardingView: View {
                     settings.languageMode = choice
                     settings.dictationEnabled = true
                     settings.onboarded = true
+                    UserDefaults.standard.set(true, forKey: MenuBarPointer.tourPendingKey)
                     AppRelauncher.relaunch()
                 }
                 .buttonStyle(.borderedProminent)
@@ -133,16 +130,6 @@ struct OnboardingView: View {
             Text(title).font(.headline)
         }
         .padding(.top, 4)
-    }
-
-    private func permissionRow(_ label: String, _ granted: Bool, _ pane: Permissions.Pane) -> some View {
-        HStack {
-            Image(systemName: granted ? "checkmark.circle.fill" : "xmark.circle")
-                .foregroundStyle(granted ? .green : .red)
-            Text(label).font(.callout)
-            Spacer()
-            if !granted { Button("Open Settings") { Permissions.openSystemSettings(pane: pane) } }
-        }
     }
 }
 

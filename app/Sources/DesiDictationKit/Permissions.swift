@@ -21,6 +21,12 @@ public enum Permissions {
         )
     }
 
+    /// macOS hasn't asked about the mic yet: a request shows its prompt.
+    /// Once answered, only System Settings can change it.
+    public static var microphoneUndecided: Bool {
+        AVCaptureDevice.authorizationStatus(for: .audio) == .notDetermined
+    }
+
     public static func requestMicrophone() {
         AVCaptureDevice.requestAccess(for: .audio) { _ in }
     }
