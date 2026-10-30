@@ -115,12 +115,19 @@ stub that notes it was opened. The passes:
 | Other certificate | Refused, old app kept |
 | Wrong checksum | Refused, old app kept |
 
-Not covered by the rehearsal:
+The rehearsal can't cover real grants or the menu click, so both were
+checked by hand on the maintainer's Mac (2026-10-30):
 
-- **The real permission carry-over.** That needs real grants. It rests on
-  the designated-requirement check above, and on releases v0.6.x → v0.7.x
-  already keeping grants under the same certificate.
-- **The menu click itself** (the rehearsal calls `install()` directly).
+- the real app, signed with "Desi Dictation Dev", ran with
+  `open --env DESI_UPDATE_FEED=…` against a local feed offering v0.7.1.1
+  (the same build, re-signed with a bumped version);
+- the mic showed the dot, and the menu line was clicked;
+- about 3 s later v0.7.1.1 was running from `/Applications`, signature
+  intact;
+- a dictation worked straight away, with no permission asked again.
+
+Use a four-part version like that for hand tests, so the next real
+release is still newer.
 
 ## Files
 
