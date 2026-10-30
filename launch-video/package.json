@@ -30,7 +30,8 @@
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
-    "render": "remotion render Launch out/desi-dictation-launch.mp4"
+    "render": "remotion render Launch out/desi-dictation-launch.mp4",
+    "render:reel": "remotion render Reel out/desi-dictation-reel.mp4"
   },
   "allowScripts": {
     "esbuild": false
