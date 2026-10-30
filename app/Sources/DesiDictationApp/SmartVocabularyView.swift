@@ -11,7 +11,7 @@ struct SmartVocabularyToggles: View {
         toggle("Suggest words from my corrections", $store.learnFromEdits,
                "Retype a word it got wrong and it asks \"Always write X as Y?\"")
         toggle("Suggest near-misses of my words", $store.fixNearMisses,
-               "\"Saraswath\" is underlined with \"Saraswat\" in Review before paste. Never changed for you.")
+               "\"Kartick\" is underlined with \"Kartik\" in Review before paste. Never changed for you.")
         toggle("Suggest names on screen", $store.readScreen,
                "Reads the window you dictate into, for that dictation only. Never saved.")
             .disabled(!store.fixNearMisses)

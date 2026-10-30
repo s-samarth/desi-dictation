@@ -163,15 +163,23 @@ struct PermissionsSection: View {
                 row("Accessibility (pastes text)", permissions.accessibility, .accessibility)
                 row("Input Monitoring (the shortcut key)", permissions.inputMonitoring, .inputMonitoring)
                 HStack {
-                    Button("Re-check") { permissions = Permissions.check() }
-                    Text("After granting, quit and reopen the app.")
+                    Button("Re-check") { recheck() }
+                    Text("Input Monitoring takes effect after you quit and reopen the app.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
         } header: {
             Text("Permissions")
         }
-        .onAppear { permissions = Permissions.check() }
+        .onAppear { recheck() }
+    }
+
+    /// Fresh answers, not the ones remembered since launch (FM#44).
+    private func recheck() {
+        Task.detached {
+            let fresh = Permissions.checkFresh()
+            await MainActor.run { permissions = fresh }
+        }
     }
 
     private func row(_ name: String, _ granted: Bool, _ pane: Permissions.Pane) -> some View {

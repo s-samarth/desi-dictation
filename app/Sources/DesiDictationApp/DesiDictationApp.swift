@@ -2,7 +2,16 @@ import ServiceManagement
 import SwiftUI
 import DesiDictationKit
 
+/// Entry point. The permission probe (PermissionProbe) is a second copy of
+/// this binary that must answer and exit before any of the app starts.
 @main
+enum Launch {
+    static func main() {
+        PermissionProbe.answerIfAsked()
+        DesiDictationApp.main()
+    }
+}
+
 struct DesiDictationApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @ObservedObject var controller = DictationController.shared

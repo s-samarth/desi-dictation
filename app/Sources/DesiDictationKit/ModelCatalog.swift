@@ -68,6 +68,9 @@ extension ModelManager {
 
     public static var vadEntry: DownloadableModel { entry("silero-vad") }
 
+    /// The accurate English model, offered beside Parakeet in setup.
+    public static var qwenEntry: DownloadableModel { entry("qwen3-asr-1.7b-q8_0") }
+
     /// The "When it fits" context checker (CONTEXT_FIT.md): a small text
     /// model that scores sentences, never a transcription model, so it lives
     /// outside `catalog` and is offered on the Vocabulary page.

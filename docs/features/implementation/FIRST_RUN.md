@@ -18,20 +18,42 @@ menu-bar mic, and where to change it.
 | Opened again while running | The reminder (unfinished setup reopens setup instead) | Same |
 | At login | Nothing | The user didn't ask for it |
 
-Also in setup:
+## Setup: one question per page (redesigned 2026-10-30)
 
-- **Permissions, one at a time.** Before, launch fired the microphone,
-  Accessibility and Input Monitoring prompts all at once, and the three
-  system dialogs buried the setup window. Now setup's step 3 has an **Allow**
-  button per permission. The first press shows macOS's prompt; after that, a
-  press opens the right System Settings pane. The ticks update every second
-  by themselves.
-  - An already set-up app whose permission was lost still asks at launch, as
-    before.
-  - Input Monitoring may only show its tick after Finish's restart; the step
-    says so once you've pressed it.
-- **"After setup, it lives in your menu bar"** in big letters above Finish,
-  with why: no Dock icon, no window to keep open, works in every app.
+The first fresh-install review found the single scrolling setup page
+cluttered and cut off: tiny text, the user's own name in examples, Review
+explained in one dense paragraph, and an Accessibility tick that never turned
+green. Setup is now seven pages with Back and Continue and a progress bar
+(`OnboardingView`). `OnboardingModel` holds every choice, so going Back
+loses nothing.
+
+| Page | What it asks | Notes |
+|---|---|---|
+| Welcome | nothing | What it does: private, every app, one key |
+| Language | main language, "I also speak" | **English preselected** (user decision 2026-10-30) |
+| Models | English: Parakeet and/or Qwen | Parakeet "fastest, default" (0.14–0.21 s), Qwen "most accurate": ~1 in 6 fewer errors on clear Indian English, ~0.5 s slower (ENGLISH_ASR_AB_2026-10.md). With both, Auto uses Parakeet. **Download and continue** starts the downloads; the footer shows progress on later pages |
+| Permissions | Microphone, Accessibility, Input Monitoring | One **Allow** each. Ticks come from `PermissionProbe` (below). After the first press, a drawing shows the row to switch on. The list isn't named: macOS 27 files Accessibility under "Device Control and Data Access" |
+| Your words | the vocabulary switches | Each card: what it does, a generic example (Kartick → Kartik), who should turn it on |
+| Review | when it opens, how much it underlines | A drawing of the panel; "Feel it's poking you too often? Switch to Liberal"; the context checker card shows whether or not Review is on |
+| Done | nothing | The menu bar with the mic ringed; the three everyday steps; **Finish** unlocks when models are in |
+
+### Why the ticks needed a probe (FM#44)
+
+`AXIsProcessTrusted()` answers once per process. Setup used to poll it every
+second, but macOS's log showed only two real checks: at launch and on Allow.
+`PermissionProbe.ask()` starts this app's own binary with
+`--permission-probe`; that copy asks macOS, exits with the answer as its
+exit code (40 + 1 Accessibility + 2 Input Monitoring), and is judged by
+macOS as this app, since it's a child process. ~25 ms warm.
+
+- `Launch.main` handles the flag before any of the app starts.
+- `PermissionWatcher` probes every second until all three are granted, and
+  once more when the app becomes active again (back from System Settings).
+- The paste gate (`Permissions.accessibilityGranted()`) probes only when the
+  cached answer is "no", so an Accessibility grant made while the app runs
+  works without a restart.
+- An already set-up app whose permission was lost still asks at launch, as
+  before.
 
 ## When there's no icon to point at
 
@@ -100,14 +122,15 @@ frame.
 | `DesiDictationKit/MenuBarPlacement.swift` | Visibility, callout placement, `LaunchKind`. Pure, tested in `DesiTests/MenuBarTests.swift` |
 | `DesiDictationApp/MenuBarPointer.swift` | Finds the icon, shows and hides the panels, clicks the icon |
 | `DesiDictationApp/PointerViews.swift` | The callout, notice, ring and button style |
-| `DesiDictationApp/OnboardingParts.swift` | The permission step and the "lives in your menu bar" note |
+| `DesiDictationApp/Onboarding*.swift` | Setup: the flow (`OnboardingView`, `OnboardingModel`), shared cards (`OnboardingKit`), and one file per group of pages |
+| `DesiDictationKit/PermissionProbe.swift` | Fresh permission answers from a short-lived copy of the app |
 | `DesiDictationApp/DesiDictationApp.swift` | Classifies the launch; reopen shows the reminder |
 
 ## Trying it
 
 ```bash
 DESI_POINTER=tour app/.build/debug/desi-dictation       # or =reminder (debug builds only)
-DESI_UI_SCALE=2 DESI_UI_SNAPSHOTS=/tmp/shots app/.build/debug/desi-dictation  # pointer-*.png, onboarding-parts.png
+DESI_UI_SCALE=2 DESI_UI_SNAPSHOTS=/tmp/shots app/.build/debug/desi-dictation  # pointer-*.png, onboarding-<n>-<page>.png
 ```
 
 Debug builds log the icon frame, its visibility and the callout frame

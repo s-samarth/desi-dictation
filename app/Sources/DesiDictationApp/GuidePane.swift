@@ -37,7 +37,7 @@ struct GuidePane: View {
 
             GuideFeature(
                 number: 5, title: "Suggest near-misses of your words",
-                summary: "When a dictated word sounds and looks almost like one of your words, it's underlined in the review panel with your word as choice 1: \"Saraswath\" → 1 Saraswat. It's never changed for you; only words you've told it to always write are written automatically.",
+                summary: "When a dictated word sounds and looks almost like one of your words, it's underlined in the review panel with your word as choice 1: \"Kartick\" → 1 Kartik. It's never changed for you; only words you've told it to always write are written automatically.",
                 steps: ["Needs **Review before paste** on (section 9). Press 1 to take the suggestion, or just carry on.",
                         "Want it written every time? Keep the fix as **Always** in the panel."],
                 turnOnIf: "you've added names to Your words (or let it learn some) and want them right the first time.",

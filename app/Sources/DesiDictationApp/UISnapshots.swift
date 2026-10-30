@@ -26,11 +26,11 @@ enum UISnapshots {
         }
         // Long pages, whole: what a reader scrolls through.
         shots.append(("guide-full", { AnyView(GuidePane()) }, NSSize(width: 560, height: 3000)))
-        shots.append(("onboarding", { AnyView(OnboardingView()) }, NSSize(width: 560, height: 640)))
-        shots.append(("onboarding-parts", { AnyView(VStack(alignment: .leading, spacing: 16) {
-            OnboardingPermissions()
-            MenuBarHomeNote()
-        }.padding(24).frame(width: 560)) }, NSSize(width: 560, height: 420)))
+        // Setup, one shot per page (FIRST_RUN.md).
+        for step in OnboardingModel.Step.allCases {
+            shots.append(("onboarding-\(step.rawValue)-\(step)", { AnyView(OnboardingView(start: step)) },
+                          OnboardingView.size))
+        }
         // The menu-bar pointer: each callout as it hangs under the mic.
         let callouts: [(String, AnyView)] = [
             ("pointer-tour", AnyView(PointerCallout(style: .tour, arrowX: 300))),

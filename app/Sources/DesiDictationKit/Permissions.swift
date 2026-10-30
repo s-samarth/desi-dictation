@@ -21,6 +21,24 @@ public enum Permissions {
         )
     }
 
+    /// Like `check()`, but Accessibility and Input Monitoring come from a
+    /// fresh probe (`PermissionProbe`), so a switch just turned on in System
+    /// Settings shows at once. Slow: call it off the main thread.
+    public static func checkFresh() -> Status {
+        guard let fresh = PermissionProbe.ask() else { return check() }
+        return Status(
+            microphone: AVCaptureDevice.authorizationStatus(for: .audio) == .authorized,
+            accessibility: fresh.accessibility,
+            inputMonitoring: fresh.inputMonitoring
+        )
+    }
+
+    /// Accessibility, asking afresh only when the remembered answer is "no"
+    /// (FM#44): allowed after launch, pasting must work without a restart.
+    public static func accessibilityGranted() -> Bool {
+        AXIsProcessTrusted() || PermissionProbe.ask()?.accessibility == true
+    }
+
     /// macOS hasn't asked about the mic yet: a request shows its prompt.
     /// Once answered, only System Settings can change it.
     public static var microphoneUndecided: Bool {
