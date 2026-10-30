@@ -1,7 +1,7 @@
 # Privacy Policy
 
 **Desi Dictation**
-**Effective date:** [DATE OF PUBLICATION]
+**Effective date:** 30 October 2026
 
 Desi Dictation is a dictation app for macOS, made by Samarth Saraswat
 ("we", "us"). It turns your speech into text on your own Mac. This policy
@@ -98,7 +98,7 @@ under its own privacy policy.
 
 ## 6. Our website
 
-[If the website uses no cookies or analytics, keep this sentence:] Our
+Our
 website does not use cookies, analytics or tracking. Your browser and our
 hosting provider exchange the usual technical information (such as your IP
 address) needed to deliver the page.
