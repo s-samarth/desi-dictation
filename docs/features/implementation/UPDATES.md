@@ -8,21 +8,23 @@ line when there's something new.
 
 ## What the user sees
 
-- **Nothing**, until a newer release exists.
+- **Nothing**, until a newer release exists *and* has downloaded and
+  passed its checks, quietly, in the background.
 - Then:
   - **a dot on the menu-bar mic**;
   - **"⬆︎ Update to v0.8.0 (click to install)"** just under the menu's status line;
   - **a banner across the window**: "Desi Dictation 0.8.0 is ready. Nothing to set up again." with **Update now**.
-- **One click.** The menu shows "Downloading update… 42%", then "Restarting
-  to finish the update…". The app quits and the new version opens by
-  itself, about ten seconds later.
+- **One click.** There's nothing left to download, so the menu shows
+  "Restarting to finish the update…" and the new version opens by itself
+  about three seconds later.
 - **Not mid-sentence.** If a dictation is recording or transcribing, the
   restart waits for it to finish.
 - **Same permissions, settings and models.** Nothing to grant again (see
   below). Settings, history and models live outside the app bundle and
   aren't touched.
-- **If something fails**, the line says why ("The download was damaged.")
-  and becomes **Try again**.
+- **If the download fails**, nothing shows; the next hourly tick tries
+  again. If it's signed by someone else, or the folder can't be written,
+  the line reads "v0.8.0 is out (click to download)" and opens the DMG.
 
 There is no switch to turn the check off, and no setup question about it
 (user decision 2026-10-30): it sends nothing about the user (see
@@ -48,9 +50,14 @@ There is no switch to turn the check off, and no setup question about it
      so `download_counts.sh` shows updates apart from new installs);
    - else the versioned DMG.
    A DMG without a `.sha256` beside it is never offered.
-2. **Download** to `~/Library/Caches/com.desi.dictation/Update/`. This
-   costs nothing until the click, so the counts aren't inflated by people
-   who never update.
+2. **Download** to `~/Library/Caches/com.desi.dictation/Update/`, in the
+   background, as soon as the check finds it. Clicking used to start the
+   download, and GitHub's release CDN served the 8.5 MB DMG at ~55 KB/s from
+   India (3 minutes) on a 11.5 MB/s line (2026-10-30), so the click now only
+   restarts. The cost: the "updates" download count means fetched, not
+   installed. An app already unpacked by an earlier launch is reused after
+   its signature and version are checked again, so a pending update isn't
+   fetched on every launch.
 3. **Check, three ways:**
    - **SHA-256** matches the published checksum;
    - **version**: the unpacked app's `CFBundleShortVersionString` is the one
@@ -95,8 +102,8 @@ release that contains it. Users on v0.7.1 or older install that one by hand
 | What | How |
 |---|---|
 | Version order, DMG choice, checksum required, foreign signature refused | `desi-tests` → `runUpdateTests` |
-| A real update, end to end | `./scripts/rehearse_update.sh` (~70 s) |
-| Banner and dot | `DESI_UI_SNAPSHOTS=…` → `update-banner.png`, `update-downloading.png`, `update-icon.png` |
+| A real update, end to end | `./scripts/rehearse_update.sh` (~100 s) |
+| Banner and dot | `DESI_UI_SNAPSHOTS=…` → `update-banner.png`, `update-manual.png`, `update-icon.png` |
 
 `rehearse_update.sh` runs three passes and touches nothing of the user's.
 It sets up:
@@ -114,6 +121,7 @@ stub that notes it was opened. The passes:
 | Same certificate | Swapped, signature intact, new app opened |
 | Other certificate | Refused, old app kept |
 | Wrong checksum | Refused, old app kept |
+| Relaunch before installing | The staged app is reused, not downloaded again |
 
 The rehearsal can't cover real grants or the menu click, so both were
 checked by hand on the maintainer's Mac (2026-10-30):
