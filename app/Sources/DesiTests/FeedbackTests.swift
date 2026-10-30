@@ -25,6 +25,4 @@ func runFeedbackTests() {
     T.equal(FeedbackSender.outcome(status: 200), .sent, "200 = sent")
     T.expect(FeedbackSender.outcome(status: 429) != .sent, "429 = try later")
     T.expect(FeedbackSender.outcome(status: 502) != .sent, "a mail-service failure says so")
-    T.equal(FeedbackReport.appInfo(version: "0.7.0", os: "15.1", language: "english", model: "auto"),
-            "Desi Dictation 0.7.0 · macOS 15.1 · english · model: auto", "the app-info line as shown")
 }

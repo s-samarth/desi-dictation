@@ -9,7 +9,9 @@ export SWIFTPM_CUSTOM_LIBS_DIR=~/.swiftpm-fixed-libs   # see BUILD_LOG FM#17
 swift run desi-tests          # exit 0 = green; prints ✓/✗ per assertion
 ```
 
-119 assertions as of 2026-08-19, all green. Files in `app/Sources/DesiTests/`:
+380 checks as of 2026-10-30 (run time 0.3 s), all green. The count isn't a
+target: on 2026-10-30 the suite was cut from 429 to 380 (see "What earns a
+check" below). Files in `app/Sources/DesiTests/`:
 
 | File | Covers |
 |---|---|
@@ -17,13 +19,31 @@ swift run desi-tests          # exit 0 = green; prints ✓/✗ per assertion
 | `DictionaryTests.swift` | word-boundary matching, casing preservation (Meating/MEATING/gpt-4), latest-wins editing, persistence round-trip, legacy `replacementRules` regression |
 | `ModelRoutingTests.swift` | v0.6.1: per-language model pins + migration from the old global pin; catalog lookup by id; language-scoped candidates (**Parakeet hidden outside English**, Hinglish models hidden for हिन्दी); engine routing by filename; chunk-threshold floors that keep a short dictation to one engine call |
 | `StoreTests.swift` | AppModeStore rules+persistence; `anyToEnglish` contract (whisper token, `needsLLM`, **pinned raw values** — they live in UserDefaults/history JSON, renaming = data migration); model routing incl. "Hindi never gets a Hinglish model" regression; HistoryEntry decode of **pre-0.6 JSON** (backward compat) |
-| `EngineTests.swift` | translation chunking invariants (budget respected, zero word loss), `MockLLM`-driven translate incl. failure propagation, structurer capping/overflow/zero-loss, `stripReasoning`, prompt-template sanity (every style forbids invention; faithful tone = nil) |
+| `EngineTests.swift` | the dormant AI layer, kept small until it ships: translation chunking invariants (budget respected, zero word loss), structurer capping/overflow/zero-loss via `MockLLM`, `stripReasoning`, every structure style forbids invention |
 | `PasteTests.swift` | FM#31: `PasteGate` waits for a held ⌥/⇧/⌃ before ⌘V, skips (never ⌥⌘V) at the timeout or without Accessibility; FM#32: an open menu of ours is closed before ⌘V; outcome → overlay notice mapping, no silent endings |
-| `CombinationTests.swift` | the real pipeline order: legacy rules → dictionary → LLM stage; anyToEnglish failure→raw fallback; tone rides corrected text; structure carries exact raw; per-app rule × anyToEnglish (the Rekha flow) |
-| `WhisperLabelTests.swift` | FM#30: `NaNLabelFilter` bans the Oriserve models' `nan` label only as the first token, keeps a real transcript, drops a lone forced token (noise), leaves one-word dictations alone. **Live** (skipped unless Apex and `evals/data/hinglish/clips/0081.wav` are present): 0081 decodes in full, 5 s of noise still pastes nothing (the filter is installed only with VAD on) |
+| `WhisperLabelTests.swift` | FM#30: `NaNLabelFilter` bans the Oriserve models' `nan` label only as the first token, keeps a real transcript, drops a lone forced token (noise), leaves one-word dictations alone |
 
-`MockLLM` makes every pipeline path deterministic — no server needed, and
-failure paths are as testable as success paths.
+`MockLLM` makes the structurer deterministic: no server needed.
+
+## What earns a check
+
+A check guards a behaviour that broke once (name the FM# or the report), a
+rule users rely on (Parakeet never offered for हिन्दी, nothing pasted into
+our own menu), or a promise (learning switches off by default, old saved
+files still load). Not a check:
+
+- **Restating data or wording**: "turbo left the catalog", exact pixel
+  positions, the exact text of a notice. They fail on purpose-made changes
+  and catch no bug. Test the rule instead ("the callout stays on screen").
+- **Testing the test**: a fallback written in the test itself, a call to the
+  mock, `T.expect(true)`.
+- **A second copy**: one place per behaviour; the "and in combination" file
+  repeated three others and was deleted.
+- **A test that never runs**: the live Apex clip check was skipped on every
+  machine once Apex left the catalog.
+
+Pinned raw values (`LanguageMode`, `ToneMode`) look like data but stay: they
+live in saved settings and history, so a rename is a migration.
 
 ## Live validation (real models — run when engine/prompts/models change)
 

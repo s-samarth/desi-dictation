@@ -123,7 +123,7 @@ app/.build/release/desi-cli models/ggml-hinglish-swift.bin spike/audio/test-hi.w
 app/.build/debug/desi-cli --translate "kal meeting hai, deck ready rakhna" english
 app/.build/debug/desi-cli --structure "<rambly text>" notes
 
-# run the test suite (119 assertions; exit 0 = green)
+# run the test suite (exit 0 = green)
 cd app && swift run desi-tests
 ```
 
@@ -136,7 +136,7 @@ the numbers are in [plan.md](genesis/plan.md) Phase 0.
 ## G². Before every push
 
 ```bash
-./scripts/preflight.sh   # build + 119 tests + parity + web tests + latency gate
+./scripts/preflight.sh   # build + desi-tests + parity + web tests + latency gate
 ```
 Green preflight = green CI (the pipeline runs the same steps — docs/CICD.md).
 Full edit-to-ship walkthrough incl. the docs checklist: [CONTRIBUTING.md](CONTRIBUTING.md).

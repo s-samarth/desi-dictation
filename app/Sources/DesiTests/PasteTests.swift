@@ -21,7 +21,6 @@ func runPasteTests() {
             "Caps Lock / fn don't block the paste")
     T.equal(step(held: .maskAlternate, waited: PasteGate.maxWait),
             .skip(.modifiersHeld), "still held at the timeout → skip, never ⌥⌘V")
-    T.expect(PasteGate.maxWait >= 1.0, "the wait outlasts a normal key tap")
     T.equal(step(trusted: false), .skip(.noAccessibility),
             "no Accessibility → skip (macOS would drop the keystroke silently)")
     T.equal(step(copyOnly: true, trusted: false, held: .maskAlternate), .copyOnly,
@@ -47,8 +46,4 @@ func runPasteTests() {
         T.equal(notice?.kind, .copied, "skipped paste (\(block)) → 'copied' notice")
         T.expect(notice?.message.contains("⌘V") == true, "…and it says to press ⌘V")
     }
-    T.expect(DictationNotice.nothingHeard.hasPrefix("Didn't catch that"),
-             "empty transcript says so in plain words")
-    T.expect(DictationNotice.displaySeconds >= 2 && DictationNotice.displaySeconds <= 6,
-             "notice is brief but readable")
 }

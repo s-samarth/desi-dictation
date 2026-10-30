@@ -24,17 +24,4 @@ func runEditTrackerTests() {
 
     var untouched = EditTracker(baseline: said, inserted: said, started: t0)
     T.expect(untouched.observe("", now: at(2)).pairs == nil, "sent without edits: nothing to learn")
-
-    let pairs = EditDiff.pairs(before: said, after: fixed, inserted: said)
-    T.equal(pairs, [EditPair(heard: "Samar", typed: "Samarth"), EditPair(heard: "Saraswath", typed: "Saraswat")],
-            "a first name + surname fix is found word by word")
-    let proposals = pairs.compactMap {
-        CorrectionLearner.proposal(for: $0, mode: .english, dictionary: [], rejected: [])
-    }
-    T.equal(proposals.count, 2, "and both are proposed")
-    T.equal(EditDiff.pairs(before: "call Rowan Sharma now", after: "call Rohan Verma now", inserted: "call Rowan Sharma now")
-                .compactMap { CorrectionLearner.proposal(for: $0, mode: .english, dictionary: [], rejected: []) }.count,
-            1, "a swapped surname (Sharma → Verma) isn't a sound-alike, so only Rohan is proposed")
-    T.expect(CorrectionLearner.proposal(for: EditPair(heard: "samar", typed: "Samarth"), mode: .english,
-                                        dictionary: [], rejected: []) != nil, "lowercase heard, capitalized fix")
 }

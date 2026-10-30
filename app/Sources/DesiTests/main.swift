@@ -1,5 +1,6 @@
 // desi-tests — assertion-based test runner (no XCTest under CLT).
-// Covers every 0.6 feature's pure logic, individually and in combination.
+// Covers the app's pure logic; each check guards a behaviour that broke or
+// a promise to the user.
 // `swift run desi-tests` → exit 0 means all green.
 import Foundation
 
@@ -26,7 +27,6 @@ let group = DispatchGroup()
 group.enter()
 Task {
     await runEngineTests()
-    await runCombinationTests()
     group.leave()
 }
 group.wait()

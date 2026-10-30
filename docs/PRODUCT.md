@@ -48,7 +48,7 @@ What exists, how well it works, and where it's going. Update this every release.
 
 **LLM features need one-time setup** (free Ollama app + a model download from
 the AI tab; default gemma3:4b on ≥12 GB Macs). Test coverage: `desi-tests`
-(119 assertions) + live spike results — see
+(`desi-tests`) + live spike results — see
 [implementation/TESTING.md](features/implementation/TESTING.md).
 
 ### Measured quality (M3, release build)

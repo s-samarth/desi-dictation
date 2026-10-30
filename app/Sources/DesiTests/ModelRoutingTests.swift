@@ -34,39 +34,26 @@ func runModelRoutingTests() {
             "English onboards to Parakeet (4.3 % nWER, 5x faster — MODEL_RESEARCH §E)")
     T.equal(ModelManager.catalogEntry(for: .hindi).id, "vaani-hindi-q5_0", "हिन्दी → Vaani")
     T.equal(ModelManager.catalogEntry(for: .hinglish).id, "hinglish-prime-q5_0", "Hinglish → Prime")
-    T.expect(!ModelManager.catalog.contains { $0.id.contains("apex") }, "Apex is no longer offered")
-    T.equal(ModelManager.vadEntry.id, "silero-vad", "VAD entry resolves")
 
     T.begin("Language-scoped candidates")
     let parakeet = ModelDescriptor(
         name: "parakeet-tdt-0.6b-v3-q4_k", path: englishPin, sizeMB: 416)
-    let apex = ModelDescriptor(
-        name: "hinglish-apex-q5_0", path: "/models/ggml-hinglish-apex-q5_0.bin", sizeMB: 547)
+    let prime = ModelDescriptor(name: "ggml-hinglish-prime-q5_0", path: hinglishPin, sizeMB: 1031)
     T.expect(parakeet.isParakeet, "parakeet detected by filename")
-    T.expect(!apex.isParakeet && apex.isHinglish, "apex is a Hinglish whisper model")
+    T.expect(!prime.isParakeet && prime.isHinglish, "Prime is a Hinglish whisper model")
     // Parakeet speaks English + 24 European languages — no Hindi, and it can
     // emit neither Devanagari nor Roman-Hinglish. It must never be offered
     // outside English, or a user "just picking a model" gets nonsense.
     T.expect(ModelManager.score(parakeet, for: .english) > 0, "Parakeet serves English")
     T.equal(ModelManager.score(parakeet, for: .hindi), 0, "Parakeet hidden for हिन्दी")
     T.equal(ModelManager.score(parakeet, for: .hinglish), 0, "Parakeet hidden for Hinglish")
-    T.equal(ModelManager.score(apex, for: .hindi), 0, "Hinglish models hidden for हिन्दी")
     T.expect(ModelManager.score(parakeet, for: .english)
-             > ModelManager.score(apex, for: .english),
+             > ModelManager.score(prime, for: .english),
              "English Auto prefers Parakeet over a Hinglish fine-tune")
-    // Prime replaced Apex (more accurate on long takes — MODEL_RESEARCH §F); an
-    // Apex file already on disk still serves Hinglish, below Prime.
-    let prime = ModelDescriptor(name: "ggml-hinglish-prime-q5_0", path: "/m/prime", sizeMB: 1031)
-    T.expect(ModelManager.score(prime, for: .hinglish) > ModelManager.score(apex, for: .hinglish),
-             "Hinglish Auto prefers Prime over a leftover Apex")
-    T.expect(ModelManager.score(apex, for: .hinglish) > 0, "a leftover Apex still works")
     T.expect(ModelManager.score(prime, for: .hinglish) > 0, "Prime serves Hinglish")
     T.equal(ModelManager.score(prime, for: .hindi), 0, "Prime hidden for हिन्दी (Roman only)")
-    let primeEntry = ModelManager.catalog.first { $0.id == "hinglish-prime-q5_0" }
-    T.expect(primeEntry?.category == "Hinglish" && primeEntry?.recommended == true,
-             "Prime listed under Hinglish, starred")
 
-    T.begin("Qwen3-ASR — the opt-in accurate English model (replaced turbo)")
+    T.begin("Qwen3-ASR — the opt-in accurate English model")
     let qwenPin = "/models/ggml-qwen3-asr-1.7b-q8_0.bin"
     let qwen = ModelDescriptor(name: "qwen3-asr-1.7b-q8_0", path: qwenPin, sizeMB: 2084)
     T.expect(qwen.isQwenASR && !qwen.isParakeet, "qwen detected by filename")
@@ -78,12 +65,6 @@ func runModelRoutingTests() {
     // pick when the user chooses accuracy over speed.
     T.expect(ModelManager.score(parakeet, for: .english) > ModelManager.score(qwen, for: .english),
              "English Auto keeps Parakeet as the default")
-    let turbo = ModelDescriptor(name: "large-v3-turbo-q5_0", path: "/m/turbo.bin", sizeMB: 574)
-    T.expect(ModelManager.score(qwen, for: .english) > ModelManager.score(turbo, for: .english),
-             "Qwen outranks a leftover turbo file")
-    T.expect(!ModelManager.catalog.contains { $0.id.contains("turbo") }, "turbo left the catalog")
-    T.expect(ModelManager.catalog.contains { $0.id.hasPrefix("qwen3-asr") && $0.category == "English" },
-             "Qwen is offered as an English model")
 
     T.begin("Engine routing by model file")
     T.expect(ParakeetEngine.handles(modelPath: englishPin), "parakeet file → Parakeet engine")

@@ -33,23 +33,6 @@ func runEngineTests() async {
     let paras = LLMTranslationEngine.chunks(of: "para one\n\npara two", budget: 500)
     T.equal(paras.count, 1, "small paragraphs merge into one chunk")
 
-    T.begin("LLMTranslationEngine — via mock")
-    let mock = MockLLM()
-    let engine = LLMTranslationEngine(llm: mock)
-    let out = try? await engine.translate("namaste duniya", to: .english)
-    T.equal(out, "T[namaste duniya]", "translate calls the LLM once")
-    T.equal(mock.calls, 1, "single call for short input")
-    let empty = try? await engine.translate("   ", to: .english)
-    T.equal(empty, "", "whitespace input short-circuits, no LLM call")
-    T.equal(mock.calls, 1, "no call for empty input")
-    mock.shouldFail = true
-    do {
-        _ = try await engine.translate("fail please", to: .english)
-        T.expect(false, "failure propagates as thrown error")
-    } catch {
-        T.expect(true, "failure propagates as thrown error")
-    }
-
     T.begin("ThoughtStructurer — capping & fallback")
     let (head, overflow) = ThoughtStructurer.capped("word " + String(repeating: "a", count: 20), at: 10)
     T.expect(head == "word", "caps at word boundary", "head=\(head)")
@@ -58,7 +41,7 @@ func runEngineTests() async {
     T.equal(h2, "short input", "under-cap passes whole")
     T.expect(o2 == nil, "no overflow under cap")
 
-    mock.shouldFail = false
+    let mock = MockLLM()
     mock.reply = { _ in "## Structured\n- point" }
     let structurer = ThoughtStructurer(llm: mock, inputCap: 60)
     let longRamble = "pehla point yeh hai ki hum late chal rahe hain aur dusra point budget ka hai"
@@ -76,16 +59,7 @@ func runEngineTests() async {
     T.equal(OllamaLLM.stripReasoning("plain answer"), "plain answer",
             "non-reasoning untouched")
 
-    T.begin("PromptTemplates — sanity")
-    T.expect(PromptTemplates.tone(.faithful) == nil, "faithful tone = no LLM pass")
-    for tone in ToneMode.allCases where tone != .faithful {
-        T.expect(PromptTemplates.tone(tone)?.isEmpty == false, "tone \(tone) has prompt")
-    }
-    for style in OutputStyle.allCases {
-        T.expect(!PromptTemplates.structure(style: style).isEmpty, "style \(style) has prompt")
-        T.expect(PromptTemplates.structure(style: style).contains("NEVER invent"),
-                 "style \(style) forbids invention")
-    }
-    T.expect(PromptTemplates.translate(to: .english).contains("Output ONLY"),
-             "translate prompt constrains output")
+    T.begin("PromptTemplates — structuring never invents")
+    T.expect(OutputStyle.allCases.allSatisfy { PromptTemplates.structure(style: $0).contains("NEVER invent") },
+             "every style forbids invention")
 }
