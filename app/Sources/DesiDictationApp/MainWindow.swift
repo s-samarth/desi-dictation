@@ -72,18 +72,21 @@ struct MainWindow: View {
             // Every page is a grouped Form: it scrolls inside the window. A
             // plain Form doesn't, so a long page outgrew the window and hid
             // the sidebar — no way back (BUILD_LOG FM#35).
-            Group {
-                switch nav.selection {
-                case .guide: GuidePane()
-                case .dictation: DictationPane()
-                case .vocabulary: VocabularyPane()
-                case .history: HistoryView()
-                case .models: ModelsPane()
-                case .ai: AISettings()
-                case .license: LicenseSettings()
+            VStack(spacing: 0) {
+                UpdateBanner()
+                Group {
+                    switch nav.selection {
+                    case .guide: GuidePane()
+                    case .dictation: DictationPane()
+                    case .vocabulary: VocabularyPane()
+                    case .history: HistoryView()
+                    case .models: ModelsPane()
+                    case .ai: AISettings()
+                    case .license: LicenseSettings()
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .tint(Theme.accent)
         .frame(minWidth: 640, minHeight: 440)

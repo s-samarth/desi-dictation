@@ -57,7 +57,7 @@ launched app (learned the hard way; see implementation/USER_WALKTHROUGH.md §0).
    bundle version, so there are no mismatched releases.
 
 Every release carries six assets: the versioned `DesiDictation-x.y.z.dmg`,
-two stable-named copies, and a `.sha256` for each:
+three stable-named copies, and a `.sha256` for each:
 
 - `DesiDictation.dmg`: `releases/latest/download/DesiDictation.dmg` is
   always the newest build, the URL the root [`install.sh`](../install.sh)
@@ -65,11 +65,13 @@ two stable-named copies, and a `.sha256` for each:
   fetches and checksum-verifies.
 - `DesiDictation-mac.dmg`: the same file, linked only from the website's
   Download button (since v0.7.0).
+- `DesiDictation-update.dmg`: the same file again, fetched only by the app's
+  one-click update ([UPDATES.md](features/implementation/UPDATES.md)).
 
-GitHub counts each file's downloads, so the two names separate website
-downloads from Terminal installs with no tracking at all;
+GitHub counts each file's downloads, so the names separate website
+downloads, Terminal installs and in-app updates with no tracking at all;
 `./scripts/download_counts.sh` sums them across releases. `release.yml`
-publishes the same six when it is the one creating the release. Drafts and pre-releases are never
+publishes the same eight when it is the one creating the release. Drafts and pre-releases are never
 "latest", so a `--draft` release is invisible to the installer until published.
 
 The tag push also starts `release.yml`, which rebuilds from clean (fresh

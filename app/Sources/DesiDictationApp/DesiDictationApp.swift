@@ -6,12 +6,13 @@ import DesiDictationKit
 struct DesiDictationApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @ObservedObject var controller = DictationController.shared
+    @ObservedObject var updater = Updater.shared
 
     var body: some Scene {
         MenuBarExtra {
             MenuContent()
         } label: {
-            Image(systemName: menuBarSymbol)
+            Image(nsImage: MenuBarIcon.image(menuBarSymbol, dot: updater.hasUpdate))
         }
         .menuBarExtraStyle(.menu)
         // The one window (menu → Open Desi Dictation…) and onboarding are AppKit-managed
@@ -56,6 +57,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             ReviewDemo.run()
             return
         }
+        // Update rehearsal (UPDATES.md): only the updater runs. No permission
+        // prompts, hotkey or login item for the throwaway test bundle.
+        if ProcessInfo.processInfo.environment["DESI_UPDATE_REHEARSAL"] == "1" {
+            NSApp.setActivationPolicy(.accessory)
+            Updater.shared.start()
+            return
+        }
         // DESI_POINTER=tour|reminder: show the menu-bar pointer on any launch.
         if let style = ProcessInfo.processInfo.environment["DESI_POINTER"] {
             MenuBarPointer.shared.show(style == "tour" ? .tour : .reminder)
@@ -97,6 +105,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         LoginItem.apply()
+        // Newer release? A menu line and a dot on the mic (UPDATES.md).
+        Updater.shared.start()
 
         if SettingsStore.shared.onboarded, SettingsStore.shared.dictationEnabled {
             DictationController.shared.enable()

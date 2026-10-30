@@ -20,6 +20,7 @@ runStrictnessTests()
 runCleanupTests()
 runFeedbackTests()
 runMenuBarTests()
+runUpdateTests()
 
 let group = DispatchGroup()
 group.enter()

@@ -104,13 +104,15 @@ jobs:
       # install.sh pulls releases/latest/download/DesiDictation.dmg and checks
       # its .sha256; the website's button pulls DesiDictation-mac.dmg. Same
       # file, two stable names, so GitHub counts each route on its own
-      # (scripts/download_counts.sh; matches scripts/release.sh).
+      # (scripts/download_counts.sh; matches scripts/release.sh). The app's
+      # one-click update fetches DesiDictation-update.dmg (UPDATES.md).
       - name: Stable-named DMGs + checksums
         run: |
           cd app/dist
           VERSIONED=$(ls DesiDictation-[0-9]*.dmg)
           cp "$VERSIONED" DesiDictation.dmg
           cp "$VERSIONED" DesiDictation-mac.dmg
+          cp "$VERSIONED" DesiDictation-update.dmg
           for f in DesiDictation*.dmg; do shasum -a 256 "$f" > "$f.sha256"; done
 
       # Say plainly what the user is downloading: an unsigned/ad-hoc DMG needs a

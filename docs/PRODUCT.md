@@ -30,6 +30,7 @@ What exists, how well it works, and where it's going. Update this every release.
 | **Fillers and spoken corrections** | 🟡 built 2026-10-29; live check pending | um/uh/hmm/er removed (switch, on); "like / you know / I mean…" offered in review when the context checker judges them filler (auto-remove only with "Remove fillers when sure", off); "2, no, make it 3" / "sorry, Rahul" / "scratch that" offered in review, never applied ([impl](features/implementation/FILLERS_AND_CORRECTIONS.md)) |
 | **Send Feedback window** | 🟡 built 2026-10-30; live send pending (EmailJS setting) | message + optional reply address, "Include app info" (shown as sent, on) and "Include my last dictation" (off); posted to samarthsaraswat.com/api/feedback only on Send, forwarded by email, not stored; Copy and Email instead as fallbacks ([impl](features/implementation/FEEDBACK.md)) |
 | **Download counts per route** | ✅ 2026-10-30 | no tracking: the website, the installer and the releases page each fetch their own copy of the DMG, so GitHub counts them apart; `scripts/download_counts.sh` sums releases ([impl](features/implementation/FEEDBACK.md)) |
+| **One-click updates** | 🟡 built 2026-10-30; rehearsed end to end, first real update with the next release | the app checks GitHub itself (launch, then every 12 h), shows a dot on the mic, a menu line and a window banner; one click downloads, checks SHA-256 + same signing certificate, swaps and relaunches; permissions, settings and models kept; no setting, no "Check for updates" ([impl](features/implementation/UPDATES.md)) |
 | **Per-app language modes** | ✅ built 2026-07-10 | WhatsApp→Hinglish, Mail→English, zero switching; the overlay names the rule when one overrides (v0.6.2) ([impl](features/implementation/PER_APP_MODES.md)) |
 | **"English — from any language ✨" mode** | 🔒 built 2026-07-10, hidden until AI ships | speak Hinglish → paste polished English; falls back to raw words ([impl](features/implementation/SPEAK_DESI_WRITE_ENGLISH.md)) |
 | **Translate on Demand (edit → translate)** | 🔒 built 2026-07-10, hidden | last-dictation window, → English / हिन्दी ([impl](features/implementation/TRANSLATE_ON_DEMAND.md)) |
@@ -74,6 +75,8 @@ the AI tab; default gemma3:4b on ≥12 GB Macs). Test coverage: `desi-tests`
   ([MODEL_RESEARCH.md](MODEL_RESEARCH.md) §E).
 - ~~First-run onboarding flow~~ — shipped v0.5.1.
 - ~~Show new users where the menu-bar app lives~~: setup asks for permissions one at a time, then the app points at the mic after setup and whenever it's opened by hand, and catches an icon hidden behind the notch ([FIRST_RUN.md](features/implementation/FIRST_RUN.md)).
+- ~~Updating without the Terminal or a DMG~~ — built 2026-10-30: one click
+  in the menu or window ([UPDATES.md](features/implementation/UPDATES.md)).
 
 **Later:**
 - Mixed-script mode ("मेरा favourite festival Diwali है") — shunyalabs/Srota, needs MLX runner

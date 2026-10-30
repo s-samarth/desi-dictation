@@ -11,6 +11,7 @@ struct MenuContent: View {
 
     var body: some View {
         Text(statusLine)
+        UpdateMenuItem()
 
         // The way into the app's window: first item, named after the app.
         Button("Open Desi Dictation…") {
