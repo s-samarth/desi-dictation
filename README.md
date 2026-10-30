@@ -65,18 +65,16 @@ desi-dictation/
 ├── scripts/                 # setup_whisper / convert_model / build_app / make_dmg
 ├── models/                  # converted GGML models (gitignored)
 ├── vendor/                  # whisper.cpp + openai/whisper clones (gitignored)
-└── docs/                    # ALL documentation — see docs/README.md for the index
+└── docs/                    # public documentation — see docs/README.md for the index
     ├── README.md            #   the documentation index (start here)
     ├── SYSTEM_DESIGN.md     #   architecture · PERFORMANCE · BUILD_LOG · SECURITY_AUDIT
     ├── SETUP_GUIDE.md       #   end-user install · USAGE · TROUBLESHOOTING
     ├── genesis/             #   founding docs: MacWhisper teardown + original plan.md
-    ├── features/            #   planned features + personas
-    ├── problems/            #   the problems that decide the product (P1–P4 + more)
-    ├── competitors/         #   per-competitor deep-dives + PATTERNS synthesis
-    └── *.md                 #   strategy/GTM/market/monetization/ICP/PMF/outcomes
+    ├── features/implementation/  # how each built feature works
+    └── *.md                 #   model research, perf, deploy, CI, legal
 ```
-Full index: **[docs/README.md](docs/README.md)**. This repo is private, so product,
-strategy, and business docs all live in `docs/` (they used to be gitignored).
+Full index: **[docs/README.md](docs/README.md)**. Strategy, business and planning
+notes are kept in a separate private repo, not here.
 
 ## The stack, in one breath
 

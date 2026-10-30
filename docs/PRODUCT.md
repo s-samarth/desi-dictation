@@ -1,7 +1,7 @@
 # Product & Features — living document
 
 What exists, how well it works, and where it's going. Update this every release.
-(Vision/strategy: [PRODUCT_VISION.md](PRODUCT_VISION.md) · GTM: [GTM.md](GTM.md))
+(Vision/strategy: PRODUCT_VISION.md *(private)* · GTM: GTM.md *(private)*)
 
 ## Current state — v0.3.0 (2026-07-07)
 
@@ -61,6 +61,9 @@ the AI tab; default gemma3:4b on ≥12 GB Macs). Test coverage: `desi-tests`
 
 ## Direction — ranked backlog
 
+The full re-ranked list of suggested features (2026-10-30) lives in the
+private notes at `private/docs/features/SUGGESTED_FEATURES_2026-10.md`.
+
 **Next:**
 1. **CoreML/ANE encoder** — the remaining big speed lever, and now the only one
    that helps हिन्दी (Vaani is 3.55 s/call, the slowest path we ship).
@@ -68,7 +71,7 @@ the AI tab; default gemma3:4b on ≥12 GB Macs). Test coverage: `desi-tests`
 2. **Personal eval harness round 2** — user-voice eval set to CI-gate model changes.
 3. Menu bar quick language switcher improvements (per-mode hotkeys?).
 4. Developer ID + notarization — kills the "Apple could not verify…" dialog for
-   every tester ([LAUNCH.md](LAUNCH.md) §1).
+   every tester (LAUNCH.md *(private)* §1).
 
 **Done:**
 - ~~Parakeet V3 for English mode~~ — shipped v0.6.1: 4.3 % nWER, 0.21 s/call

@@ -1,6 +1,6 @@
 # Documentation Index
 
-Everything written about Desi Dictation — engineering, product, strategy, and business. The repo is private, so strategy/business docs live here too (they used to be gitignored). Grouped by purpose; start wherever your question sits.
+The public documentation for Desi Dictation — how it's built, run, and shipped. Strategy, business and planning notes are kept in a separate private repo (cloned into a gitignored `private/` folder in the maintainer's checkout); links to them in these docs are marked *(private)*. Grouped by purpose; start wherever your question sits.
 
 ## 🛠 Engineering & product (how it's built and run)
 | Doc | What |
@@ -24,43 +24,22 @@ Everything written about Desi Dictation — engineering, product, strategy, and 
 |---|---|
 | [genesis/](genesis/) | The founding docs — [MacWhisper.md](genesis/MacWhisper.md) (the teardown that inspired it) + [plan.md](genesis/plan.md) (the original build plan) |
 
-## 🧭 Product: vision, features, problems
+## 🧭 Product and features
 | Doc | What |
 |---|---|
 | [PRODUCT.md](PRODUCT.md) | Product & features reference |
-| [PRODUCT_VISION.md](PRODUCT_VISION.md) | The long-range product vision |
-| [features/](features/) | Planned features — [personas](features/PERSONAS.md), [translation](features/TRANSLATION.md), [speak-desi-write-English](features/TRANSCRIBE_TRANSLATE.md), [structure-thoughts](features/STRUCTURE_THOUGHTS.md), [10 ideas](features/IDEAS.md), [vocabulary next](features/VOCABULARY_NEXT.md) |
 | [features/implementation/](features/implementation/) | **How the built features actually work** — LLM engine, dictionary, per-app modes, translate ×2, structure, tones, [model routing](features/implementation/MODEL_ROUTING.md), [review before paste](features/implementation/REVIEW_BEFORE_PASTE.md), [fillers and spoken corrections](features/implementation/FILLERS_AND_CORRECTIONS.md), [feedback and download counts](features/implementation/FEEDBACK.md), testing |
-| [problems/](problems/) | The problems that decide the product — [P1 Hinglish accuracy](problems/P1_HINGLISH_ACCURACY.md), [P2 OOD words](problems/P2_OOD_WORDS.md), [P3 freshness/data](problems/P3_MODEL_FRESHNESS.md), [P4 personalization](problems/P4_PERSONALIZATION.md), [10 more](problems/ADDITIONAL_PROBLEMS.md) |
-| [platforms/](platforms/) | Platform expansion — [Windows](platforms/WINDOWS.md) (easiest, first) → [Android](platforms/ANDROID.md) (the India must-have; voice-IME) → [iOS](platforms/IOS.md) (hardest; app-hop) — flows, min specs, and the one-shot Claude build prompts |
-| [cloud/](cloud/) | Opt-in cloud transcription — [strategy](cloud/README.md), [the endpoint explained + API design](cloud/ARCHITECTURE.md), [infra phases & scaling](cloud/INFRA_AND_SCALING.md), [unit economics](cloud/COSTS.md), [serving stack: what's overkill when](cloud/SERVING_STACK.md) |
 
-## 📣 Go-to-market, research, competition
+## 🔬 Model research and launch
 | Doc | What |
 |---|---|
-| [GTM.md](GTM.md) | Go-to-market plan (+ privacy-safe feedback architecture) |
-| [MARKET_STUDY.md](MARKET_STUDY.md) | Deep voice-AI market study |
-| [ICP.md](ICP.md) | Ideal customer profiles — B2C, B2B, B2G, platform/OEM, anti-ICP |
-| [MONETIZATION.md](MONETIZATION.md) | Every monetization model, comparables, pricing, the plan |
 | [MODEL_RESEARCH.md](MODEL_RESEARCH.md) | Model landscape & selection research |
 | [ENGLISH_ASR_SCOUT_2026-10.md](ENGLISH_ASR_SCOUT_2026-10.md) | Can anything beat Parakeet for English? Leaderboard + on-device scout, Oct 2026 |
 | [ENGLISH_ASR_AB_2026-10.md](ENGLISH_ASR_AB_2026-10.md) | The measured A/B: Parakeet v3 vs v2, Qwen3-ASR, NVIDIA unified, Turbo — clean + noisy Indian English |
-| [FINETUNING.md](FINETUNING.md) | Fine-tuning deep-dive (when/how/cost/data) |
-| [LAUNCH.md](LAUNCH.md) | Launch/distribution plan |
 | [../launch-video/](../launch-video/README.md) | Launch video (Remotion): scenes, how to render, recording shot list |
-| [competitors/](competitors/) | Standalone deep-dives per competitor across all layers + [PATTERNS.md](competitors/PATTERNS.md) synthesis |
-
-## 🎯 Strategy log & founder-decision docs
-| Doc | What |
-|---|---|
-| [STRATEGY.md](STRATEGY.md) | **Dated strategy log** (newest entry first) — positioning, venture-scale reassessment, expansion, funding |
-| [PRODUCT_MARKET_FIT.md](PRODUCT_MARKET_FIT.md) | First-principles PMF: the beachhead, the MVP, measuring PMF under no-telemetry, the decision scorecard |
-| [PRACTICAL_OUTCOME_REALITY.md](PRACTICAL_OUTCOME_REALITY.md) | Honest odds of getting rich, job-vs-startup, the hedge + quit-trigger |
-| [YC_CREDITS_PLAN.md](YC_CREDITS_PLAN.md) | How to burn the startup credits into permanent model/data assets |
 
 ---
 
 **Reading order suggestions:**
 - *New here / want to use it:* [SETUP_GUIDE](SETUP_GUIDE.md) → [USAGE](USAGE.md).
 - *Understand the build:* [genesis/plan.md](genesis/plan.md) → [SYSTEM_DESIGN](SYSTEM_DESIGN.md) → [BUILD_LOG](BUILD_LOG.md).
-- *Understand the strategy:* [STRATEGY](STRATEGY.md) → [PRODUCT_MARKET_FIT](PRODUCT_MARKET_FIT.md) → [ICP](ICP.md) → [competitors/PATTERNS](competitors/PATTERNS.md) → [PRACTICAL_OUTCOME_REALITY](PRACTICAL_OUTCOME_REALITY.md).
