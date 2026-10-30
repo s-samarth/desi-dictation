@@ -9,7 +9,7 @@ export SWIFTPM_CUSTOM_LIBS_DIR=~/.swiftpm-fixed-libs   # see BUILD_LOG FM#17
 swift run desi-tests          # exit 0 = green; prints ✓/✗ per assertion
 ```
 
-380 checks as of 2026-10-30 (run time 0.3 s), all green. The count isn't a
+381 checks as of 2026-10-30 (run time 0.3 s), all green. The count isn't a
 target: on 2026-10-30 the suite was cut from 429 to 380 (see "What earns a
 check" below). Files in `app/Sources/DesiTests/`:
 
