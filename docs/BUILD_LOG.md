@@ -1025,3 +1025,14 @@ both call it before exit. Measured: 3 crashes in 20 runs without it, 0 in
 40 with it.
 **Lesson:** `exit()` isn't the end of other threads. Anything that loads
 native code in the background needs a drain before exit, not just a lock.
+
+### Failure mode #43 — `build_app.sh` hung for hours at `codesign`
+
+**Symptom:** the release build finished compiling and assembling the bundle,
+then sat at 0 % CPU for 5 h in `codesign --sign "Desi Dictation Dev"`.
+**Cause:** signing with the keychain identity can need the login keychain
+unlocked, or an "allow codesign to use this key" prompt answered. The screen
+was locked, so the prompt waited for nobody.
+**Fix:** none in the script; kill `codesign` and re-run with the Mac unlocked.
+**Lesson:** run `build_app.sh` while you're at the Mac. A build that stops at
+the signing step with no CPU use is waiting on the keychain, not compiling.

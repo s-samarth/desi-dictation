@@ -39,6 +39,29 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 - **Updating:** run it again. Grants survive because every release is signed
   with the same identity and lands at the same path.
 
+## 0a′ · First run: where did it go? (2026-10-30)
+
+The app has no Dock icon and no window on launch, so new users couldn't tell
+where it went. Now (details: [FIRST_RUN.md](FIRST_RUN.md)):
+
+- **Setup asks for permissions one at a time.** Step 3 has an **Allow**
+  button for each of the three; the ticks turn green by themselves. Before,
+  three system dialogs fired at launch and covered the setup window.
+- **Above Finish**, in big letters: "After setup, it lives in your menu bar",
+  with why (no Dock icon, no window to keep open).
+- **After Finish restarts the app,** a callout hangs under the mic ("Desi
+  Dictation lives up here") with a pulsing ring around the icon. It has
+  **Show me the menu** and **Got it**, and stays until you dismiss it or open
+  the menu.
+- **Opening the app again by hand** (Spotlight, Finder, the installer) shows
+  a short "Desi Dictation is up here" callout for 7 s, with an **Open Desi
+  Dictation** link. At login it stays silent.
+- **Mic hidden behind the notch** (a full menu bar on a notched MacBook): a
+  notice explains it, how to make room (⌘-drag other icons out), and offers
+  **Open Desi Dictation**.
+- **Friction left:** the tour shows once. A user who dismisses it and
+  forgets still has the reminder on every manual open.
+
 ## 0b · Microphone (v0.6.2) — nothing to set up
 
 - **What you pick:** System Settings → Sound → **Input**. The app always

@@ -27,6 +27,18 @@ enum UISnapshots {
         // Long pages, whole: what a reader scrolls through.
         shots.append(("guide-full", { AnyView(GuidePane()) }, NSSize(width: 560, height: 3000)))
         shots.append(("onboarding", { AnyView(OnboardingView()) }, NSSize(width: 560, height: 640)))
+        shots.append(("onboarding-parts", { AnyView(VStack(alignment: .leading, spacing: 16) {
+            OnboardingPermissions()
+            MenuBarHomeNote()
+        }.padding(24).frame(width: 560)) }, NSSize(width: 560, height: 420)))
+        // The menu-bar pointer: each callout as it hangs under the mic.
+        let callouts: [(String, AnyView)] = [
+            ("pointer-tour", AnyView(PointerCallout(style: .tour, arrowX: 300))),
+            ("pointer-reminder", AnyView(PointerCallout(style: .reminder, arrowX: 150))),
+            ("pointer-notch", AnyView(PointerNotice(reason: .behindNotch))),
+            ("pointer-offscreen", AnyView(PointerNotice(reason: .offScreen))),
+        ]
+        for (name, view) in callouts { shots.append((name, { view }, fitted(view))) }
         shots.append(("feedback", { AnyView(FeedbackView()) }, fitted(FeedbackView())))
         // Short and long dictations, each in a panel sized the way ReviewPanel sizes it.
         let screen = NSRect(x: 0, y: 0, width: 1440, height: 860)

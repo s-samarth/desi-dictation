@@ -19,6 +19,7 @@ runReviewTests()
 runStrictnessTests()
 runCleanupTests()
 runFeedbackTests()
+runMenuBarTests()
 runUpdateTests()
 
 let group = DispatchGroup()

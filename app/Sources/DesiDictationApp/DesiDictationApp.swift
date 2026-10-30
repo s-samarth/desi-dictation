@@ -36,6 +36,14 @@ struct DesiDictationApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let services = ServiceProvider()
+    /// Read in willFinishLaunching, while the launch event is still current.
+    private var launchedAsLoginItem = false
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        let event = NSAppleEventManager.shared().currentAppleEvent
+        launchedAsLoginItem = event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue
+            == keyAELaunchedAsLogInItem
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         #if DEBUG
@@ -56,6 +64,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Updater.shared.start()
             return
         }
+        // DESI_POINTER=tour|reminder: show the menu-bar pointer on any launch.
+        if let style = ProcessInfo.processInfo.environment["DESI_POINTER"] {
+            MenuBarPointer.shared.show(style == "tour" ? .tour : .reminder)
+        }
         #endif
         // Menu-bar-only app (no Dock icon), also when run via `swift run`.
         NSApp.setActivationPolicy(.accessory)
@@ -66,11 +78,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.servicesProvider = services
         NSUpdateDynamicServices()
 
-        // Surface permission prompts early instead of on first dictation.
-        let status = Permissions.check()
-        if !status.microphone { Permissions.requestMicrophone() }
-        if !status.accessibility { Permissions.requestAccessibility() }
-        if !status.inputMonitoring { Permissions.requestInputMonitoring() }
+        // A permission lost after setup: ask again now, not on first
+        // dictation. Before setup, its permission step asks one at a time, so
+        // three system dialogs don't bury the setup window.
+        if SettingsStore.shared.onboarded {
+            let status = Permissions.check()
+            if !status.microphone { Permissions.requestMicrophone() }
+            if !status.accessibility { Permissions.requestAccessibility() }
+            if !status.inputMonitoring { Permissions.requestInputMonitoring() }
+        }
 
         // Overlay follows the dictation phase for its whole lifetime.
         OverlayCoordinator.shared.start()
@@ -92,18 +108,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Newer release? A menu line and a dot on the mic (UPDATES.md).
         Updater.shared.start()
 
-        if !SettingsStore.shared.onboarded {
-            // First launch: guide the user instead of sitting silently in the
-            // menu bar (v0.5 pilot feedback).
+        if SettingsStore.shared.onboarded, SettingsStore.shared.dictationEnabled {
+            DictationController.shared.enable()
+        }
+        // The app lives in the menu bar (user decision 2026-10-29: no window
+        // on launch), so each launch shows where it went (FIRST_RUN.md).
+        let kind = LaunchKind.of(
+            onboarded: SettingsStore.shared.onboarded,
+            tourPending: UserDefaults.standard.bool(forKey: MenuBarPointer.tourPendingKey),
+            loginItem: launchedAsLoginItem,
+            uptime: ProcessInfo.processInfo.systemUptime)
+        switch kind {
+        case .firstRun:
             AppWindows.shared.showOnboarding()
-        } else {
-            if SettingsStore.shared.dictationEnabled {
-                DictationController.shared.enable()
-            }
-            // Opened by hand (Spotlight, Finder) or at login, it starts quietly
-            // in the menu bar: the window opens from the menu bar's "Open Desi
-            // Dictation…" (user decision 2026-10-29, reversing v0.6.2's
-            // window-on-launch).
+        case .afterSetup:
+            UserDefaults.standard.set(false, forKey: MenuBarPointer.tourPendingKey)
+            MenuBarPointer.shared.show(.tour)
+        case .byHand:
+            MenuBarPointer.shared.show(.reminder)
+        case .atLogin:
+            break
         }
     }
 
@@ -113,12 +137,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DictationController.shared.shutdown()
     }
 
-    /// Opening the app again from Spotlight or Finder while it runs: stay in
-    /// the menu bar, as on launch; the window opens from the menu bar. Only
-    /// unfinished setup comes back, so a closed onboarding isn't lost.
+    /// Opening the app again from Spotlight or Finder while it runs: point at
+    /// the menu-bar mic, where the window opens from. Unfinished setup comes
+    /// back instead, so a closed onboarding isn't lost.
     func applicationShouldHandleReopen(_ sender: NSApplication,
                                        hasVisibleWindows: Bool) -> Bool {
-        if !SettingsStore.shared.onboarded { AppWindows.shared.showOnboarding() }
+        if SettingsStore.shared.onboarded {
+            MenuBarPointer.shared.show(.reminder)
+        } else {
+            AppWindows.shared.showOnboarding()
+        }
         return false
     }
 }

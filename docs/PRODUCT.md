@@ -36,6 +36,7 @@ What exists, how well it works, and where it's going. Update this every release.
 | **Translate on Demand (edit → translate)** | 🔒 built 2026-07-10, hidden | last-dictation window, → English / हिन्दी ([impl](features/implementation/TRANSLATE_ON_DEMAND.md)) |
 | **Structure my thoughts (beta)** | 🔒 built 2026-07-10, hidden | ramble → Notes/Actions/Email/Outline review window ([impl](features/implementation/STRUCTURE_THOUGHTS_IMPL.md)) |
 | **Tone modes (Faithful/Casual/Professional/Respectful)** | 🔒 built 2026-07-10, hidden | Faithful default = zero rewrite ([impl](features/implementation/TONE_MODES.md)) |
+| First run: where the app lives | ✅ built 2026-10-30 | setup asks for each permission separately; after Finish, and on every manual open, a callout and pulsing ring point at the menu-bar mic; a notice if the notch hides it ([FIRST_RUN.md](features/implementation/FIRST_RUN.md)) |
 | Main window (sidebar UI) | ✅ shipped, decluttered 2026-10-28 | one window (menu → Open Desi Dictation…, ⌘,): Guide / Dictation / Vocabulary / History / Models; the Guide explains every feature with its switch beside it and opens first until seen, colored icons; tuning knobs under Advanced ([walkthrough §0d](features/implementation/USER_WALKTHROUGH.md)) |
 | AI cleanup via local Ollama | 🔒 built, hidden | unreleased with the rest of the AI layer (`aiFeaturesReleased`) |
 | Gumroad licensing | 🔨 code ready | needs product ID at launch |
@@ -73,6 +74,7 @@ the AI tab; default gemma3:4b on ≥12 GB Macs). Test coverage: `desi-tests`
 - ~~Parakeet V3 for English mode~~ — shipped v0.6.1: 4.3 % nWER, 0.21 s/call
   ([MODEL_RESEARCH.md](MODEL_RESEARCH.md) §E).
 - ~~First-run onboarding flow~~ — shipped v0.5.1.
+- ~~Show new users where the menu-bar app lives~~: setup asks for permissions one at a time, then the app points at the mic after setup and whenever it's opened by hand, and catches an icon hidden behind the notch ([FIRST_RUN.md](features/implementation/FIRST_RUN.md)).
 - ~~Updating without the Terminal or a DMG~~ — built 2026-10-30: one click
   in the menu or window ([UPDATES.md](features/implementation/UPDATES.md)).
 
