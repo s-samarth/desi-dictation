@@ -14,6 +14,8 @@ struct GuidePane: View {
                 Text("Desi Dictation types what you say into any app. Everything runs on this Mac. Sections 1 and 2 are all you need. Everything after them is optional and **off until you turn it on**: read what each does and switch on only what helps you. Nothing changes your words unless you told it to (your own word list).")
             }
 
+            GuideHome()
+
             GuideFeature(
                 number: 1, title: "Dictate anywhere",
                 summary: "Click into any text field, then speak.",
@@ -30,14 +32,15 @@ struct GuidePane: View {
             GuideFeature(
                 number: 3, title: "Teach it your words",
                 summary: "A name it keeps getting wrong? Teach it once and every dictation writes it your way, in every app. There are two lists: Hinglish dictations use your Hinglish words, English dictations your English words, so a Hinglish spelling like \"nahi\" never touches English. हिन्दी uses neither.",
-                steps: ["**Fastest:** select the wrong word in any app, right-click → **Services → Always write as… (Desi Dictation)**, type the right spelling, Save.",
-                        "Or fix it in the text right after dictating (section 4), or add it in Vocabulary → Your words."])
+                steps: ["Click the mic → **Open Desi Dictation…** → **Vocabulary**.",
+                        "Under **Your words**, click **Add English word…** (or Hinglish), type what it wrote and what it should write, and Save.",
+                        "From then on it writes your spelling, in every app. Or let it learn as you go: turn on **Learn from my corrections** (section 4) and just fix the word where it landed."])
 
             learnSection
 
             GuideFeature(
                 number: 5, title: "Suggest near-misses of your words",
-                summary: "When a dictated word sounds and looks almost like one of your words, it's underlined in the review panel with your word as choice 1: \"Saraswath\" → 1 Saraswat. It's never changed for you; only words you've told it to always write are written automatically.",
+                summary: "When a dictated word sounds and looks almost like one of your words, it's underlined in the review panel with your word as choice 1: \"Kartick\" → 1 Kartik. It's never changed for you; only words you've told it to always write are written automatically.",
                 steps: ["Needs **Review before paste** on (section 9). Press 1 to take the suggestion, or just carry on.",
                         "Want it written every time? Keep the fix as **Always** in the panel."],
                 turnOnIf: "you've added names to Your words (or let it learn some) and want them right the first time.",
@@ -55,7 +58,7 @@ struct GuidePane: View {
 
             GuideFeature(
                 number: 7, title: "Hinglish: match my spelling",
-                summary: "Hinglish has no fixed spelling. If the text you're writing in already uses \"nahi\" (twice or more), a dictated \"nahin\" is underlined with \"nahi\" in the review panel, so the message can stay consistent. Only for that dictation.",
+                summary: "Hinglish has no fixed spelling. If the text you're writing in already uses \"kya\" (twice or more), a dictated \"kyaa\" is underlined with \"kya\" in the review panel, so the message can stay consistent. Only for that dictation. It folds only stretched vowels and doubled letters (theek/thik, accha/acha); nahin and nahi stay different, like hai and hain.",
                 turnOnIf: "you dictate Hinglish into ongoing chats or notes.",
                 skipIf: "you only dictate English or हिन्दी.",
                 isOn: $vocab.hinglishFieldSpelling)

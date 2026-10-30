@@ -44,18 +44,37 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 The app has no Dock icon and no window on launch, so new users couldn't tell
 where it went. Now (details: [FIRST_RUN.md](FIRST_RUN.md)):
 
-- **Setup asks for permissions one at a time.** Step 3 has an **Allow**
-  button for each of the three; the ticks turn green by themselves. Before,
-  three system dialogs fired at launch and covered the setup window.
-- **Above Finish**, in big letters: "After setup, it lives in your menu bar",
-  with why (no Dock icon, no window to keep open).
+- **Setup is a short guided flow** (redesigned 2026-10-30), one question per
+  page with Back and Continue and a progress bar:
+  1. **Welcome**: what it does, in three lines.
+  2. **Language**: English is preselected, with Hinglish and हिन्दी as cards,
+     plus "I also speak".
+  3. **Models**: English offers **Parakeet** (fastest, the default) and
+     **Qwen** (most accurate, about half a second slower), or both.
+     **Download and continue** starts the downloads, and they carry on while
+     you finish setup.
+  4. **Permissions**: an **Allow** button for each of the three, one at a
+     time. Each tick turns green within a second of the switch in System
+     Settings (FM#44). After the first press, a drawing shows which row to
+     switch on.
+  5. **Your words**: the optional vocabulary switches, each saying what it
+     does, with an example and who should turn it on.
+  6. **Review**: a drawing of the review panel, when it opens, how much it
+     underlines ("Feel it's poking you too often? Switch to Liberal"), and
+     the optional context checker.
+  7. **Done**: a drawing of the menu bar with the mic ringed, the three
+     everyday steps, and **Finish**, which unlocks once the models are in.
+- **The Guide starts with "Where it lives"**: why there's no window (by
+  design), a picture of the menu, and where to change the key and switch
+  between hold and tap.
 - **After Finish restarts the app,** a callout hangs under the mic ("Desi
   Dictation lives up here") with a pulsing ring around the icon. It has
   **Show me the menu** and **Got it**, and stays until you dismiss it or open
   the menu.
 - **Opening the app again by hand** (Spotlight, Finder, the installer) shows
   a short "Desi Dictation is up here" callout for 7 s, with an **Open Desi
-  Dictation** link. At login it stays silent.
+  Dictation** link, the first time only. After that it stays quiet, as it
+  does at login.
 - **Mic hidden behind the notch** (a full menu bar on a notched MacBook): a
   notice explains it, how to make room (⌘-drag other icons out), and offers
   **Open Desi Dictation**.

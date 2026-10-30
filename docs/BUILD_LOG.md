@@ -1036,3 +1036,48 @@ was locked, so the prompt waited for nobody.
 **Fix:** none in the script; kill `codesign` and re-run with the Mac unlocked.
 **Lesson:** run `build_app.sh` while you're at the Mac. A build that stops at
 the signing step with no CPU use is waiting on the keychain, not compiling.
+
+### Failure mode #44 — Accessibility allowed, but setup's tick stayed blank
+
+**Symptom:** on a fresh install (macOS 27.0.1), the user switched Desi
+Dictation on under System Settings → Device Control and Data Access. Setup
+still showed Accessibility unticked; Input Monitoring ticked only after a lag.
+**Cause:** `AXIsProcessTrusted()` keeps its first answer for the life of the
+process. tccd's log showed the app asking about Accessibility only twice (at
+launch, and on Allow), although setup polled every second.
+`CGPreflightListenEventAccess()` lags the same way; it caught up only when a
+system daemon re-checked. Pasting reads the same cached answer, so a grant
+made while the app ran was ignored until a restart.
+**Fix:** `PermissionProbe`. The app starts a copy of itself with
+`--permission-probe`, which asks macOS and exits with the answer (~25 ms).
+macOS judges a child as the app that started it. Setup's ticks, the Dictation
+page's Re-check and the paste gate use it. `Launch.main` handles the flag
+before any of the app starts.
+**Lesson:** never poll `AXIsProcessTrusted()` to watch for a grant. Ask a
+fresh process. Read macOS's own answers with
+`log show --predicate 'process == "tccd"'`, pairing each `msgID` with its
+`service=` and `authValue`.
+
+### Failure mode #45 — a screenshot in the bundle made `codesign` refuse it
+
+**Symptom:** after a reinstall, setup's Accessibility and Input Monitoring
+ticks stayed blank although both switches were on. tccd's log showed
+`identifier=desi-dictation` and `authValue=0` for the app and its probes,
+where earlier builds were `com.desi.dictation`. `codesign -dv` said
+`Signature=adhoc`, and `--verify` said "code has no resources but signature
+indicates they must be present".
+**Cause:** `app/Resources/guide-menu.png` came from `screencapture`, which
+attaches extended attributes (Finder info, provenance). `codesign` refuses a
+bundle containing them ("resource fork, Finder information, or similar
+detritus not allowed"). `build_app.sh` stopped there (`set -e`), but its
+output was filtered through `grep`, which hid both the error and the exit
+code. The half-built bundle was then installed. It carried only the linker's
+ad-hoc signature, a different identity to macOS, so the grants the user had
+switched on belonged to another app.
+**Fix:** `build_app.sh` runs `xattr -cr` on the bundle before signing,
+verifies the signature afterwards, and says plainly when either fails.
+**Lesson:** before installing, check
+`codesign -dr - "app/dist/Desi Dictation.app"` names
+`identifier "com.desi.dictation" and certificate leaf`. Never judge a build
+by grepped output. And when permissions "don't stick", read tccd's
+`identifier=` before suspecting the permission code.

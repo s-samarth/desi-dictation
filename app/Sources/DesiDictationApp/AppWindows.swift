@@ -28,7 +28,7 @@ final class AppWindows {
         if onboarding == nil {
             onboarding = makeWindow(title: "Welcome to Desi Dictation",
                                     content: NSHostingView(rootView: OnboardingView()),
-                                    size: NSSize(width: 560, height: 640))
+                                    size: OnboardingView.size)
         }
         present(onboarding!)
     }

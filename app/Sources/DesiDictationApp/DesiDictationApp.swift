@@ -2,7 +2,18 @@ import ServiceManagement
 import SwiftUI
 import DesiDictationKit
 
+/// Entry point. The permission probe (PermissionProbe) and the screen check
+/// (ScreenCheck) are launches that must answer and exit before any of the
+/// app starts.
 @main
+enum Launch {
+    static func main() {
+        PermissionProbe.answerIfAsked()
+        ScreenCheck.runIfAsked()
+        DesiDictationApp.main()
+    }
+}
+
 struct DesiDictationApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @ObservedObject var controller = DictationController.shared
@@ -138,8 +149,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Opening the app again from Spotlight or Finder while it runs: point at
-    /// the menu-bar mic, where the window opens from. Unfinished setup comes
-    /// back instead, so a closed onboarding isn't lost.
+    /// the menu-bar mic the first time only (MenuBarPointer.reminderShownKey),
+    /// or always when the notch hides it. Unfinished setup comes back
+    /// instead, so a closed onboarding isn't lost.
     func applicationShouldHandleReopen(_ sender: NSApplication,
                                        hasVisibleWindows: Bool) -> Bool {
         if SettingsStore.shared.onboarded {

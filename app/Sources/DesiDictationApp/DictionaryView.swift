@@ -80,9 +80,9 @@ struct AddDictionaryEntrySheet: View {
             Text("Next time dictation writes the left word, it becomes the right one.")
                 .font(.caption).foregroundStyle(.secondary)
             HStack {
-                TextField("It wrote (e.g. Saraswath)", text: $heard)
+                TextField("It wrote (e.g. Kartick)", text: $heard)
                 Image(systemName: "arrow.right").foregroundStyle(.secondary)
-                TextField("Always write (e.g. Saraswat)", text: $written)
+                TextField("Always write (e.g. Kartik)", text: $written)
             }
             .textFieldStyle(.roundedBorder)
             Picker("For", selection: $scope) {

@@ -1,4 +1,5 @@
 import SwiftUI
+import DesiDictationKit
 
 /// The callout under the menu-bar mic (MenuBarPointer). `arrowX` is where its
 /// arrow sits from the left edge, so it points at the icon.
@@ -24,9 +25,9 @@ struct PointerCallout: View {
             case .tour:
                 Text("Desi Dictation lives up here")
                     .font(.system(size: 24, weight: .bold))
-                Text("No Dock icon, no window to keep open. It waits in your menu bar, out of your way, ready in any app.")
+                Text("It stays in your menu bar on purpose, so it never gets in your way: no Dock icon, no window to keep open. Opening it again just brings you back here.")
                     .font(.system(size: 14))
-                Text("Hold **Right ⌥**, speak, let go: your words land wherever you're typing.")
+                Text("Hold **\(SettingsStore.shared.hotkey.displayName)**, speak, let go: your words land wherever you're typing.")
                     .font(.system(size: 14))
                 Text("Click the mic for language, settings and history.")
                     .font(.system(size: 13)).foregroundStyle(.secondary)
@@ -40,7 +41,7 @@ struct PointerCallout: View {
             case .reminder:
                 Text("Desi Dictation is up here")
                     .font(.system(size: 17, weight: .bold))
-                Text("Click the mic for the menu, or hold **Right ⌥** to dictate.")
+                Text("Click the mic for the menu, or hold **\(SettingsStore.shared.hotkey.displayName)** to dictate.")
                     .font(.system(size: 13))
                 Button("Open Desi Dictation") {
                     MenuBarPointer.shared.hide()

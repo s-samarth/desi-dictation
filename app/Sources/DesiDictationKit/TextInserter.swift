@@ -77,9 +77,10 @@ public enum TextInserter {
         // transcribes in ~10 ms, so the toggle key is often still down (FM#31).
         let start = Date()
         var closedMenu = false
+        let trusted = copyOnly || Permissions.accessibilityGranted()
         while true {
             let step = PasteGate.step(
-                copyOnly: copyOnly, trusted: AXIsProcessTrusted(),
+                copyOnly: copyOnly, trusted: trusted,
                 menuOpen: MenuTracker.shared.isMenuOpen,
                 held: CGEventSource.flagsState(.hidSystemState),
                 waited: Date().timeIntervalSince(start))

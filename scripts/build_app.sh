@@ -40,6 +40,9 @@ if [ ! -f "$ICNS" ]; then
   iconutil -c icns "$ICONSET" -o "$ICNS"
 fi
 cp "$ICNS" "$CONTENTS/Resources/AppIcon.icns"
+# The Guide's picture of the menu-bar menu (GuideHome.swift). A real capture
+# of the menu window: re-take it when the menu's items change.
+cp "$APP_DIR/Resources/guide-menu.png" "$CONTENTS/Resources/guide-menu.png"
 
 cat > "$CONTENTS/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -108,7 +111,13 @@ if security find-identity -p codesigning | grep -q "Desi Dictation Dev"; then
   IDENTITY="Desi Dictation Dev"
 fi
 echo "==> Codesigning with: $IDENTITY"
-codesign --force --deep --sign "$IDENTITY" "$BUNDLE"
+# Extended attributes (Finder info, provenance) make codesign refuse the whole
+# bundle: "resource fork, Finder information, or similar detritus" (FM#45).
+xattr -cr "$BUNDLE"
+codesign --force --deep --sign "$IDENTITY" "$BUNDLE" \
+  || { echo "✗ codesign failed: the bundle is NOT signed (FM#45)"; exit 1; }
+codesign --verify --deep --strict "$BUNDLE" \
+  || { echo "✗ the signature doesn't verify (FM#45)"; exit 1; }
 
 echo "==> Done:"
 # NB: no `| head` here — an early-exiting reader closes the pipe, codesign dies
