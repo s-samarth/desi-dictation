@@ -1,7 +1,7 @@
 # Terms of Service
 
 **Desi Dictation**
-**Effective date:** [DATE OF PUBLICATION]
+**Effective date:** 30 October 2026
 
 These terms are an agreement between you and Samarth Saraswat ("we", "us")
 for your use of the Desi Dictation app for macOS, its web demo and its
@@ -102,7 +102,7 @@ after the license ends.
 ## 12. Governing law
 
 These terms are governed by the laws of India, and the courts of
-[CITY], India have jurisdiction, unless the law where you live gives you the
+Bengaluru, India have jurisdiction, unless the law where you live gives you the
 right to bring a claim in your local courts.
 
 ## 13. Changes to these terms
