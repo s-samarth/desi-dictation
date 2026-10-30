@@ -88,7 +88,7 @@ pasteboard-swap ⌘V insertion → non-activating overlay for state. SwiftUI
 
 ## Status
 
-**v0.7.2 — free beta.** Feature-complete for the dictation wedge: first-launch
+**v0.7.3 — free beta.** Feature-complete for the dictation wedge: first-launch
 onboarding and an in-app Guide, 5 curated models (Prime/Parakeet/Qwen3-ASR/Vaani + VAD)
 with per-language defaults, smart vocabulary (learns names from your fixes, separate
 English and Hinglish word lists, right-click "Always write as…" in any app),
@@ -102,7 +102,11 @@ model picker in the menu bar. New in 0.7.1: **Send Feedback** in the menu bar, w
 shows exactly what it sends and sends only when you press Send. New in 0.7.2:
 **one-click updates** (a dot on the mic when a new version is out; it installs
 and restarts by itself, permissions kept), and a first run that asks for
-permissions one at a time and points at the menu-bar mic. Install with the one-liner
+permissions one at a time and points at the menu-bar mic. New in 0.7.3: a
+step-by-step setup (English first; Parakeet for speed or Qwen for accuracy;
+permission ticks that update as you allow them), updates that download in the
+background so Update now just restarts, and a Guide that starts with where
+the app lives. Install with the one-liner
 above (or the DMG from [Releases](../../releases)) and follow [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
 Roadmap highlights: on-device LLM layer (translate-to-English, structuring),
 own fine-tuned Hinglish model, more Indic languages, Windows/Android.
