@@ -35,6 +35,24 @@ enum UISnapshots {
         let long = ReviewLayout.size(for: longReviewText, on: screen)
         shots.append(("review-long", { AnyView(ReviewView(model: sampleReview(longReviewText), size: long)) },
                       fitted(ReviewView(model: sampleReview(longReviewText), size: long))))
+        // Updates (UPDATES.md): the banner on a page, and the mic with its dot.
+        let release = AppRelease(version: "0.8.0", dmg: URL(string: "https://example.com/u.dmg")!,
+                                 checksum: URL(string: "https://example.com/u.dmg.sha256")!)
+        shots.append(("update-banner", {
+            Updater.shared.preview(.available(release))
+            MainNav.shared.selection = .dictation
+            return AnyView(MainWindow())
+        }, MainWindow.size))
+        shots.append(("update-downloading", {
+            Updater.shared.preview(.downloading(release, 0.42))
+            return AnyView(UpdateBanner().frame(width: 560))
+        }, NSSize(width: 560, height: 40)))
+        shots.append(("update-icon", {
+            AnyView(HStack(spacing: 24) {
+                Image(nsImage: MenuBarIcon.image("mic", dot: false)).resizable().scaledToFit().frame(height: 64)
+                Image(nsImage: MenuBarIcon.image("mic", dot: true)).resizable().scaledToFit().frame(height: 64)
+            }.padding(20))
+        }, NSSize(width: 220, height: 110)))
         render(shots, into: directory)
     }
 

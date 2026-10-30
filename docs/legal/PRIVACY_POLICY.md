@@ -57,7 +57,12 @@ The app connects to the internet only in these cases:
    when you enter a key). The app sends the key to Gumroad (gumroad.com) to
    check that it is valid. Gumroad's privacy policy applies. Paid licenses
    are not enabled in the current version.
-3. **Optional local AI features** (off by default). If you set them up, they
+3. **Checking for updates.** About twice a day the app asks GitHub
+   (github.com) which version is newest. The request carries no identifier,
+   settings or text; like any website, GitHub can see your IP address. The
+   update itself is downloaded from GitHub only when you click it. GitHub's
+   privacy policy applies.
+4. **Optional local AI features** (off by default). If you set them up, they
    talk to Ollama running on your own Mac (address 127.0.0.1). That traffic
    never leaves your computer.
 

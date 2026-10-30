@@ -68,7 +68,9 @@ verify…" on first open → **System Settings → Privacy & Security → Open A
 once. Because every build carries the same identity, your Accessibility and
 Input Monitoring grants carry over between updates.
 
-**Updating:** quit the app from the menu bar first, then drag the new one into
+**Updating:** from this version on, the app shows an update in its menu (a dot on
+the mic): one click and it restarts into the new version. On older versions,
+quit the app from the menu bar first, then drag the new one into
 Applications and choose Replace. Do **not** uninstall — settings, history,
 dictionary and downloaded models are kept.
 
@@ -80,22 +82,26 @@ curl -fsSL https://raw.githubusercontent.com/s-samarth/desi-dictation/main/insta
 Install guide: [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)
 EOF
 
-# Two stable-named copies + checksums, one per route, so GitHub's per-file
+# Three stable-named copies + checksums, one per route, so GitHub's per-file
 # download counts tell the routes apart with no tracking
 # (scripts/download_counts.sh adds them up across releases):
 #   DesiDictation.dmg      install.sh (releases/latest/download/…; it
 #                          verifies the .sha256 before installing)
 #   DesiDictation-mac.dmg  the website's Download button (same URL shape)
 #   DesiDictation-<v>.dmg  the releases page
+#   DesiDictation-update.dmg  the app's own one-click update (UPDATES.md)
 STABLE="$ROOT/app/dist/DesiDictation.dmg"
 WEB="$ROOT/app/dist/DesiDictation-mac.dmg"
+UPDATE="$ROOT/app/dist/DesiDictation-update.dmg"
 cp "$DMG" "$STABLE"
 cp "$DMG" "$WEB"
-for f in "$DMG" "$STABLE" "$WEB"; do
+cp "$DMG" "$UPDATE"
+for f in "$DMG" "$STABLE" "$WEB" "$UPDATE"; do
   (cd "$(dirname "$f")" && shasum -a 256 "$(basename "$f")" > "$(basename "$f").sha256")
 done
 
 gh release create "$TAG" "$DMG" "$DMG.sha256" "$STABLE" "$STABLE.sha256" "$WEB" "$WEB.sha256" \
+  "$UPDATE" "$UPDATE.sha256" \
   --title "Desi Dictation $VERSION" \
   --notes-file "$NOTES" --generate-notes $DRAFT
 rm -f "$NOTES"

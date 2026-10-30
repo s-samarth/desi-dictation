@@ -19,6 +19,7 @@ runReviewTests()
 runStrictnessTests()
 runCleanupTests()
 runFeedbackTests()
+runUpdateTests()
 
 let group = DispatchGroup()
 group.enter()

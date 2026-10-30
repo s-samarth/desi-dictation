@@ -22,6 +22,7 @@ written to be read two months from now.
 | Auto vocabulary (learn from edits, screen names, Hinglish style, Qwen hotword seam) | P4, user request 2026-10-28 | [AUTO_VOCABULARY.md](AUTO_VOCABULARY.md) |
 | "When it fits" context checker (cloud vs Claude, llama.cpp scorer) | VOCABULARY_NEXT.md §1, user request 2026-10-28 | [CONTEXT_FIT.md](CONTEXT_FIT.md) |
 | Paste-back + end-of-dictation notices (FM#31) | v0.6.2 user report | [PASTE_AND_FEEDBACK.md](PASTE_AND_FEEDBACK.md) |
+| In-app updates: a dot on the mic, one click, permissions kept | user request 2026-10-30 | [UPDATES.md](UPDATES.md) |
 | Test harness + how everything is verified | — | [TESTING.md](TESTING.md) |
 
 ## What was deliberately NOT built, and why

@@ -46,7 +46,7 @@ send it right now"), check those two first; Copy and Email instead still work.
 
 ## Download counts, without tracking
 
-Each release carries the same DMG under three names (`release.sh`,
+Each release carries the same DMG under four names (`release.sh`,
 `release.yml`), and GitHub counts each file separately:
 
 | File | Route |
@@ -54,6 +54,7 @@ Each release carries the same DMG under three names (`release.sh`,
 | `DesiDictation-mac.dmg` | the website's Download button |
 | `DesiDictation.dmg` | the one-line installer |
 | `DesiDictation-<v>.dmg` | the GitHub releases page |
+| `DesiDictation-update.dmg` | the app's one-click update ([UPDATES.md](UPDATES.md)); its own column, kept out of the new-download total |
 
 Both stable names sit behind `releases/latest/download/…`, so a new release
 changes nothing on the website. Its version label reads the latest release
