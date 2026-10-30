@@ -62,7 +62,7 @@ struct ReviewStep: View {
                     Text(settings.reviewStrictness.detail).font(.body).foregroundStyle(.secondary)
                 }
                 Tip(symbol: "slider.horizontal.3",
-                    text: "**Feel it's poking you too often? Switch to Liberal.** Missing mistakes? Try Conservative. You can change this any time under Dictation in the app.")
+                    text: "**Feel it's poking you too often? Switch to Liberal, or Bindaas to stop only for purple words.** Missing mistakes? Try Conservative. You can change this any time under Dictation in the app.")
             }
             if LlamaContextScorer.isAvailable {
                 ContextCheckerCard()

@@ -229,8 +229,11 @@ first version that has it; to get that one, update the old way, once.
   this text**. Never applied on their own.
 - **Review before paste:** Dictation → **Review**: **Review before paste**
   Off (default), **Only when unsure**, or **Always**, and **Underline
-  words** Conservative / **Moderate** (default) / Liberal: how readily
-  words get underlined (about 1 in 7, 1 in 12, 1 in 25). Onboarding offers
+  words** Conservative / **Moderate** (default) / Liberal / Bindaas: how readily
+  words get underlined (about 1 in 7, 1 in 12, 1 in 25). **Bindaas** shows
+  only the purple words below, so the panel opens only when the context
+  checker thinks a word doesn't fit; without the checker, and in Hinglish,
+  nothing is underlined and it pastes straight away. Onboarding offers
   both as step 5. When it opens, a panel sized to the text (6 to 20 lines
   without scrolling; it can be dragged bigger) shows the dictation before
   it's pasted. Words the speech
