@@ -39,8 +39,9 @@ extension DictationController {
         let ranks = mode == .english && ContextChecker.isReady
         guard oddAbove != nil || ranks else {
             let cleanup = CleanupReview.items(in: text, mode: mode, scorer: nil, removeSounds: removeSounds)
-            let unsure = ReviewPlanner.unsure(in: text, words: words, threshold: threshold,
-                                              suggested: suggested, cleanup: cleanup, sources: sources)
+            let unsure = ReviewPlanner.shown(ReviewPlanner.unsure(
+                in: text, words: words, threshold: threshold,
+                suggested: suggested, cleanup: cleanup, sources: sources), strictness: strictness)
             guard ReviewPlanner.opens(reviewMode, unsure: unsure) else { return false }
             present(unsure)
             return true
@@ -54,6 +55,7 @@ extension DictationController {
             var unsure = ReviewPlanner.unsure(in: text, words: words, threshold: threshold,
                                               odd: odd, oddAbove: oddAbove, suggested: suggested,
                                               cleanup: cleanup, sources: sources)
+            unsure = ReviewPlanner.shown(unsure, strictness: strictness)
             if ranks, let scorer {
                 for i in unsure.indices where unsure[i].alternatives.count > 1 {
                     unsure[i].alternatives = ReviewAlternatives.ranked(unsure[i], in: text, scorer: scorer)

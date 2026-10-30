@@ -13,12 +13,21 @@ public enum ReviewStrictness: String, CaseIterable, Codable, Sendable {
     case moderate
     /// Lets almost everything through; only likely mistakes are underlined.
     case liberal
+    /// Past Liberal: only the context checker's purple words, the ones odd
+    /// in their sentence (at Liberal's bar). Low confidence alone underlines
+    /// nothing, nor do sound-alikes or spoken corrections. Needs the checker;
+    /// Hinglish isn't checked, so with "Only when unsure" it pastes as is.
+    case bindaas
+
+    /// Only words the context checker finds odd are shown.
+    public var onlyOdd: Bool { self == .bindaas }
 
     public var label: String {
         switch self {
         case .conservative: return "Conservative"
         case .moderate: return "Moderate"
         case .liberal: return "Liberal"
+        case .bindaas: return "Bindaas"
         }
     }
 
@@ -27,6 +36,7 @@ public enum ReviewStrictness: String, CaseIterable, Codable, Sendable {
         case .conservative: return "Conservative underlines about one word in seven, so fewer mistakes slip through."
         case .moderate: return "Moderate underlines about one word in twelve."
         case .liberal: return "Liberal underlines about one word in twenty-five: only words that are likely wrong."
+        case .bindaas: return "Bindaas only stops you when the context checker thinks a word doesn't fit its sentence (the purple ones). Everything else goes straight in."
         }
     }
 
@@ -34,7 +44,7 @@ public enum ReviewStrictness: String, CaseIterable, Codable, Sendable {
     /// none (Qwen3-ASR: transcribe.cpp has no token rows for it).
     public func confidenceThreshold(forModel path: String) -> Float? {
         let name = path.lowercased()
-        if name.contains("qwen3-asr") { return nil }
+        if onlyOdd || name.contains("qwen3-asr") { return nil }
         if name.contains("parakeet") { return pick(0.66, 0.50, 0.43) }
         if name.contains("vaani") { return pick(0.59, 0.59, 0.54) }
         return pick(0.84, 0.64, 0.52)                   // whisper: measured on Hinglish Prime
@@ -66,7 +76,7 @@ public enum ReviewStrictness: String, CaseIterable, Codable, Sendable {
         switch self {
         case .conservative: return conservative
         case .moderate: return moderate
-        case .liberal: return liberal
+        case .liberal, .bindaas: return liberal
         }
     }
 }

@@ -199,6 +199,17 @@ dictations decided it:
 | "…does **Luke bomb** fit…" (meant "Shlok Bum") | nothing; panel didn't open | Luke (12.5), bomb (11.7) |
 | casual sentence, all words fine but "onboarding" | onboarding | onboarding ("Yeah", 11.2, just under) |
 
+**Bindaas** (added 2026-10-30, after Liberal on the same picker) is
+the purple-only level: just the words the context checker finds odd in
+their sentence, at Liberal's surprise bar. It ignores low confidence,
+sound-alikes, vocabulary suggestions and spoken corrections
+(`ReviewPlanner.shown` keeps only `.odd`), so it underlines a subset of
+Liberal's purple words and, with **Only when unsure**, the panel opens only
+when the checker objects. Where nothing is purple (Hinglish, or the
+checker not installed), it pastes straight away; the settings footer says
+so when the checker is missing. Not measured separately: its recall is
+Liberal's "odd in context" share, minus everything confidence caught.
+
 Liberal's bar for an everyday word (8 + 8 = 16 for Qwen3-ASR) is above
 what a name misheard as everyday words scores. Moderate's (3.6 + 8 =
 11.6) caught it with no false underline, by thin margins (bomb +0.1,

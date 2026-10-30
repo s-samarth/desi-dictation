@@ -39,6 +39,26 @@ func runStrictnessTests() {
     T.equal(ReviewStrictness.moderate.surpriseThreshold(forModel: "/m/ggml-hinglish-prime-q5_0.bin", mode: .hinglish),
             nil, "Hinglish: the checker doesn't help, so it isn't asked")
 
+    T.begin("Review — Bindaas shows only purple words")
+    T.equal(ReviewStrictness.bindaas.confidenceThreshold(forModel: "/m/ggml-hinglish-prime-q5_0.bin"), nil,
+            "low confidence alone underlines nothing")
+    T.equal(ReviewStrictness.bindaas.surpriseThreshold(forModel: "/m/ggml-parakeet-tdt-0.6b-v3-q4_k.bin", mode: .english),
+            ReviewStrictness.liberal.surpriseThreshold(forModel: "/m/ggml-parakeet-tdt-0.6b-v3-q4_k.bin", mode: .english),
+            "odd at Liberal's bar, so never more than Liberal")
+    T.equal(ReviewStrictness.bindaas.surpriseThreshold(forModel: "/m/ggml-hinglish-prime-q5_0.bin", mode: .hinglish),
+            nil, "Hinglish isn't checked, so nothing is purple")
+    let said = "Pay Claude for one PC"
+    let scoredWords = ["Pay", "Claude", "for", "one", "PC"].map { ScoredWord(text: $0, confidence: $0 == "Pay" ? 0.3 : 0.99) }
+    let mixed = ReviewPlanner.unsure(
+        in: said, words: scoredWords, threshold: 0.5,
+        odd: SentenceSurprise.words(in: said, scorer: OddWordScorer(odd: "PC")) ?? [], oddAbove: 10,
+        suggested: [WordFix(from: "Claude", to: "cloud", source: .context)], sources: .init())
+    T.equal(mixed.map(\.word), ["Pay", "Claude", "PC"], "unclear, suggested and odd words are all found")
+    T.equal(ReviewPlanner.shown(mixed, strictness: .bindaas).map(\.word), ["PC"], "Bindaas: only the odd word")
+    T.equal(ReviewPlanner.shown(mixed, strictness: .liberal).count, 3, "other levels show everything")
+    T.expect(!ReviewPlanner.opens(.unsure, unsure: ReviewPlanner.shown(Array(mixed.prefix(1)), strictness: .bindaas)),
+             "nothing purple: the panel stays shut and it pastes")
+
     T.begin("Review — surprise lands on whole words")
     let text = "watch one PC Luffy"
     let scored = SentenceSurprise.words(in: text, scorer: OddWordScorer(odd: "PC")) ?? []

@@ -27,6 +27,11 @@ struct ReviewSection: View {
     }
 
     private var line: String {
+        mainLine + (settings.reviewStrictness.onlyOdd && !ContextChecker.isReady
+            ? " Bindaas needs the context checker below: without it nothing is underlined." : "")
+    }
+
+    private var mainLine: String {
         switch settings.reviewMode {
         case .off:
             return "Off: words go straight into your app. Optional; nothing else needs it."

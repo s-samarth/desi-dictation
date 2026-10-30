@@ -92,6 +92,12 @@ public enum ReviewPlanner {
         return out
     }
 
+    /// What `strictness` lets through: Bindaas keeps only the checker's odd
+    /// (purple) words; every other level shows them all.
+    public static func shown(_ unsure: [UnsureWord], strictness: ReviewStrictness) -> [UnsureWord] {
+        strictness.onlyOdd ? unsure.filter { $0.reason == .odd } : unsure
+    }
+
     /// Whether this dictation opens the panel.
     public static func opens(_ mode: ReviewMode, unsure: [UnsureWord]) -> Bool {
         switch mode {
