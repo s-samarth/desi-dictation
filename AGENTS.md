@@ -69,7 +69,7 @@ app/.build/debug/desi-tests            # 119 assertions, exit 0 = green
 ```
 
 Commit style: conventional commits (`feat:`, `fix:`, `docs:`, `ci:`…), ending
-with `Co-Authored-By: Codex Fable 5 <noreply@anthropic.com>`.
+with `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
 
 ## Update the docs with the code
 
