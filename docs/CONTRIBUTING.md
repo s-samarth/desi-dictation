@@ -17,7 +17,7 @@ source scripts/sdk_env.sh
 
 ## 1. Before you edit: read the right doc
 
-The repo-root [CLAUDE.md](../CLAUDE.md) has the routing table (what to read
+The repo-root [AGENTS.md](../AGENTS.md) has the routing table (what to read
 before touching which directory). The short version: every built feature has
 a design doc in [features/implementation/](features/implementation/) that
 explains how it works and *why* — read it, or you'll re-fight a decided fight
