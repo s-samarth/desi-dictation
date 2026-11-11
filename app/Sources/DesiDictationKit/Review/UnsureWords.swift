@@ -31,6 +31,9 @@ public struct UnsureWord: Equatable, Sendable {
         /// A spoken correction ("2, no, make it 3"); the alternative is what
         /// was meant ("" = remove the taken-back words).
         case correction
+        /// Hinglish Learning: heard right, but which spelling is the user's?
+        /// The alternatives are the word's other common spellings.
+        case spelling
     }
 
     public let range: Range<String.Index>

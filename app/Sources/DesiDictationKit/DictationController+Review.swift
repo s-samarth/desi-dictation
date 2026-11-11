@@ -17,17 +17,22 @@ extension DictationController {
             ? entries.filter { $0.mode == .whenItFits }.map(\.heard) : []
         let sources = ReviewAlternatives.Sources(
             entries: entries, screenTerms: VocabularySession.shared.currentScreenTerms, judged: Set(judged))
-        let strictness = settings.reviewStrictness
+        // Hinglish Learning opens every time and asks which spelling is yours;
+        // its confidence underlines never go below Liberal's (Bindaas has none).
+        let learning = mode == .hinglish && HinglishLearning.shared.isLearning
+        let spellings = learning ? HinglishLearning.spellingWords(in: text, style: HinglishLearning.shared.style) : []
+        let strictness = learning && settings.reviewStrictness.onlyOdd ? ReviewStrictness.liberal : settings.reviewStrictness
         let modelPath = resolvedModelPath(for: mode) ?? ""
         let threshold = strictness.confidenceThreshold(forModel: modelPath)
         let oddAbove = ContextChecker.isReady ? strictness.surpriseThreshold(forModel: modelPath, mode: mode) : nil
-        let reviewMode = settings.reviewMode
+        let reviewMode = learning ? ReviewMode.always : settings.reviewMode
         let scope = WordScope(mode: mode)
         let present: ([UnsureWord]) -> Void = { [weak self] unsure in
             controllerLog.info("review: \(unsure.count, privacy: .public) unsure words")
             onReview(ReviewRequest(
-                text: text, unsure: unsure, scope: scope,
-                offerWhenItFits: scope == .english && LlamaContextScorer.isAvailable) { outcome in
+                text: text, unsure: ReviewPlanner.merge(unsure, spellings), scope: scope,
+                offerWhenItFits: scope == .english && LlamaContextScorer.isAvailable,
+                learning: learning) { outcome in
                     switch outcome {
                     case .paste(let final): self?.commit(text: final, mode: mode, copyOnly: copyOnly, raw: raw)
                     case .copy(let final): self?.commit(text: final, mode: mode, copyOnly: true, raw: raw)

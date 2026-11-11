@@ -39,6 +39,8 @@ final class ReviewModel: ObservableObject {
     /// "looks right" no longer counts.
     @Published var remaining: Int
     @Published var fixes: [Fix] = []
+    /// Hinglish Learning: the user's answer per offered habit (nil: not yet).
+    @Published var habitAnswers: [HinglishStyleRule: Bool] = [:]
     private var finished = false
     /// Set by the panel: hides it before the paste goes out.
     var onClose: (() -> Void)?
@@ -65,7 +67,16 @@ final class ReviewModel: ObservableObject {
     /// A fix is kept "Just this once" unless changed (user decision
     /// 2026-10-29, reversing the earlier "When it fits" default): remembering
     /// a word is the user's choice, never a side effect of fixing it.
-    var defaultKeep: Keep { .once }
+    /// In Hinglish Learning, fixing a spelling is teaching it: Always.
+    var defaultKeep: Keep { request.learning ? .always : .once }
+
+    /// Fixes to remember for good.
+    private var kept: [EditPair] { fixes.filter { $0.keep == .always }.map(\.pair) }
+
+    /// Habits these fixes (and earlier ones) show, offered as rules.
+    var habits: [HinglishStyleRule] {
+        request.scope == .hinglish ? HinglishLearning.shared.habits(in: kept) : []
+    }
 
     func textChanged(_ new: String) {
         text = new
@@ -89,6 +100,12 @@ final class ReviewModel: ObservableObject {
         finished = true
         if ending != .discard {
             ReviewPlanner.remember(fixes.map { ($0.pair, $0.keep.mode) }, scope: request.scope)
+            if request.scope == .hinglish {
+                HinglishLearning.shared.finish(
+                    underlined: request.unsure, changes: fixes.map(\.pair), kept: kept,
+                    adopt: habits.filter { habitAnswers[$0] == true },
+                    decline: habits.filter { habitAnswers[$0] == false })
+            }
         }
         onClose?()
         let outcome: ReviewOutcome = switch ending {

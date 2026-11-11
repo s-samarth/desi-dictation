@@ -141,7 +141,9 @@ user confirms):
   - sound ≤ 0.35 with spelling ≥ 0.4, or spelling ≥ 0.6;
   - capitalizing a non-common word ("kavya" → "Kavya");
   - Hinglish style edits (`isStyleEdit`: vowel length, final nasal, *h*
-    after a consonant, dropped inner vowels like *nhi*/*nahi*).
+    after a consonant, dropped inner vowels like *nhi*/*nahi*, and v/w as
+    one sound like *vaalon*/*waalon*, added 2026-11-11; see
+    [HINGLISH_LEARNING.md](HINGLISH_LEARNING.md)).
 - **Not proposed:**
   - grammar between common words (*their/there*);
   - inflections (*deploy/deployed*);

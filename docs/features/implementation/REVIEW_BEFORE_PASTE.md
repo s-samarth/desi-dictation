@@ -153,6 +153,9 @@ Luffy, Shlok and Prabjot and no everyday words.
 
 ## Strictness
 
+(Hinglish has its own setting, **Learning**, which asks which spelling is
+yours instead of how sure the model is: [HINGLISH_LEARNING.md](HINGLISH_LEARNING.md).)
+
 One setting decides how readily words are underlined. Every level uses both
 signals; they differ in how many words they may underline (a share of all
 words: Conservative ~15 %, Moderate ~8 %, Liberal ~4 %). For each engine,

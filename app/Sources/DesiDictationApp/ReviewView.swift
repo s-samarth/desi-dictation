@@ -12,12 +12,14 @@ struct ReviewView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
+            LearningDoneBanner(model: model)
             ReviewTextEditor(model: model)
                 .frame(minHeight: size.editorHeight, maxHeight: .infinity)
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.neutral.opacity(0.25)))
             alternatives
             if model.canRemember, !model.fixes.isEmpty { remember }
+            LearningHabitRows(model: model)
             footer
         }
         .padding(16)
@@ -85,6 +87,7 @@ struct ReviewView: View {
         case .suggested: return "Did you mean:"
         case .filler: return "Filler?"
         case .correction: return "You probably meant:"
+        case .spelling: return "Your spelling? Leave it, or pick:"
         }
     }
 

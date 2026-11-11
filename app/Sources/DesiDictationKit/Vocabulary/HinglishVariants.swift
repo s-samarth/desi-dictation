@@ -45,7 +45,8 @@ public enum HinglishVariants {
     private static let grammarPairs: Set<String> = ["hai/hain", "hain/he", "hai/he", "ho/hu", "mai/main"]
 
     private static func styleNormal(_ word: String) -> String {
-        var s = Array(key(word))
+        // v and w are one sound in Hindi: vaala/waala, voh/woh.
+        var s = Array(key(word).replacingOccurrences(of: "w", with: "v"))
         // h after a consonant is spelling style here (acha/achha), not a sound.
         s = s.enumerated().filter { i, c in
             !(c == "h" && i > 0 && !"aeiou".contains(s[i - 1]))

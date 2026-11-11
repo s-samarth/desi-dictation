@@ -24,6 +24,7 @@ written to be read two months from now.
 | Paste-back + end-of-dictation notices (FM#31) | v0.6.2 user report | [PASTE_AND_FEEDBACK.md](PASTE_AND_FEEDBACK.md) |
 | First run: permissions one at a time, pointer at the menu-bar mic, notch check | user request 2026-10-30 | [FIRST_RUN.md](FIRST_RUN.md) |
 | In-app updates: a dot on the mic, one click, permissions kept | user request 2026-10-30 | [UPDATES.md](UPDATES.md) |
+| Hinglish Learning: asks which spelling is yours, learns spellings and habits | user request 2026-11-11 | [HINGLISH_LEARNING.md](HINGLISH_LEARNING.md) |
 | Test harness + how everything is verified | — | [TESTING.md](TESTING.md) |
 
 ## What was deliberately NOT built, and why

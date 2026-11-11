@@ -355,6 +355,7 @@ public final class DictationController: ObservableObject {
         let rules = settings.replacementRules
         // Snapshot on main; applied off-main via the pure static core.
         let dictionary = PersonalDictionary.shared.entries(for: mode)
+        let hinglishStyle = mode == .hinglish ? HinglishLearning.shared.style : HinglishStyle()
         let vocabulary = vocabularyPlan()
         let cleanup = Self.cleanupPlan
         let useOllama = settings.aiFeaturesEnabled && settings.ollamaEnabled
@@ -389,6 +390,7 @@ public final class DictationController: ObservableObject {
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 text = PostProcessor.applyReplacements(text, rules: rules)
                 text = PersonalDictionary.apply(text, entries: dictionary)
+                text = hinglishStyle.apply(text)   // the user's Hinglish spellings (HINGLISH_LEARNING.md)
                 text = Self.applyVocabulary(text, mode: mode, plan: vocabulary)
                 text = Self.applyCleanup(text, mode: mode, plan: cleanup)
                 if useOllama, !text.isEmpty {

@@ -175,8 +175,8 @@ final class ReviewTextView: NSTextView {
             out.addAttributes([
                 ReviewTextEditor.unsureKey: i,
                 .underlineStyle: NSUnderlineStyle.thick.rawValue | NSUnderlineStyle.patternDot.rawValue,
-                // Odd in context gets its own colour: the audio was clear, the word may still be wrong.
-                .underlineColor: unsure.reason == .odd ? NSColor.systemPurple : NSColor(Theme.accent),
+                // Each reason has its colour (ReviewLearningViews.swift).
+                .underlineColor: Self.color(for: unsure.reason),
             ], range: range)
         }
         return out
