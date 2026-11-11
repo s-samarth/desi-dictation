@@ -78,6 +78,15 @@ func runReviewTests() {
     T.equal(ReviewPlanner.fixes(from: "send it today", to: "please send it today"), [],
             "added words aren't fixes")
     T.equal(ReviewPlanner.fixes(from: "a b c d e f", to: "u v w x y z"), [], "a rewrite isn't a fix")
+    // Hinglish spellings fixed one by one, more than the field's rewrite guard (4).
+    let heard = "vaalon ko chaahie kyonki ladki vaise hi pategi aur bechana"
+    let typed = "waalon ko chahiye kyunki ladki waise hi patayegi aur bechna"
+    T.equal(ReviewPlanner.fixes(from: heard, to: typed).map(\.typed),
+            ["waalon", "chahiye", "kyunki", "waise", "patayegi", "bechna"], "six word fixes: all six offered")
+    T.equal(EditDiff.pairs(before: heard, after: typed, inserted: heard), [],
+            "in a field, the same six changes still read as a rewrite")
+    T.equal(ReviewPlanner.fixes(from: "send it to Rohan today and call Kavya", to: "kindly forward the deck to Rohan today and call Kavyaa").map(\.typed),
+            ["Kavyaa"], "a rewritten phrase is skipped without losing the other fixes")
 
     T.begin("Review — guessed fixes are offered, never applied")
     let guessed = [WordFix(from: "plus", to: "PRs", source: .screen)]

@@ -44,6 +44,10 @@ panel:
   default: remembering a word is a choice). When it fits is offered for
   English with the llama runtime in the build. Without the checker downloaded, a note says it
   judges sentences only once installed. Not shown for हिन्दी.
+  Every one- or two-word swap is listed, however many (2026-11-11: past
+  four changes the panel offered nothing, because it shared the edit
+  watcher's rewrite guard; FM#46). Only a rewritten phrase (3+ words) is
+  skipped, and past four rows the list scrolls inside the panel.
 - The **context checker's status** (installed, or Get · 397 MB, and what it
   adds) shows under the Review settings and on the Vocabulary page
   (`ContextCheckerRow`), and Guide card 10 lists what needs it.
