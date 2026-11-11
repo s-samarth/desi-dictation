@@ -91,6 +91,21 @@ struct ReviewView: View {
     private var remember: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Remember your fixes?").font(.caption.weight(.semibold))
+            // Many fixes scroll inside the panel instead of pushing Paste off it.
+            if model.fixes.count > 4 {
+                ScrollView { fixRows }.frame(height: 4 * 30)
+            } else {
+                fixRows
+            }
+            if !ContextChecker.isReady, model.fixes.contains(where: { $0.keep == .whenItFits }) {
+                Text("When it fits needs the context checker (Models page, 397 MB) to judge each sentence. Until then, only names on screen decide.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var fixRows: some View {
+        VStack(alignment: .leading, spacing: 6) {
             ForEach($model.fixes) { $fix in
                 HStack {
                     Text(fix.pair.heard).strikethrough().foregroundStyle(.secondary)
@@ -102,10 +117,6 @@ struct ReviewView: View {
                     }
                     .pickerStyle(.segmented).labelsHidden().frame(width: 290)
                 }
-            }
-            if !ContextChecker.isReady, model.fixes.contains(where: { $0.keep == .whenItFits }) {
-                Text("When it fits needs the context checker (Models page, 397 MB) to judge each sentence. Until then, only names on screen decide.")
-                    .font(.caption).foregroundStyle(.secondary)
             }
         }
     }

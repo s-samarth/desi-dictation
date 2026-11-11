@@ -1081,3 +1081,19 @@ verifies the signature afterwards, and says plainly when either fails.
 `identifier "com.desi.dictation" and certificate leaf`. Never judge a build
 by grepped output. And when permissions "don't stick", read tccd's
 `identifier=` before suspecting the permission code.
+
+### Failure mode #46 — six fixes in the review panel, nothing offered to remember
+
+**Symptom:** 2026-11-11, Hinglish. Fixing one or two words in the review
+panel offered *Remember your fixes?*; fixing five or six spellings offered
+nothing, so the same misspellings came back next time.
+**Cause:** `ReviewPlanner.fixes` reused `EditDiff.align`, whose rewrite guard
+(`maxChangedWords = 4`) exists for the edit watcher: in a text field, many
+changed words usually mean the user rewrote the sentence. In the panel every
+change is a deliberate fix, and a Hinglish sentence often needs five.
+**Fix:** `align(_:_:limit:)`; the panel passes `nil`, which keeps every one-
+or two-word swap and skips only rewritten phrases. The watcher keeps the
+guard. The fix list scrolls past four rows.
+**Lesson:** a heuristic tuned for guessing (the watcher) is wrong where the
+user is telling us (the panel). Check which side of that line a shared
+helper's caller is on.

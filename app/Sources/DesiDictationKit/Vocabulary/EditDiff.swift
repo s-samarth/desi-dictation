@@ -40,7 +40,10 @@ public enum EditDiff {
     }
 
     /// Word runs that differ between the two word lists (LCS alignment).
-    static func align(_ x: [String], _ y: [String]) -> [EditPair] {
+    /// `limit` is the rewrite guard for edits seen in a field: above it,
+    /// nothing counts. nil (the review panel, where every change is a
+    /// deliberate fix) keeps each word swap and skips only rewritten phrases.
+    static func align(_ x: [String], _ y: [String], limit: Int? = maxChangedWords) -> [EditPair] {
         guard !x.isEmpty, !y.isEmpty else { return [] }
         var lcs = [[Int]](repeating: [Int](repeating: 0, count: y.count + 1), count: x.count + 1)
         for i in stride(from: x.count - 1, through: 0, by: -1) {
@@ -62,8 +65,8 @@ public enum EditDiff {
                 pairs += zip(runX, runY).map { EditPair(heard: $0, typed: $1) }
             } else if (1...2).contains(runX.count), (1...2).contains(runY.count) {
                 pairs.append(EditPair(heard: runX.joined(separator: " "), typed: runY.joined(separator: " ")))
-            } else if !runX.isEmpty && !runY.isEmpty {
-                changed += maxChangedWords   // a rewritten phrase: give up
+            } else if !runX.isEmpty && !runY.isEmpty, let limit {
+                changed += limit   // a rewritten phrase: give up
             }
             runX = []; runY = []
         }
@@ -77,7 +80,8 @@ public enum EditDiff {
             }
         }
         flush()
-        return changed > maxChangedWords ? [] : pairs
+        guard let limit else { return pairs }
+        return changed > limit ? [] : pairs
     }
 
     /// Whitespace-separated words with surrounding punctuation trimmed.

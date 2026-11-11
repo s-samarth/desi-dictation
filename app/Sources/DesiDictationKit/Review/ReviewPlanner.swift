@@ -107,10 +107,11 @@ public enum ReviewPlanner {
         }
     }
 
-    /// Word fixes the user made in the panel, offered to remember. A rewrite
-    /// of more than a few words gives none (EditDiff's rule).
+    /// Word fixes the user made in the panel, offered to remember: every
+    /// one- or two-word swap, however many. Unlike a field edit, a panel edit
+    /// is never mistaken for a rewrite; only rewritten phrases are skipped.
     public static func fixes(from original: String, to edited: String) -> [EditPair] {
-        EditDiff.align(EditDiff.words(original), EditDiff.words(edited))
+        EditDiff.align(EditDiff.words(original), EditDiff.words(edited), limit: nil)
             .filter { !$0.heard.isEmpty && !$0.typed.isEmpty }
     }
 
