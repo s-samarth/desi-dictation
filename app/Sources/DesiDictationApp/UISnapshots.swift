@@ -47,6 +47,10 @@ enum UISnapshots {
         let long = ReviewLayout.size(for: longReviewText, on: screen)
         shots.append(("review-long", { AnyView(ReviewView(model: sampleReview(longReviewText), size: long)) },
                       fitted(ReviewView(model: sampleReview(longReviewText), size: long))))
+        // Hinglish Learning (HINGLISH_LEARNING.md): blue spelling questions, fixes kept Always, a habit offered.
+        let hinglish = ReviewLayout.size(for: learningText, on: screen)
+        shots.append(("review-learning", { AnyView(ReviewView(model: learningReview(), size: hinglish)) },
+                      fitted(ReviewView(model: learningReview(), size: hinglish))))
         // Updates (UPDATES.md): the banner on a page, and the mic with its dot.
         let release = AppRelease(version: "0.8.0", dmg: URL(string: "https://example.com/u.dmg")!,
                                  checksum: URL(string: "https://example.com/u.dmg.sha256")!)
@@ -93,6 +97,17 @@ enum UISnapshots {
                                                        offerWhenItFits: true) { _ in })
         model.textChanged(text.replacingOccurrences(of: "Cavya", with: "Kavya"))
         model.currentIndex = 0
+        return model
+    }
+
+    private static let learningText = "Ads ko chaahie ki vo apna product bechein, kyonki vaise hi log samajh jaate hain"
+
+    private static func learningReview() -> ReviewModel {
+        let unsure = HinglishLearning.spellingWords(in: learningText, style: HinglishStyle())
+        let model = ReviewModel(request: ReviewRequest(text: learningText, unsure: unsure, scope: .hinglish,
+                                                       offerWhenItFits: false, learning: true) { _ in })
+        model.textChanged(learningText.replacingOccurrences(of: "chaahie", with: "chahiye")
+            .replacingOccurrences(of: " vo ", with: " wo ").replacingOccurrences(of: "vaise", with: "waise"))
         return model
     }
 

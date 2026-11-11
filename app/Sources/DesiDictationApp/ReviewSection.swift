@@ -5,6 +5,7 @@ import DesiDictationKit
 /// opens, and how readily it underlines words.
 struct ReviewSection: View {
     @ObservedObject var settings = SettingsStore.shared
+    @ObservedObject var learning = HinglishLearning.shared
 
     var body: some View {
         Section {
@@ -14,6 +15,9 @@ struct ReviewSection: View {
             if settings.reviewMode != .off {
                 Picker("Underline words", selection: $settings.reviewStrictness) {
                     ForEach(ReviewStrictness.allCases, id: \.self) { Text($0.label).tag($0) }
+                }
+                Picker("Hinglish", selection: $learning.review) {
+                    ForEach(HinglishReview.allCases, id: \.self) { Text($0.label).tag($0) }
                 }
                 if LlamaContextScorer.isAvailable {
                     ContextCheckerRow(adds: "purple underlines for words odd in their sentence (English, हिन्दी)")
@@ -29,6 +33,8 @@ struct ReviewSection: View {
     private var line: String {
         mainLine + (settings.reviewStrictness.onlyOdd && !ContextChecker.isReady
             ? " Bindaas needs the context checker below: without it nothing is underlined." : "")
+            + (settings.reviewMode != .off && learning.isLearning
+                ? " Hinglish Learning opens on every Hinglish dictation, underlines in blue the words you can spell more than one way, and remembers your spelling. It suggests stopping once you've gone \(HinglishLearning.graduateAfter) in a row without a fix." : "")
     }
 
     private var mainLine: String {

@@ -19,14 +19,17 @@ public struct ReviewRequest {
     public let scope: WordScope?
     /// "When it fits" can be offered (English, checker installed).
     public let offerWhenItFits: Bool
+    /// Hinglish Learning is on: fixes default to Always, habits are offered.
+    public let learning: Bool
     public let complete: @MainActor (ReviewOutcome) -> Void
 
     public init(text: String, unsure: [UnsureWord], scope: WordScope?, offerWhenItFits: Bool,
-                complete: @escaping @MainActor (ReviewOutcome) -> Void) {
+                learning: Bool = false, complete: @escaping @MainActor (ReviewOutcome) -> Void) {
         self.text = text
         self.unsure = unsure
         self.scope = scope
         self.offerWhenItFits = offerWhenItFits
+        self.learning = learning
         self.complete = complete
     }
 }
@@ -96,6 +99,13 @@ public enum ReviewPlanner {
     /// (purple) words; every other level shows them all.
     public static func shown(_ unsure: [UnsureWord], strictness: ReviewStrictness) -> [UnsureWord] {
         strictness.onlyOdd ? unsure.filter { $0.reason == .odd } : unsure
+    }
+
+    /// Learning's spelling questions added to the other underlines; where
+    /// they overlap, the other reason (a mishearing) wins.
+    public static func merge(_ unsure: [UnsureWord], _ spellings: [UnsureWord]) -> [UnsureWord] {
+        (unsure + spellings.filter { s in !unsure.contains { $0.range.overlaps(s.range) } })
+            .sorted { $0.range.lowerBound < $1.range.lowerBound }
     }
 
     /// Whether this dictation opens the panel.
