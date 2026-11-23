@@ -389,7 +389,7 @@ public final class DictationController: ObservableObject {
                 var text = parts.joined(separator: " ")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 text = PostProcessor.applyReplacements(text, rules: rules)
-                text = PersonalDictionary.apply(text, entries: dictionary)
+                text = PersonalDictionary.apply(text, entries: dictionary, lexicon: .system)   // "to → toh" skips English sentences
                 text = hinglishStyle.apply(text)   // the user's Hinglish spellings (HINGLISH_LEARNING.md)
                 text = Self.applyVocabulary(text, mode: mode, plan: vocabulary)
                 text = Self.applyCleanup(text, mode: mode, plan: cleanup)

@@ -129,9 +129,12 @@ public final class PersonalDictionary: ObservableObject {
     /// Pure + static so the pipeline can run it off-main with a snapshot and
     /// tests can hit it directly.
     /// "When it fits" entries are skipped here: ContextFit judges them.
-    public static func apply(_ text: String, entries: [DictionaryEntry]) -> String {
+    /// With a `lexicon`, a Hinglish rule from an English word to a Hindi
+    /// spelling ("to → toh") skips English sentences (EnglishContext).
+    public static func apply(_ text: String, entries: [DictionaryEntry], lexicon: WordLexicon? = nil) -> String {
         var result = text
         for entry in entries where entry.mode == .always {
+            let guarded = lexicon.map { EnglishContext.isGuarded(entry, lexicon: $0) } ?? false
             let escaped = NSRegularExpression.escapedPattern(for: entry.heard)
             // \b fails around Devanagari/word-edge punctuation for some terms;
             // fall back to plain replacement if the pattern can't compile.
@@ -146,6 +149,9 @@ public final class PersonalDictionary: ObservableObject {
             let matches = regex.matches(in: result, range: range).reversed()
             for match in matches {
                 guard let matchRange = Range(match.range, in: result) else { continue }
+                if guarded, let lexicon, EnglishContext.surrounds(matchRange, in: result, lexicon: lexicon) {
+                    continue
+                }
                 let matched = String(result[matchRange])
                 result.replaceSubrange(
                     matchRange, with: casedLike(matched, replacement: entry.written))
