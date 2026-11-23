@@ -57,6 +57,32 @@ still works and is now labeled "advanced"). Order matters: the LLM stages
 (translate/tone) run *after*, so they receive corrected text — verified by the
 combination tests.
 
+## English sentences in Hinglish mode (2026-11-24, FM#47)
+
+Prime writes the same "to" for English *to* and Hindi *toh*, so a Hinglish
+rule `to → toh` used to turn "how to fix" into "how toh fix".
+`apply(_:entries:lexicon:)` now takes a lexicon (the pipeline passes
+`WordLexicon.system`; desi-cli and old tests pass none and keep the old
+behaviour) and asks `Vocabulary/EnglishContext.swift`:
+
+- **Which rules are checked** (`isGuarded`): Hinglish, one word, the heard
+  word is English and the written one is a Hindi spelling. to → toh,
+  tab → tabh, relay → reelien. Not view → review (English to English) or
+  nahin → nahi (heard word isn't English): those always apply.
+- **When a match is skipped** (`surrounds`): the two words on each side, in
+  the same sentence, include an English word and no Hindi one. Names and
+  numbers count for neither, and a lowercase word that isn't English counts
+  as Hindi. Nothing around it, or any Hindi word, means the rule applies.
+  "how to fix" stays; "mujhe to pata nahi" and "meeting to cancel kar do"
+  get "toh".
+- **The word lists:** `hindiWords` decides first, because Webster's lists
+  many Romanized Hindi words (hum, ye, ho, par). Words that are everyday
+  English as well (me, main, hi, do, so) are left out. `englishWords` adds
+  everyday English that Webster's base-form list lacks ("has", "okay").
+
+There is no setting; it follows from the rule itself. Tests:
+`DesiTests/EnglishContextTests.swift`.
+
 ## Changing it
 
 - Different matching (e.g. Devanagari boundaries): all logic is in `apply` +

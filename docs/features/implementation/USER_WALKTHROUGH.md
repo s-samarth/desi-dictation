@@ -190,6 +190,10 @@ first version that has it; to get that one, update the old way, once.
   mic → History and right-click the entry → **"Always write a word as…"**.
   Also listed in Settings → **Vocabulary → Your words** with "Add word…".
 - **Flow:** type `Saraswath → Saraswat` once. Done forever, all apps.
+- **English inside Hinglish (2026-11-24):** a Hinglish word that turns an
+  English word into Hindi, like `to → toh`, stays out of English sentences:
+  "how to fix" keeps "to", "mujhe to pata nahi" still gets "toh". Nothing
+  to switch on.
 - **Why:** names/brands/jargon are the #1 repeated annoyance; no model fixes
   YOUR words.
 - **Friction:** the sheet doesn't pre-fill the word you right-clicked from.

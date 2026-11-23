@@ -1097,3 +1097,24 @@ guard. The fix list scrolls past four rows.
 **Lesson:** a heuristic tuned for guessing (the watcher) is wrong where the
 user is telling us (the panel). Check which side of that line a shared
 helper's caller is on.
+
+### Failure mode #47 — "to → toh" turned every English "to" into "toh"
+
+**Symptom:** 2026-11-24, Hinglish mode, an English sentence: "I don't know
+how toh fix", "want toh say", "allows me toh show". The user had taught
+`to → toh` for Hindi sentences.
+**Cause:** Prime writes the same "to" for the English word and the Hindi
+particle, and `PersonalDictionary.apply` swapped every whole-word match. The
+Learning spelling list already leaves out to/toh for this reason; the
+vocabulary list had no such guard.
+**Fix:** `EnglishContext`. A one-word Hinglish rule from an English word to a
+Hindi spelling (to → toh, tab → tabh, relay → reelien) skips a match whose
+neighbours (two each side, same sentence) are English with no Hindi word
+among them. When in doubt it applies, so Hindi sentences keep every rule.
+Rules from English to English (view → review) and from non-English words
+(nahin → nahi) are untouched. A dry run over the user's last 24 h of history
+fixed 5 English dictations and changed no Hindi one.
+**Lesson:** Webster's lists many Romanized Hindi words (hum, ye, ho, par, tum)
+and lacks inflections like "has". A word list alone can't tell the two
+languages apart; the Hindi words list and an everyday-English list decide
+first.
