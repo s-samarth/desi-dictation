@@ -41,6 +41,7 @@ final class ReviewModel: ObservableObject {
     @Published var fixes: [Fix] = []
     /// Hinglish Learning: the user's answer per offered habit (nil: not yet).
     @Published var habitAnswers: [HinglishStyleRule: Bool] = [:]
+    var survivingSpellings: () -> [String] = { [] }
     private var finished = false
     /// Set by the panel: hides it before the paste goes out.
     var onClose: (() -> Void)?
@@ -102,7 +103,8 @@ final class ReviewModel: ObservableObject {
             ReviewPlanner.remember(fixes.map { ($0.pair, $0.keep.mode) }, scope: request.scope)
             if request.scope == .hinglish {
                 HinglishLearning.shared.finish(
-                    underlined: request.unsure, changes: fixes.map(\.pair), kept: kept,
+                    unchangedSpellings: survivingSpellings(), edited: text != request.text,
+                    changes: fixes.map(\.pair), kept: kept,
                     adopt: habits.filter { habitAnswers[$0] == true },
                     decline: habits.filter { habitAnswers[$0] == false })
             }

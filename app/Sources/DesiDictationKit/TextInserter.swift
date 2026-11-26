@@ -69,7 +69,7 @@ public enum TextInserter {
     }
 
     @MainActor
-    public static func insert(_ text: String, copyOnly: Bool) async -> InsertOutcome {
+    public static func insert(_ text: String, copyOnly: Bool, willPaste: (() -> Void)? = nil) async -> InsertOutcome {
         copy(text)
 
         // Wait for physical modifiers to come up before posting ⌘V. The HID
@@ -95,6 +95,7 @@ public enum TextInserter {
                 // Focus goes back to the text field as the menu ends; give
                 // the window server a beat before the keystroke.
                 if closedMenu { try? await Task.sleep(nanoseconds: 80_000_000) }
+                willPaste?()
                 synthesizePaste()
                 return .pasted
             case .wait:

@@ -82,11 +82,6 @@ enum AXReader {
         return value
     }
 
-    /// "Claude", "Slack": for the activity log only.
-    static func appName(_ element: AXUIElement) -> String {
-        NSRunningApplication(processIdentifier: pid(element))?.localizedName ?? "this app"
-    }
-
     static func pid(_ element: AXUIElement) -> pid_t {
         var pid: pid_t = 0
         AXUIElementGetPid(element, &pid)

@@ -160,6 +160,14 @@ name isn't the mic you meant, pick it in System Settings → Sound → Input
 - By design, any Ollama failure silently falls back to the raw transcript
   (the transcript is sacred).
 
+## Edits after paste are missing from Vocabulary
+
+Return to the original text field within two minutes and before starting another
+dictation. Vocabulary activity shows whether the app exposed a readable field
+and whether it contained the paste. Password fields and editors that hide
+their text cannot supply edits. Choose **Always** in Review to save a
+correction directly in the language’s word list.
+
 ## 10. Reset everything
 
 ```bash

@@ -24,5 +24,11 @@ public final class VocabularyActivityLog: ObservableObject {
         if entries.count > Self.limit { entries.removeLast(entries.count - Self.limit) }
     }
 
+    /// Keep repeated failures for one destination from burying actual corrections.
+    package func addFieldDiagnostic(_ message: String) {
+        guard !entries.contains(where: { $0.message == message }) else { return }
+        add(.info, message)
+    }
+
     public func clear() { entries = [] }
 }

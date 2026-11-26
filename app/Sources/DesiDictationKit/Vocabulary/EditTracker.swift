@@ -24,18 +24,18 @@ public struct EditTracker {
     /// One look at the field (`nil` = focus moved away). `pairs` is nil when
     /// nothing was judged; `keepGoing` false ends the watch.
     public mutating func observe(_ current: String?, now: Date) -> (pairs: [EditPair]?, keepGoing: Bool) {
-        var value = current
         // Sent: a chat box emptied (or nearly) right after the edit. Judge
         // the text as it was just before, then stop watching.
-        if let current, current.count * 2 < lastValue.count { value = nil }
-        if let value, value != lastValue {
-            lastValue = value
+        let sent = current.map { $0.count * 2 < lastValue.count } ?? false
+        if let current, !sent, current != lastValue {
+            lastValue = current
             lastChange = now
         }
-        // Focus moved on, sent, or time's up: judge the last state, stop.
-        let ending = value == nil || now.timeIntervalSince(started) >= EditWatcher.window
+        // A missing sample flushes the last observed edit, then pauses. A sent
+        // message or the original deadline ends the watch.
+        let ending = sent || now.timeIntervalSince(started) >= EditWatcher.window
         let settled = now.timeIntervalSince(lastChange) >= EditWatcher.settle
-        guard settled || ending, lastValue != baseline, lastValue != evaluated else {
+        guard settled || ending || current == nil, lastValue != baseline, lastValue != evaluated else {
             return (nil, !ending)
         }
         evaluated = lastValue

@@ -38,9 +38,9 @@ public enum AccessibilityPrimer {
         guard store.learnFromEdits || store.readScreen || store.hinglishFieldSpelling,
               let app, app.processIdentifier != getpid(),
               AXIsProcessTrusted(), !primed.contains(app.processIdentifier) else { return }
-        primed.insert(app.processIdentifier)
         let element = AXUIElementCreateApplication(app.processIdentifier)
         AXUIElementSetMessagingTimeout(element, AXReader.messageTimeout)
-        AXUIElementSetAttributeValue(element, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        let result = AXUIElementSetAttributeValue(element, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        if result == .success || result == .attributeUnsupported { primed.insert(app.processIdentifier) }
     }
 }

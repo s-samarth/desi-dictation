@@ -84,16 +84,20 @@ public final class HinglishLearning: ObservableObject {
 
     /// The end of a Hinglish review. `changes` are all word swaps made in
     /// the panel, `kept` the ones the user chose to always keep.
-    public func finish(underlined: [UnsureWord], changes: [EditPair], kept: [EditPair],
+    public func finish(unchangedSpellings: [String], edited: Bool, changes: [EditPair], kept: [EditPair],
                        adopt: [HinglishStyleRule], decline: [HinglishStyleRule]) {
         var next = style
         for pair in kept where HinglishSpellings.sameWord(pair.heard, pair.typed) {
             if let head = HinglishSpellings.head(of: pair.heard) { next.preferred[head] = pair.typed.lowercased() }
         }
-        // A spelling left as it was, when asked, is the user's spelling.
-        let changed = Set(changes.map { $0.heard.lowercased() })
-        for word in underlined where word.reason == .spelling && !changed.contains(word.word.lowercased()) {
-            if let head = HinglishSpellings.head(of: word.word) { next.preferred[head] = word.word.lowercased() }
+        // Implicit choices require an intact occurrence and one unambiguous spelling.
+        // A changed group (including “Just this once”) is never settled implicitly.
+        let changedGroups = Set(changes.compactMap { HinglishSpellings.head(of: $0.heard) })
+        let groups = Dictionary(grouping: unchangedSpellings, by: HinglishSpellings.head(of:))
+        for (group, spellings) in groups {
+            guard let group, next.preferred[group] == nil, !changedGroups.contains(group),
+                  Set(spellings).count == 1 else { continue }
+            next.preferred[group] = spellings.first
         }
         for pair in kept { for rule in HinglishStyleRule.shown(by: pair) { evidence[rule.rawValue, default: 0] += 1 } }
         for rule in adopt {
@@ -102,7 +106,7 @@ public final class HinglishLearning: ObservableObject {
         }
         declined.formUnion(decline.map(\.rawValue))
         style = next
-        if isLearning { cleanStreak = changes.isEmpty ? cleanStreak + 1 : 0 }
+        if isLearning { cleanStreak = edited ? 0 : cleanStreak + 1 }
         save()
     }
 

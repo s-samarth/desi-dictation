@@ -1,101 +1,83 @@
+import AppKit
 import ApplicationServices
-import Foundation
 
-/// Watches the field we just pasted into, so a retyped word can become an
-/// "Always write X as Y?" proposal (§2a). Polls the same AX element every
-/// 0.3 s for 2 minutes instead of using AXObserver: no run loop per app,
-/// nothing measurable, and AXObserver delivery varies by app.
-///
-/// The field text lives only in this object and is dropped when the watch ends.
-public final class EditWatcher: @unchecked Sendable {
+/// One cancellable watch. Capture the destination just before posting ⌘V;
+/// poll its Accessibility tree off-main. Field contents live only in RAM.
+@MainActor
+public final class EditWatcher {
     public static let shared = EditWatcher()
+    nonisolated public static let window: TimeInterval = 120
+    nonisolated public static let settle: TimeInterval = 2
 
-    /// Long enough to read what was pasted, then fix it (30 s was too short
-    /// to read and edit, user feedback 2026-10-29).
-    public static let window: TimeInterval = 120
-    /// Unchanged this long → the user finished that edit.
-    public static let settle: TimeInterval = 2
+    private var task: Task<Void, Never>?
 
-    private let queue = DispatchQueue(label: "desi.vocab.editwatch", qos: .utility)
-    private var generation = 0   // touched only on `queue`
-
-    /// What a watch saw, for the activity log ("why didn't it learn?").
     public enum Event {
-        /// The pasted text couldn't be read back from the field.
-        case unreadable(app: String)
+        case fieldUnavailable(app: String)
+        case pasteUnverified(app: String)
         case watching(app: String)
-        /// The field changed and settled; these are the word swaps found.
         case edited(pairs: [EditPair], app: String)
     }
 
-    /// Starts a watch; a running one is replaced. `onEvent` runs on main.
     public func watch(inserted: String, onEvent: @escaping @MainActor (Event) -> Void) {
-        queue.async { [self] in
-            generation += 1
-            let mine = generation
-            // Let the ⌘V land before the baseline snapshot.
-            queue.asyncAfter(deadline: .now() + 0.4) { [self] in
-                guard mine == generation else { return }
-                let app = AXReader.focusedElement().map { AXReader.appName($0) } ?? "this app"
-                guard let session = Session(inserted: inserted) else {
-                    Task { @MainActor in onEvent(.unreadable(app: app)) }
-                    return
+        stop()
+        guard let app = NSWorkspace.shared.frontmostApplication, app.processIdentifier != getpid() else {
+            onEvent(.fieldUnavailable(app: "the paste destination"))
+            return
+        }
+        let pid = app.processIdentifier
+        let name = app.localizedName ?? "the paste destination"
+        // Electron can initially expose a window or web area while its
+        // text field is loading. Pin an editable element when available.
+        let field = Self.focusedField(in: pid).flatMap { element -> AXUIElement? in
+            let role = AXReader.string(element, kAXRoleAttribute)
+            return [kAXTextAreaRole, kAXTextFieldRole, kAXComboBoxRole].contains(role) ? element : nil
+        }
+        let start = Date()
+        task = Task.detached(priority: .utility) {
+            var session = PasteEditSession(inserted: inserted, target: field, started: start)
+            var delay: UInt64 = 100_000_000
+            var attached = false
+            while !session.finished {
+                do { try await Task.sleep(nanoseconds: delay) } catch { return }
+                // During startup the original app can still expose its focused
+                // field in the background. Once attached, pause while away.
+                let focused: AXUIElement?
+                if attached {
+                    focused = app.isActive ? Self.focusedField(in: pid) : nil
+                } else {
+                    focused = field ?? Self.focusedField(in: pid)
                 }
-                Task { @MainActor in onEvent(.watching(app: app)) }
-                poll(session, app: app, generation: mine, onEvent: onEvent)
+                let event = session.sample(
+                    focused: focused, now: Date(), value: { AXReader.fieldValue($0) },
+                    caret: AXReader.caretUTF16)
+                delay = 300_000_000
+                guard let event else { continue }
+                let activity: Event
+                switch event {
+                case .watching:
+                    attached = true
+                    activity = .watching(app: name)
+                case .fieldUnavailable: activity = .fieldUnavailable(app: name)
+                case .pasteUnverified: activity = .pasteUnverified(app: name)
+                case .edited(let pairs): activity = .edited(pairs: pairs, app: name)
+                }
+                await MainActor.run {
+                    if !Task.isCancelled { onEvent(activity) }
+                }
             }
         }
+    }
+
+    /// Some editors expose keyboard focus only through the system-wide AX object.
+    /// Use that fallback only when its owner matches the captured destination.
+    nonisolated private static func focusedField(in pid: pid_t) -> AXUIElement? {
+        if let element = AXReader.focusedElement(inApp: pid) { return element }
+        guard let element = AXReader.focusedElement(), AXReader.pid(element) == pid else { return nil }
+        return element
     }
 
     public func stop() {
-        queue.async { [self] in generation += 1 }
-    }
-
-    private func poll(_ session: Session, app: String, generation mine: Int,
-                      onEvent: @escaping @MainActor (Event) -> Void) {
-        guard mine == generation else { return }
-        let outcome = session.tick(now: Date())
-        if let pairs = outcome.pairs {
-            Task { @MainActor in onEvent(.edited(pairs: pairs, app: app)) }
-        }
-        guard outcome.keepGoing else { return }
-        queue.asyncAfter(deadline: .now() + Self.interval) { [self] in
-            poll(session, app: app, generation: mine, onEvent: onEvent)
-        }
-    }
-
-    /// Fast enough to catch the fixed text in a chat box before Enter sends
-    /// it and clears the box (2 s settle alone missed every chat edit).
-    static let interval: TimeInterval = 0.3
-
-    /// One watch: the element, plus the tracker that judges its text.
-    final class Session {
-        var element: AXUIElement
-        var tracker: EditTracker
-
-        init?(inserted: String) {
-            guard let element = AXReader.focusedElement(),
-                  let value = AXReader.fieldValue(element), value.contains(inserted) else { return nil }
-            self.element = element
-            tracker = EditTracker(baseline: value, inserted: inserted, caret: AXReader.caretUTF16(element))
-        }
-
-        func tick(now: Date) -> (pairs: [EditPair]?, keepGoing: Bool) {
-            tracker.observe(currentValue(), now: now)
-        }
-
-        /// The field's text. Web views (Electron, browsers) may swap the
-        /// focused element for a new one after an edit; same app and role
-        /// counts as the same field.
-        private func currentValue() -> String? {
-            guard let focused = AXReader.focusedElement() else { return nil }
-            if !CFEqual(focused, element) {
-                guard AXReader.pid(focused) == AXReader.pid(element),
-                      AXReader.string(focused, kAXRoleAttribute) == AXReader.string(element, kAXRoleAttribute)
-                else { return nil }
-                element = focused
-            }
-            return AXReader.fieldValue(element)
-        }
+        task?.cancel()
+        task = nil
     }
 }

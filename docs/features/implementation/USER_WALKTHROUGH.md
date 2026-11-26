@@ -205,7 +205,8 @@ first version that has it; to get that one, update the old way, once.
   Learn automatically**. Four switches, all off, each with a one-line note.
 - **Learn from corrections:** dictate, then fix a word in the field
   ("Rowan" → "Rohan") within **2 minutes** (30 s until 2026-10-29: too
-  short to read and edit). About 2 s after you stop typing, a small popup
+  short to read and edit). You can switch apps and return to the same field
+  in that window. Review choices are saved even if the destination hides its field. About 2 s after you stop typing, a small popup
   above the overlay asks **"Always write Rowan as Rohan?"** with **Add** /
   **When it fits** (English words) / **Not now**, for 25 s. The popup is as
   wide as its words, so no button is cut off.

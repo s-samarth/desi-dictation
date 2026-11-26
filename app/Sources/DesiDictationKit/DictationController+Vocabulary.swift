@@ -76,23 +76,23 @@ extension DictationController {
         biasable.setHotwords(VocabularySession.shared.currentHotwords)
     }
 
-    /// After the paste: say what was fixed, and start watching for edits.
-    func vocabularyDelivered(_ outcome: InsertOutcome, text: String,
-                             fixes: [WordFix]) -> DictationNotice? {
+    /// After the paste: say what was fixed.
+    func vocabularyDelivered(_ outcome: InsertOutcome, fixes: [WordFix]) -> DictationNotice? {
         VocabularySession.shared.end()
         guard outcome == .pasted else { return nil }
-        let store = AutoVocabularyStore.shared
-        // Watch when there's something to learn, or a fix the user may undo.
         let log = VocabularyActivityLog.shared
         for fix in fixes { log.add(.fixed, "Fixed \"\(fix.from)\" → \"\(fix.to)\" (\(fix.source.label))") }
-        let mode = vocabularyMode
+        return DictationNotice.forFixes(fixes)
+    }
+
+    func watchPaste(text: String, mode: LanguageMode, fixes: [WordFix]) {
+        let store = AutoVocabularyStore.shared
         // हिन्दी has no vocabulary list, so nothing to learn there.
         if store.learnFromEdits || !fixes.isEmpty, WordScope(mode: mode) != nil {
             EditWatcher.shared.watch(inserted: text) { event in
                 Self.handle(event, fixes: fixes, mode: mode)
             }
         }
-        return DictationNotice.forFixes(fixes)
     }
 
     /// Turns what the watcher saw into proposals, undo-respects, and a line
@@ -100,8 +100,10 @@ extension DictationController {
     private static func handle(_ event: EditWatcher.Event, fixes: [WordFix], mode: LanguageMode) {
         let store = AutoVocabularyStore.shared, log = VocabularyActivityLog.shared
         switch event {
-        case .unreadable(let app):
-            log.add(.problem, "Couldn't read the text in \(app) after pasting, so edits there can't be learned. Try again in a moment; some apps need a few seconds the first time.")
+        case .fieldUnavailable(let app):
+            log.addFieldDiagnostic("No readable text field in \(app) for this paste. You can still teach a correction in Review.")
+        case .pasteUnverified(let app):
+            log.addFieldDiagnostic("The field in \(app) did not show the pasted text in time to watch later edits.")
         case .watching(let app):
             if store.learnFromEdits {
                 log.add(.info, "Watching your text in \(app) for 2 minutes. Fix a misheard word to teach it.")

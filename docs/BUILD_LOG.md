@@ -1118,3 +1118,16 @@ fixed 5 English dictations and changed no Hindi one.
 and lacks inflections like "has". A word list alone can't tell the two
 languages apart; the Hindi words list and an everyday-English list decide
 first.
+
+### Failure mode #48 — focus changes lost edits and Review could undo a spelling choice
+
+The watcher looked up global focus 400 ms after ⌘V. Electron can take several
+seconds to expose a field, and a focus change can point at a different app.
+Another missing sample ended an established watch. Capture the paste destination,
+retry there, and pause on focus loss. Regression coverage: `PasteEditSessionTests`.
+
+Review inferred approval from the absence of a substitution. A deletion thus
+approved the deleted spelling, and an untouched variant could overwrite an
+explicit choice. Track the original spelling occurrences in the editor and
+apply explicit choices first. `ReviewSpellingTests` reloads both stores and
+checks the spelling that reaches the next dictation.
