@@ -1,7 +1,7 @@
 import Foundation
 
 /// "It wrote X, the user changed it to Y": one word-level edit of our paste.
-public struct EditPair: Equatable, Sendable {
+public struct EditPair: Hashable, Sendable {
     public let heard: String
     public let typed: String
 

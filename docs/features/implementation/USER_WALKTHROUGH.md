@@ -205,7 +205,8 @@ first version that has it; to get that one, update the old way, once.
   Learn automatically**. Four switches, all off, each with a one-line note.
 - **Learn from corrections:** dictate, then fix a word in the field
   ("Rowan" → "Rohan") within **2 minutes** (30 s until 2026-10-29: too
-  short to read and edit). About 2 s after you stop typing, a small popup
+  short to read and edit). You can switch apps and return to the same field
+  in that window. Review choices are saved even if the destination hides its field. About 2 s after you stop typing, a small popup
   above the overlay asks **"Always write Rowan as Rohan?"** with **Add** /
   **When it fits** (English words) / **Not now**, for 25 s. The popup is as
   wide as its words, so no button is cut off.
@@ -238,7 +239,9 @@ first version that has it; to get that one, update the old way, once.
   only the purple words below, so the panel opens only when the context
   checker thinks a word doesn't fit; without the checker, and in Hinglish,
   nothing is underlined and it pastes straight away. **Hinglish**: Learning
-  or Same as above. Learning opens the panel on every Hinglish dictation,
+  or Same as above. Repeated copies of the same correction share one choice.
+  Saved Always spellings take precedence over general Hinglish habits.
+  Learning opens the panel on every Hinglish dictation,
   underlines in blue words you can spell more than one way ("Your spelling?
   Leave it, or pick"), keeps fixes Always, offers habits like "w instead of
   v", writes every later dictation your way, and after 10 clean dictations

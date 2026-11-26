@@ -92,9 +92,13 @@ Tests: `DesiTests/VocabularyCorrectorTests.swift`, `VocabularyLearningTests.swif
    screen read hadn't finished by then is skipped.
 4. **Paste:** History stores the fixes and the pre-fix text, and the overlay
    says "Fixed: Rowan → Rohan".
-5. **Watch** (if learning is on, or a fix was made): `EditWatcher` polls the
-   same focused element. Once the field settles, `EditDiff` aligns our words
-   with the field's.
+5. **Watch** (if learning is on, or a fix was made): immediately before ⌘V,
+   capture the destination app and its text field when available. Allow three
+   seconds for Accessibility to expose the pasted text. Once attached, a
+   focus change pauses observation until the same field returns, within the
+   original two minutes. An emptied chat ends the watch. Activity distinguishes
+   an inaccessible field from one that never showed the paste. Review saves
+   its choices independently. `EditDiff` evaluates observed word swaps.
    - If the user typed an auto-fix back, `respect()` rejects that pair at once
      and the popup says "Got it".
    - Any other spelling-like edit becomes a proposal: the popup asks *Always

@@ -8,7 +8,6 @@ import DesiDictationKit
 /// while one is selected, Enter pastes, Esc copies.
 struct ReviewTextEditor: NSViewRepresentable {
     @ObservedObject var model: ReviewModel
-
     static let unsureKey = NSAttributedString.Key("desiUnsure")
 
     func makeCoordinator() -> Coordinator { Coordinator(model: model) }
@@ -33,6 +32,10 @@ struct ReviewTextEditor: NSViewRepresentable {
         view.textContainerInset = NSSize(width: 6, height: 8)
         view.delegate = context.coordinator
         context.coordinator.textView = view
+        model.survivingSpellings = { [weak view, questions = model.request.unsure] in
+            guard let text = view?.textStorage else { return [] }
+            return ReviewSpellingMarks.surviving(in: text, questions: questions)
+        }
         model.pick = { [weak coordinator = context.coordinator] n in coordinator?.pick(n) }
         model.looksRight = { [weak coordinator = context.coordinator] in coordinator?.looksRight() }
         DispatchQueue.main.async {
@@ -175,10 +178,10 @@ final class ReviewTextView: NSTextView {
             out.addAttributes([
                 ReviewTextEditor.unsureKey: i,
                 .underlineStyle: NSUnderlineStyle.thick.rawValue | NSUnderlineStyle.patternDot.rawValue,
-                // Each reason has its colour (ReviewLearningViews.swift).
                 .underlineColor: Self.color(for: unsure.reason),
             ], range: range)
         }
+        ReviewSpellingMarks.mark(out, questions: request.unsure)
         return out
     }
 

@@ -29,7 +29,9 @@ With Learning, on every Hinglish dictation:
 2. Words from the spelling list that you haven't settled yet are
    underlined in **blue**: "Your spelling? Leave it, or pick:", followed by
    the other spellings (chahiye · chahie · chaahiye).
-   - Leaving a word as it is counts as choosing it.
+   - Leaving a blue word intact accepts its spelling if the surviving variants agree.
+     An explicit Always choice wins for the whole spelling group. Deleting or
+     rewriting a word gives no implicit approval. Editing the text resets the clean streak.
    - Orange "hard to hear" underlines still appear, at least at Liberal's bar
      (under Bindaas, Learning uses Liberal's).
    - Where both apply to one word, orange wins.
@@ -75,7 +77,8 @@ With Learning, on every Hinglish dictation:
   - non-ASCII words;
   - `vNotW` never touches "wh…".
 - **A chosen spelling beats a habit.** If you kept "vaise", the w habit
-  leaves it alone.
+  leaves it alone. The exact written forms in the Hinglish dictionary also
+  take precedence, including phrases and words outside the spelling list.
 - **A habit is offered only after two fixes show it**
   (`HinglishLearning.habitAfter`), and only habits that fully explain a fix
   count. chaahie → chahiye shows `shortA` + `iyeEnding`; ladki → larki shows none.

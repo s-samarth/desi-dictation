@@ -389,8 +389,7 @@ public final class DictationController: ObservableObject {
                 var text = parts.joined(separator: " ")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 text = PostProcessor.applyReplacements(text, rules: rules)
-                text = PersonalDictionary.apply(text, entries: dictionary, lexicon: .system)   // "to → toh" skips English sentences
-                text = hinglishStyle.apply(text)   // the user's Hinglish spellings (HINGLISH_LEARNING.md)
+                text = hinglishStyle.applyingDictionary(to: text, entries: dictionary)
                 text = Self.applyVocabulary(text, mode: mode, plan: vocabulary)
                 text = Self.applyCleanup(text, mode: mode, plan: cleanup)
                 if useOllama, !text.isEmpty {
@@ -525,8 +524,10 @@ public final class DictationController: ObservableObject {
                                 fixes: vocabulary?.fixes ?? [], unfixed: vocabulary?.unfixed)
         // Async: the paste waits for the hotkey's modifier to come up (FM#31).
         Task { @MainActor [weak self] in
-            let outcome = await TextInserter.insert(text, copyOnly: copyOnly)
-            self?.delivered(outcome, text: text, fixes: vocabulary?.fixes ?? [])
+            let outcome = await TextInserter.insert(text, copyOnly: copyOnly) {
+                self?.watchPaste(text: text, mode: mode, fixes: vocabulary?.fixes ?? [])
+            }
+            self?.delivered(outcome, fixes: vocabulary?.fixes ?? [])
         }
     }
 
@@ -542,7 +543,7 @@ public final class DictationController: ObservableObject {
 
     /// Ends the session once the paste ran. A skipped paste says so — the
     /// words are on the clipboard, the user must know to press ⌘V.
-    private func delivered(_ outcome: InsertOutcome, text: String, fixes: [WordFix]) {
+    private func delivered(_ outcome: InsertOutcome, fixes: [WordFix]) {
         controllerLog.info("insert outcome: \(String(describing: outcome), privacy: .public)")
         // Only leave the pipeline's own phases: a fallback error message, or a
         // session the user already started again, must survive.
@@ -550,7 +551,7 @@ public final class DictationController: ObservableObject {
         case .transcribing, .translating, .polishing: phase = .idle
         default: break
         }
-        let fixed = vocabularyDelivered(outcome, text: text, fixes: fixes)
+        let fixed = vocabularyDelivered(outcome, fixes: fixes)
         if let notice = DictationNotice.forOutcome(outcome) {
             Sounds.error.play()
             show(notice)

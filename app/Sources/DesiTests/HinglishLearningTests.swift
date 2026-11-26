@@ -43,20 +43,20 @@ func runHinglishLearningTests() {
     MainActor.assumeIsolated {
         let store = HinglishLearning(defaults: UserDefaults(suiteName: "desi-tests-\(UUID().uuidString)")!)
         store.review = .learning
-        store.finish(underlined: asked, changes: [EditPair(heard: "chaahie", typed: "chahiye")],
+        store.finish(unchangedSpellings: ["vaise"], edited: true, changes: [EditPair(heard: "chaahie", typed: "chahiye")],
                      kept: [EditPair(heard: "chaahie", typed: "chahiye")], adopt: [], decline: [])
         T.equal(store.style.preferred["chahiye"], "chahiye", "a kept fix sets the spelling")
         T.equal(store.style.preferred["waise"], "vaise", "a spelling left alone when asked is the user's")
         T.equal(store.cleanStreak, 0, "a fix breaks the streak")
         T.equal(store.habits(in: [EditPair(heard: "vaala", typed: "waala")]), [],
                 "one v → w fix: not a habit yet")
-        store.finish(underlined: [], changes: [EditPair(heard: "vaala", typed: "waala")],
+        store.finish(unchangedSpellings: [], edited: true, changes: [EditPair(heard: "vaala", typed: "waala")],
                      kept: [EditPair(heard: "vaala", typed: "waala")], adopt: [], decline: [])
         T.equal(store.habits(in: [EditPair(heard: "voh", typed: "woh")]), [.wNotV], "the second one asks")
-        store.finish(underlined: [], changes: [], kept: [], adopt: [.wNotV], decline: [])
+        store.finish(unchangedSpellings: [], edited: false, changes: [], kept: [], adopt: [.wNotV], decline: [])
         T.expect(store.style.rules.contains(.wNotV), "Yes adopts the habit")
         T.equal(store.habits(in: [EditPair(heard: "voh", typed: "woh")]), [], "…and stops asking")
-        for _ in 0..<HinglishLearning.graduateAfter { store.finish(underlined: [], changes: [], kept: [], adopt: [], decline: []) }
+        for _ in 0..<HinglishLearning.graduateAfter { store.finish(unchangedSpellings: [], edited: false, changes: [], kept: [], adopt: [], decline: []) }
         T.expect(store.isDone, "ten clean dictations: learning is done")
         store.stopLearning()
         T.equal(store.review, .standard, "Stop learning goes back to the English level")
