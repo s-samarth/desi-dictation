@@ -46,7 +46,11 @@ competitors/PATTERNS.md §1 ("the only serious app without it — overdue").
    exact spelling wins (that's the point — `saraswath`→`Saraswat`).
 4. Case-only rules are legitimate (`jira`→`Jira`); only exact self-mappings are
    rejected at `add()`. Latest correction for the same heard-form replaces the
-   older one.
+   older one. Saving an identical rule preserves its ID and produces no new
+   learning activity. Review reports a failed dictionary write.
+5. The Hinglish style pass preserves complete Always written forms, including
+   when the recognizer already produced the desired spelling. For example,
+   a single-a habit still allows an explicit sath → saath exception.
 
 ## Where it runs in the pipeline
 

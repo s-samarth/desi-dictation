@@ -121,8 +121,9 @@ public enum ReviewPlanner {
     /// one- or two-word swap, however many. Unlike a field edit, a panel edit
     /// is never mistaken for a rewrite; only rewritten phrases are skipped.
     public static func fixes(from original: String, to edited: String) -> [EditPair] {
-        EditDiff.align(EditDiff.words(original), EditDiff.words(edited), limit: nil)
-            .filter { !$0.heard.isEmpty && !$0.typed.isEmpty }
+        var seen = Set<EditPair>()
+        return EditDiff.align(EditDiff.words(original), EditDiff.words(edited), limit: nil)
+            .filter { !$0.heard.isEmpty && !$0.typed.isEmpty && seen.insert($0).inserted }
     }
 
     /// Saves the fixes the user chose to keep; nil mode = "Just this once".
@@ -132,7 +133,13 @@ public enum ReviewPlanner {
         guard let scope else { return }
         for (pair, mode) in choices {
             guard let mode else { continue }
-            dictionary.add(heard: pair.heard, written: pair.typed, scope: scope, mode: mode)
+            switch dictionary.add(heard: pair.heard, written: pair.typed, scope: scope, mode: mode) {
+            case .unchanged: continue
+            case .failed:
+                VocabularyActivityLog.shared.add(.problem, "Couldn’t save this Review correction to your dictionary.")
+                continue
+            case .saved: break
+            }
             VocabularyActivityLog.shared.add(.learned, "Learned in review: \"\(pair.heard)\" → \"\(pair.typed)\" (\(mode.label))")
         }
     }

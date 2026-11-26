@@ -15,6 +15,30 @@ public struct HinglishStyle: Equatable, Sendable {
 
     public var isEmpty: Bool { preferred.isEmpty && rules.isEmpty }
 
+    /// Apply the language's exact rules, then style only text outside their
+    /// written forms. Protect whole phrases too, including forms ASR got right.
+    public func applyingDictionary(to text: String, entries: [DictionaryEntry],
+                                   lexicon: WordLexicon = .system) -> String {
+        let corrected = PersonalDictionary.apply(text, entries: entries, lexicon: lexicon)
+        guard !isEmpty else { return corrected }
+        let forms = Set(entries.filter { $0.scope == .hinglish && $0.mode == .always }
+            .map(\.written).filter { !$0.isEmpty })
+        let alternatives = forms.sorted { $0.count > $1.count }.map(NSRegularExpression.escapedPattern)
+        guard !alternatives.isEmpty,
+              let pattern = try? NSRegularExpression(
+                pattern: #"(?<!\w)(?:"# + alternatives.joined(separator: "|") + #")(?!\w)"#,
+                options: .caseInsensitive) else { return apply(corrected, lexicon: lexicon) }
+        var output = ""
+        var start = corrected.startIndex
+        for match in pattern.matches(in: corrected, range: NSRange(corrected.startIndex..., in: corrected)) {
+            guard let range = Range(match.range, in: corrected) else { continue }
+            output += apply(String(corrected[start..<range.lowerBound]), lexicon: lexicon)
+            output += corrected[range]
+            start = range.upperBound
+        }
+        return output + apply(String(corrected[start...]), lexicon: lexicon)
+    }
+
     /// Every Hindi word written the user's way. A word with a chosen
     /// spelling gets it (any case: "Vaise" → "Waise"); another Hindi word
     /// gets the habits, but only in lowercase, because a capital may be a

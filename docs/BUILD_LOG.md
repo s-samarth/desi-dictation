@@ -1123,7 +1123,10 @@ first.
 
 The watcher looked up global focus 400 ms after ⌘V. Electron can take several
 seconds to expose a field, and a focus change can point at a different app.
-Another missing sample ended an established watch. Capture the paste destination,
+The paste gate accepted fresh grants
+(FM#44) while the reader still checked the stale process-wide trust flag.
+The watcher now uses the authorized AX request itself. Another missing
+sample ended an established watch. Capture the paste destination,
 retry there, and pause on focus loss. Regression coverage: `PasteEditSessionTests`.
 
 Review inferred approval from the absence of a substitution. A deletion thus
@@ -1131,3 +1134,12 @@ approved the deleted spelling, and an untouched variant could overwrite an
 explicit choice. Track the original spelling occurrences in the editor and
 apply explicit choices first. `ReviewSpellingTests` reloads both stores and
 checks the spelling that reaches the next dictation.
+
+### Failure mode #49 — the same spelling kept appearing as learned
+
+Review offered a row per occurrence and logged every save, even for an
+identical stored rule. On later dictations the dictionary wrote the right
+spelling, then a broad Hinglish habit could reverse it. Keep a single Review
+choice per pair, skip identical writes, and protect saved written forms
+during style application. Regression tests reopen the dictionary and run
+the next dictation with the conflicting habit enabled.

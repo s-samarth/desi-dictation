@@ -37,7 +37,13 @@ public enum AccessibilityPrimer {
         let store = AutoVocabularyStore.shared
         guard store.learnFromEdits || store.readScreen || store.hinglishFieldSpelling,
               let app, app.processIdentifier != getpid(),
-              AXIsProcessTrusted(), !primed.contains(app.processIdentifier) else { return }
+              AXIsProcessTrusted() else { return }
+        primeForPaste(app)
+    }
+
+    /// Also called after the paste gate has confirmed a freshly granted permission.
+    static func primeForPaste(_ app: NSRunningApplication) {
+        guard !primed.contains(app.processIdentifier) else { return }
         let element = AXUIElementCreateApplication(app.processIdentifier)
         AXUIElementSetMessagingTimeout(element, AXReader.messageTimeout)
         let result = AXUIElementSetAttributeValue(element, "AXManualAccessibility" as CFString, kCFBooleanTrue)

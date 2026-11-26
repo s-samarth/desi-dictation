@@ -12,20 +12,26 @@ enum AXReader {
     /// The text element that has keyboard focus in the frontmost app.
     static func focusedElement() -> AXUIElement? {
         guard AXIsProcessTrusted() else { return nil }
-        let system = AXUIElementCreateSystemWide()
-        AXUIElementSetMessagingTimeout(system, messageTimeout)
-        guard let element = self.element(system, kAXFocusedUIElementAttribute),
-              pid(element) != getpid() else { return nil }
-        AXUIElementSetMessagingTimeout(element, messageTimeout)
-        return element
+        return focused(in: AXUIElementCreateSystemWide())
     }
 
     /// The focused element of one app, front or not.
     static func focusedElement(inApp pid: pid_t) -> AXUIElement? {
         guard AXIsProcessTrusted() else { return nil }
-        let app = AXUIElementCreateApplication(pid)
-        AXUIElementSetMessagingTimeout(app, messageTimeout)
-        guard let element = self.element(app, kAXFocusedUIElementAttribute) else { return nil }
+        return focused(in: AXUIElementCreateApplication(pid))
+    }
+
+    /// The AX request itself enforces the current macOS grant. The paste
+    /// gate already confirmed it, including grants made since launch (FM#44).
+    static func pasteField(inApp pid: pid_t) -> AXUIElement? {
+        if let element = focused(in: AXUIElementCreateApplication(pid)) { return element }
+        guard let element = focused(in: AXUIElementCreateSystemWide()), self.pid(element) == pid else { return nil }
+        return element
+    }
+
+    private static func focused(in root: AXUIElement) -> AXUIElement? {
+        AXUIElementSetMessagingTimeout(root, messageTimeout)
+        guard let element = element(root, kAXFocusedUIElementAttribute), pid(element) != getpid() else { return nil }
         AXUIElementSetMessagingTimeout(element, messageTimeout)
         return element
     }

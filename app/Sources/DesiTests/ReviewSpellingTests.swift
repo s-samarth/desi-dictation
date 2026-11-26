@@ -30,8 +30,8 @@ func runReviewSpellingTests() {
     review("nahin bolo nhi", replace: "nahin", with: "nahi")
     let reloaded = HinglishLearning(defaults: defaults)
     let saved = PersonalDictionary(fileURL: url)
-    let text = PersonalDictionary.apply("nahin aur nhi", entries: saved.entries(for: .hinglish))
-    T.equal(reloaded.style.apply(text), "nahi aur nahi", "explicit choice wins after reloading both stores")
+    let text = reloaded.style.applyingDictionary(to: "nahin aur nhi", entries: saved.entries(for: .hinglish))
+    T.equal(text, "nahi aur nahi", "explicit choice wins after reloading both stores")
     T.equal(saved.entries(for: .english).map(\.written), ["Codex"], "English vocabulary stays separate")
 
     review("mujhe coffee do", replace: "mujhe ", with: "")

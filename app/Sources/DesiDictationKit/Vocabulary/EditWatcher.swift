@@ -24,11 +24,12 @@ public final class EditWatcher {
             onEvent(.fieldUnavailable(app: "the paste destination"))
             return
         }
+        AccessibilityPrimer.primeForPaste(app)
         let pid = app.processIdentifier
         let name = app.localizedName ?? "the paste destination"
         // Electron can initially expose a window or web area while its
         // text field is loading. Pin an editable element when available.
-        let field = Self.focusedField(in: pid).flatMap { element -> AXUIElement? in
+        let field = AXReader.pasteField(inApp: pid).flatMap { element -> AXUIElement? in
             let role = AXReader.string(element, kAXRoleAttribute)
             return [kAXTextAreaRole, kAXTextFieldRole, kAXComboBoxRole].contains(role) ? element : nil
         }
@@ -43,9 +44,9 @@ public final class EditWatcher {
                 // field in the background. Once attached, pause while away.
                 let focused: AXUIElement?
                 if attached {
-                    focused = app.isActive ? Self.focusedField(in: pid) : nil
+                    focused = app.isActive ? AXReader.pasteField(inApp: pid) : nil
                 } else {
-                    focused = field ?? Self.focusedField(in: pid)
+                    focused = field ?? AXReader.pasteField(inApp: pid)
                 }
                 let event = session.sample(
                     focused: focused, now: Date(), value: { AXReader.fieldValue($0) },
@@ -66,14 +67,6 @@ public final class EditWatcher {
                 }
             }
         }
-    }
-
-    /// Some editors expose keyboard focus only through the system-wide AX object.
-    /// Use that fallback only when its owner matches the captured destination.
-    nonisolated private static func focusedField(in pid: pid_t) -> AXUIElement? {
-        if let element = AXReader.focusedElement(inApp: pid) { return element }
-        guard let element = AXReader.focusedElement(), AXReader.pid(element) == pid else { return nil }
-        return element
     }
 
     public func stop() {

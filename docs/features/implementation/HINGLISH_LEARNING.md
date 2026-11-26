@@ -77,7 +77,8 @@ With Learning, on every Hinglish dictation:
   - non-ASCII words;
   - `vNotW` never touches "wh…".
 - **A chosen spelling beats a habit.** If you kept "vaise", the w habit
-  leaves it alone.
+  leaves it alone. The exact written forms in the Hinglish dictionary also
+  take precedence, including phrases and words outside the spelling list.
 - **A habit is offered only after two fixes show it**
   (`HinglishLearning.habitAfter`), and only habits that fully explain a fix
   count. chaahie → chahiye shows `shortA` + `iyeEnding`; ladki → larki shows none.

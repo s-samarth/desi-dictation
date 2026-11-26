@@ -20,7 +20,10 @@ runContextFitTests()
 runReviewTests()
 runStrictnessTests()
 runHinglishLearningTests()
-MainActor.assumeIsolated { runReviewSpellingTests() }
+MainActor.assumeIsolated {
+    runReviewSpellingTests()
+    runRepeatedLearningTests()
+}
 runEnglishContextTests()
 runCleanupTests()
 runFeedbackTests()
