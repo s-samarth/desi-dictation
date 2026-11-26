@@ -34,6 +34,7 @@ public struct UnsureWord: Equatable, Sendable {
         /// Hinglish Learning: heard right, but which spelling is the user's?
         /// The alternatives are the word's other common spellings.
         case spelling
+        case meaning
     }
 
     public let range: Range<String.Index>
@@ -42,6 +43,7 @@ public struct UnsureWord: Equatable, Sendable {
     /// The engine's confidence; nil when the word is flagged for another reason.
     public let confidence: Float?
     public var alternatives: [String]
+    public var meaning: MeaningContext? = nil
 }
 
 /// Finds the words of the text about to be pasted that the speech model was

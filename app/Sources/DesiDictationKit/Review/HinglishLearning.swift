@@ -49,6 +49,8 @@ public final class HinglishLearning: ObservableObject {
         cleanStreak = d.integer(forKey: Key.streak)
     }
 
+    public var meaningChoices: MeaningChoices { MeaningChoices(defaults: d) }
+
     public var isLearning: Bool { review == .learning }
     public var isDone: Bool { isLearning && cleanStreak >= Self.graduateAfter }
 
@@ -119,6 +121,7 @@ public final class HinglishLearning: ObservableObject {
 
     /// Settings → Forget my Hinglish spellings.
     public func forgetAll() {
+        meaningChoices.clear()
         style = HinglishStyle()
         evidence = [:]; declined = []; cleanStreak = 0
         save()

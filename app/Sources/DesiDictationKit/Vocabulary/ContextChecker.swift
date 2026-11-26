@@ -83,6 +83,7 @@ public final class ContextChecker: @unchecked Sendable {
     private let lock = NSLock()
     private var scorer: LlamaContextScorer?
     private var failed = false
+    private var shuttingDown = false  // accessed only on queue
     private let queue = DispatchQueue(label: "desi.context.load", qos: .userInitiated)
 
     /// Key-down: start loading so the first dictation doesn't wait for it.
@@ -101,6 +102,15 @@ public final class ContextChecker: @unchecked Sendable {
         return scorer
     }
 
+    /// Run on the same serial queue as model warm-up so quitting waits for
+    /// an in-flight Review hint before the native model is unloaded.
+    public func meaningHint(for context: MeaningContext) -> String? {
+        queue.sync {
+            guard !shuttingDown, context.supportsModelHint else { return nil }
+            return context.recommendation(using: loaded())
+        }
+    }
+
     /// Model deleted or replaced: forget the old one.
     public func reset() {
         lock.lock(); defer { lock.unlock() }
@@ -113,7 +123,9 @@ public final class ContextChecker: @unchecked Sendable {
     /// tables while exit tears them down (FM#42); a model still loaded aborts
     /// in Metal teardown (FM#27, FM#40).
     public func shutdown() {
-        queue.sync {}
-        reset()
+        queue.sync {
+            shuttingDown = true
+            reset()
+        }
     }
 }

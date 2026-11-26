@@ -49,6 +49,35 @@ With Learning, on every Hinglish dictation:
   model produced ("Chahie" → "Chahiye", capitals kept).
 - Adopted habits apply to other Hindi words.
 
+## Words with two meanings (Mac prototype)
+
+In Learning, selecting an underlined *kam* shows **0 kam · less** and
+**1 kaam · work**. Tab moves to another underline. Enter pastes immediately
+with the wording in the editor. The five pairs are kam/kaam, kaha/kahan,
+din/deen, par/paar and pal/paal. English dictation uses its existing Review settings.
+
+For the selected word, the optional local checker compares the two readings
+within five words on either side, stopping at a sentence boundary. A small
+table gives common Hindi words their Devanagari forms for this comparison.
+Only the editor's Roman spelling is shown. A sparkle indicates a suggestion.
+Missing models, empty contexts and score gaps of at most one log unit leave
+the choices unmarked. The checker stays neutral for par/paar after it
+favored *par* even in “sadak paar karo”. A confirmed personal choice can
+still mark either form there.
+
+Choosing a different meaning or pressing 0 to confirm the current one
+teaches that phrase when you paste or copy. Enter alone skips the question.
+On recurrence, the right form needs no meaning prompt and the other form
+shows your previous answer as a hint. Matching uses up to two neighboring
+words on each side. The newest 128 fingerprints and chosen forms live in
+local preferences. A changed or ambiguous context can ask again.
+
+A pre-existing Always rule such as *kam → kaam* still applies. The optional
+**Suggest instead of Always** checkbox in Review switches that rule on
+paste or copy. The same entry can be switched back in Vocabulary → Your
+words. With **Suggest in Learning**, the engine's wording is available in
+both directions and the user chooses the reading in Review.
+
 ## Where it lives
 
 | Piece | File |

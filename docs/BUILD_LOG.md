@@ -1143,3 +1143,13 @@ spelling, then a broad Hinglish habit could reverse it. Keep a single Review
 choice per pair, skip identical writes, and protect saved written forms
 during style application. Regression tests reopen the dictionary and run
 the next dictation with the conflicting habit enabled.
+
+### Failure mode #50 — one spelling rule collapsed two different meanings
+
+A saved kam → kaam Always entry turns both words in “aaj kaam kam hai” into
+kaam. The broad short-A habit can also turn kaam into kam without a dictionary
+entry. Hinglish Learning now protects the five meaning pairs from that habit
+and offers both readings in the existing editor. A previous Always entry can
+be switched explicitly. The small local checker's first 20 synthetic examples
+included two wrong par/paar hints, both favoring par. The prototype shows a
+personal hint only for that pair and otherwise leaves both choices neutral.

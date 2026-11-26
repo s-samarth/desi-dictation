@@ -61,7 +61,6 @@ struct ReviewTextEditor: NSViewRepresentable {
             countUnderlines()
         }
 
-        /// The header's "N unsure words" follows the text.
         func countUnderlines() {
             guard let storage = textView?.textStorage else { return }
             var count = 0
@@ -79,6 +78,7 @@ struct ReviewTextEditor: NSViewRepresentable {
             var range = NSRange(location: 0, length: 0)
             guard storage.attribute(ReviewTextEditor.unsureKey, at: view.selectedRange().location,
                                     effectiveRange: &range) != nil else { return }
+            if let key = model.currentMeaning?.key { model.confirmedMeanings.insert(key) }
             storage.removeAttribute(ReviewTextEditor.unsureKey, range: range)
             storage.removeAttribute(.underlineStyle, range: range)
             storage.removeAttribute(.underlineColor, range: range)
@@ -90,6 +90,7 @@ struct ReviewTextEditor: NSViewRepresentable {
         func textViewDidChangeSelection(_ notification: Notification) {
             guard let view = textView, let storage = view.textStorage, storage.length > 0 else { return }
             let at = min(view.selectedRange().location, storage.length - 1)
+            model.selectedLocation = at
             model.currentIndex = storage.attribute(ReviewTextEditor.unsureKey, at: at, effectiveRange: nil) as? Int
         }
 
@@ -128,7 +129,8 @@ struct ReviewTextEditor: NSViewRepresentable {
         /// Replaces the selected unsure word with alternative `n` (0-based).
         func pick(_ n: Int) {
             guard let view = textView, let storage = view.textStorage,
-                  let index = model.currentIndex, n < model.request.unsure[index].alternatives.count else { return }
+                  view.selectedRange().location < storage.length, let index = model.currentIndex,
+                  model.request.unsure[index].alternatives.indices.contains(n) else { return }
             let word = model.request.unsure[index].alternatives[n]
             var range = NSRange(location: 0, length: 0)
             guard storage.attribute(ReviewTextEditor.unsureKey, at: view.selectedRange().location,
@@ -161,40 +163,5 @@ struct ReviewTextEditor: NSViewRepresentable {
             view.didChangeText()
             jump(forward: true, from: ns.location)
         }
-    }
-}
-
-/// Digits pick an alternative (0: looks right) while an unsure word is
-/// selected; otherwise they type.
-final class ReviewTextView: NSTextView {
-    static let plain: [NSAttributedString.Key: Any] = [
-        .font: NSFont.systemFont(ofSize: 15), .foregroundColor: NSColor.labelColor,
-    ]
-
-    static func attributed(_ request: ReviewRequest) -> NSAttributedString {
-        let out = NSMutableAttributedString(string: request.text, attributes: plain)
-        for (i, unsure) in request.unsure.enumerated() {
-            let range = NSRange(unsure.range, in: request.text)
-            out.addAttributes([
-                ReviewTextEditor.unsureKey: i,
-                .underlineStyle: NSUnderlineStyle.thick.rawValue | NSUnderlineStyle.patternDot.rawValue,
-                .underlineColor: Self.color(for: unsure.reason),
-            ], range: range)
-        }
-        ReviewSpellingMarks.mark(out, questions: request.unsure)
-        return out
-    }
-
-    override func keyDown(with event: NSEvent) {
-        if let chars = event.charactersIgnoringModifiers, chars.count == 1,
-           let digit = Int(chars), (0...ReviewAlternatives.limit).contains(digit),
-           event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty,
-           selectedRange().length > 0,
-           let coordinator = delegate as? ReviewTextEditor.Coordinator,
-           coordinator.model.currentIndex != nil {
-            digit == 0 ? coordinator.looksRight() : coordinator.pick(digit - 1)
-            return
-        }
-        super.keyDown(with: event)
     }
 }

@@ -4,6 +4,8 @@
 // `swift run desi-tests` → exit 0 means all green.
 import Foundation
 
+if CommandLine.arguments.contains("--meaning-sample") { exit(runMeaningModelSample()) }
+
 runDictionaryTests()
 runWordListTests()
 runStoreTests()
@@ -21,6 +23,7 @@ runReviewTests()
 runStrictnessTests()
 runHinglishLearningTests()
 MainActor.assumeIsolated {
+    runMeaningReviewTests()
     runReviewSpellingTests()
     runRepeatedLearningTests()
 }

@@ -51,6 +51,13 @@ enum UISnapshots {
         let hinglish = ReviewLayout.size(for: learningText, on: screen)
         shots.append(("review-learning", { AnyView(ReviewView(model: learningReview(), size: hinglish)) },
                       fitted(ReviewView(model: learningReview(), size: hinglish))))
+        let example = "Aaj kaam kam hai."
+        let request = ReviewRequest(text: example, unsure: HinglishMeanings.questions(in: example),
+                                    scope: .hinglish, offerWhenItFits: false, learning: true) { _ in }
+        let meaningModel = ReviewModel(request: request)
+        meaningModel.currentIndex = 0
+        let meaningView = ReviewView(model: meaningModel, size: ReviewLayout.size(for: example, on: screen))
+        shots.append(("review-meaning", { AnyView(meaningView) }, fitted(meaningView)))
         // Updates (UPDATES.md): the banner on a page, and the mic with its dot.
         let release = AppRelease(version: "0.8.0", dmg: URL(string: "https://example.com/u.dmg")!,
                                  checksum: URL(string: "https://example.com/u.dmg.sha256")!)
@@ -69,7 +76,8 @@ enum UISnapshots {
                 Image(nsImage: MenuBarIcon.image("mic", dot: true)).resizable().scaledToFit().frame(height: 64)
             }.padding(20))
         }, NSSize(width: 220, height: 110)))
-        render(shots, into: directory)
+        let only = ProcessInfo.processInfo.environment["DESI_UI_SHOT"]
+        render(shots.filter { only == nil || $0.0 == only }, into: directory)
     }
 
     typealias Shot = (String, () -> AnyView, NSSize)

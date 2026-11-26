@@ -68,6 +68,7 @@ public struct HinglishStyle: Equatable, Sendable {
               word.allSatisfy({ $0.isASCII }), !lexicon.isRealWord(word) else { return word }
         let styled = HinglishStyleRule.allCases.filter(rules.contains)
             .reduce(word) { $1.rewrite($0) ?? $0 }
-        return styled
+        // A vowel-length habit can change the meaning of kaam (work).
+        return HinglishMeanings.isMeaningChange(EditPair(heard: word, typed: styled)) ? word : styled
     }
 }
