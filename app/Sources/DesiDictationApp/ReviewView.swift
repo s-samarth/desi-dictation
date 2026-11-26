@@ -45,7 +45,9 @@ struct ReviewView: View {
     }
 
     @ViewBuilder private var alternatives: some View {
-        if let current = model.current {
+        if let current = model.current, let context = model.currentMeaning {
+            MeaningReviewRow(model: model, item: current, context: context).id(model.currentIndex)
+        } else if let current = model.current {
             HStack(spacing: 6) {
                 Text(Self.because(current.reason))
                     .font(.caption).foregroundStyle(.secondary)
@@ -87,6 +89,7 @@ struct ReviewView: View {
         case .suggested: return "Did you mean:"
         case .filler: return "Filler?"
         case .correction: return "You probably meant:"
+        case .meaning: return "Which meaning?"
         case .spelling: return "Your spelling? Leave it, or pick:"
         }
     }

@@ -7,7 +7,7 @@ extension ReviewTextView {
     static func color(for reason: UnsureWord.Reason) -> NSColor {
         switch reason {
         case .odd: return .systemPurple
-        case .spelling: return .systemBlue
+        case .spelling, .meaning: return .systemBlue
         default: return NSColor(Theme.accent)
         }
     }

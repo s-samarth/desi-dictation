@@ -21,6 +21,7 @@ extension DictationController {
         // its confidence underlines never go below Liberal's (Bindaas has none).
         let learning = mode == .hinglish && HinglishLearning.shared.isLearning
         let spellings = learning ? HinglishLearning.spellingWords(in: text, style: HinglishLearning.shared.style) : []
+        let meanings = learning ? HinglishLearning.shared.meaningChoices.questions(in: text) : []
         let strictness = learning && settings.reviewStrictness.onlyOdd ? ReviewStrictness.liberal : settings.reviewStrictness
         let modelPath = resolvedModelPath(for: mode) ?? ""
         let threshold = strictness.confidenceThreshold(forModel: modelPath)
@@ -29,8 +30,9 @@ extension DictationController {
         let scope = WordScope(mode: mode)
         let present: ([UnsureWord]) -> Void = { [weak self] unsure in
             controllerLog.info("review: \(unsure.count, privacy: .public) unsure words")
+            let items = HinglishMeanings.merge(ReviewPlanner.merge(unsure, spellings), questions: meanings)
             onReview(ReviewRequest(
-                text: text, unsure: ReviewPlanner.merge(unsure, spellings), scope: scope,
+                text: text, unsure: items, scope: scope,
                 offerWhenItFits: scope == .english && LlamaContextScorer.isAvailable,
                 learning: learning) { outcome in
                     switch outcome {

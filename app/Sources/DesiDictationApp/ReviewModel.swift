@@ -31,6 +31,7 @@ final class ReviewModel: ObservableObject {
         var id: String { "\(pair.heard)→\(pair.typed)" }
     }
 
+    let learningStore: HinglishLearning
     let request: ReviewRequest
     @Published private(set) var text: String
     /// Index into `request.unsure` of the word at the caret, if any.
@@ -42,6 +43,18 @@ final class ReviewModel: ObservableObject {
     /// Hinglish Learning: the user's answer per offered habit (nil: not yet).
     @Published var habitAnswers: [HinglishStyleRule: Bool] = [:]
     var survivingSpellings: () -> [String] = { [] }
+    var confirmedMeanings: Set<String> = []
+    @Published var contextualRuleIDs: Set<UUID> = []
+    var selectedLocation: Int?
+
+    var currentMeaning: MeaningContext? {
+        guard let original = current?.meaning else { return nil }
+        if text == request.text { return original }
+        guard let selectedLocation else { return nil }
+        return HinglishMeanings.questions(in: text).first {
+            NSLocationInRange(selectedLocation, NSRange($0.range, in: text))
+        }?.meaning
+    }
     private var finished = false
     /// Set by the panel: hides it before the paste goes out.
     var onClose: (() -> Void)?
@@ -50,7 +63,8 @@ final class ReviewModel: ObservableObject {
     /// Set by the text view: drop the underline of the selected word, unchanged.
     var looksRight: (() -> Void)?
 
-    init(request: ReviewRequest) {
+    init(request: ReviewRequest, learningStore: HinglishLearning? = nil) {
+        self.learningStore = learningStore ?? .shared
         self.request = request
         self.text = request.text
         self.remaining = request.unsure.count
@@ -76,13 +90,17 @@ final class ReviewModel: ObservableObject {
 
     /// Habits these fixes (and earlier ones) show, offered as rules.
     var habits: [HinglishStyleRule] {
-        request.scope == .hinglish ? HinglishLearning.shared.habits(in: kept) : []
+        request.scope == .hinglish ? learningStore.habits(in: kept) : []
     }
 
     func textChanged(_ new: String) {
         text = new
         let previous = Dictionary(fixes.map { ($0.id, $0.keep) }, uniquingKeysWith: { a, _ in a })
-        fixes = ReviewPlanner.fixes(from: request.text, to: new).map { pair in
+        // A meaning choice applies to its sentence. Keep it out of the
+        // global Always picker and spelling-habit evidence.
+        fixes = ReviewPlanner.fixes(from: request.text, to: new).filter {
+            !request.learning || !HinglishMeanings.isMeaningChange($0)
+        }.map { pair in
             var fix = Fix(pair: pair, keep: defaultKeep)
             fix.keep = previous[fix.id] ?? defaultKeep
             return fix
@@ -101,8 +119,15 @@ final class ReviewModel: ObservableObject {
         finished = true
         if ending != .discard {
             ReviewPlanner.remember(fixes.map { ($0.pair, $0.keep.mode) }, scope: request.scope)
+            for entry in PersonalDictionary.shared.entries where contextualRuleIDs.contains(entry.id) {
+                PersonalDictionary.shared.setMode(.whenItFits, for: entry)
+            }
+            if request.learning, text != request.text || !confirmedMeanings.isEmpty {
+                learningStore.meaningChoices.remember(
+                    original: request.text, final: text, confirmed: confirmedMeanings)
+            }
             if request.scope == .hinglish {
-                HinglishLearning.shared.finish(
+                learningStore.finish(
                     unchangedSpellings: survivingSpellings(), edited: text != request.text,
                     changes: fixes.map(\.pair), kept: kept,
                     adopt: habits.filter { habitAnswers[$0] == true },

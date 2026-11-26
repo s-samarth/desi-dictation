@@ -15,6 +15,10 @@ enum ReviewDemo {
 
     static func run() {
         setvbuf(stdout, nil, _IONBF, 0)
+        if ProcessInfo.processInfo.environment["DESI_REVIEW_DEMO"] == "meaning-keys" {
+            MeaningKeyboardCheck.run()
+            return
+        }
         ReviewCoordinator.shared.start()
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) { show() }
     }

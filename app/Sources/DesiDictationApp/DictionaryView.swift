@@ -31,7 +31,13 @@ struct DictionarySettings: View {
                         .foregroundStyle(.tertiary)
                     Text(entry.written).fontWeight(.medium)
                     Spacer()
-                    if entry.scope == .english, ContextChecker.isReady || entry.mode == .whenItFits {
+                    if entry.scope == .hinglish, HinglishMeanings.isMeaningChange(EditPair(heard: entry.heard, typed: entry.written)) {
+                        Picker("Meaning choice", selection: Binding(get: { entry.mode },
+                            set: { dictionary.setMode($0, for: entry) })) {
+                            Text("Always").tag(EntryMode.always)
+                            Text("Suggest in Learning").tag(EntryMode.whenItFits)
+                        }.labelsHidden().fixedSize()
+                    } else if entry.scope == .english, ContextChecker.isReady || entry.mode == .whenItFits {
                         Picker("", selection: Binding(get: { entry.mode },
                                                       set: { dictionary.setMode($0, for: entry) })) {
                             ForEach(EntryMode.allCases, id: \.self) { Text($0.label).tag($0) }

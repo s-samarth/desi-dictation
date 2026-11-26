@@ -271,6 +271,12 @@ first version that has it; to get that one, update the old way, once.
   Qwen3-ASR (Accurate English), which reports no per-word confidence, only
   odd-in-context words (checker installed) and sound-alikes of your words
   are underlined.
+- **Two Hinglish meanings.** In the Learning editor, select the underline in
+  *mera kam baaki hai*. Press **1** for *kaam · work*, **0** to confirm
+  *kam · less*, or **Enter** to paste what you see. A sparkle marks the
+  suggested reading. Choosing a reading can help the next time the same
+  phrase comes up. If an existing Always rule forces the same spelling
+  everywhere, **Suggest instead of Always** switches it as you finish Review.
 - **Your edit wins:** if it auto-fixed a word and you change it back, the
   popup says "Got it" and that fix is never made again.
 - **Near-miss suggestions, never fixes (2026-10-29):** "Saraswath" when the

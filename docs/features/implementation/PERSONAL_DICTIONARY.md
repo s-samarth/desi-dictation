@@ -26,6 +26,11 @@ competitors/PATTERNS.md §1 ("the only serious app without it — overdue").
   Always entries; When it fits entries (English) are judged per sentence by
   [CONTEXT_FIT.md](CONTEXT_FIT.md). The picker shows on English rows once the
   context checker is downloaded.
+- **Suggest in Learning (Hinglish meaning pairs).** The Vocabulary picker and
+  Learning review can switch an existing pair such as kam → kaam to
+  `.whenItFits` on the same dictionary entry. The Hinglish review offers the
+  two meanings. Confirmations are stored separately from Always entries.
+  See [Hinglish Learning](HINGLISH_LEARNING.md).
 - **Right-click anywhere:** a non-AI Services entry, "Always write as… (Desi
   Dictation)" (`ServiceProvider.alwaysWriteAs`), opens `AddDictionaryEntrySheet`
   prefilled with the selection in a small floating window. `build_app.sh`
